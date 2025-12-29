@@ -120,6 +120,7 @@ export type Database = {
           correct_label: string
           created_at: string
           difficulty: string
+          exam_type: string
           id: string
           is_active: boolean
           options: Json
@@ -133,6 +134,7 @@ export type Database = {
           correct_label: string
           created_at?: string
           difficulty?: string
+          exam_type?: string
           id?: string
           is_active?: boolean
           options: Json
@@ -146,6 +148,7 @@ export type Database = {
           correct_label?: string
           created_at?: string
           difficulty?: string
+          exam_type?: string
           id?: string
           is_active?: boolean
           options?: Json
