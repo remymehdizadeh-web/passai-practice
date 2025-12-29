@@ -77,70 +77,63 @@ export function QuestionCard({
   };
 
   return (
-    <div className="card-glass p-6 animate-fade-in">
+    <div className="bg-card border border-border rounded-2xl p-5 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <span className={cn(
-            'text-xs font-medium px-3 py-1.5 rounded-full border',
-            getDifficultyColor(question.difficulty)
-          )}>
-            {question.category}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between mb-4">
+        <span className={cn(
+          'text-xs font-medium px-2.5 py-1 rounded-md border',
+          getDifficultyColor(question.difficulty)
+        )}>
+          {question.category}
+        </span>
+        <div className="flex items-center gap-0.5">
           <button
             onClick={onBookmark}
             className={cn(
-              'p-2.5 rounded-xl transition-all duration-150',
+              'p-2 rounded-lg transition-colors duration-150',
               isBookmarked 
-                ? 'text-accent bg-accent/10' 
+                ? 'text-primary bg-primary/10' 
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
-            <Bookmark className={cn('w-5 h-5', isBookmarked && 'fill-current')} />
+            <Bookmark className={cn('w-4 h-4', isBookmarked && 'fill-current')} />
           </button>
           <button
             onClick={onReport}
-            className="p-2.5 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-150"
+            className="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-150"
           >
-            <Flag className="w-5 h-5" />
+            <Flag className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Question counter */}
-      <p className="text-xs text-muted-foreground mb-4 font-mono-custom">
-        Question {questionNumber} of {totalQuestions}
-      </p>
-
       {/* Question Stem */}
-      <p className="text-foreground text-stem text-base mb-7">
+      <p className="text-foreground text-[15px] leading-relaxed mb-6">
         {question.stem}
       </p>
 
       {/* Options */}
-      <div className="space-y-3 mb-7">
+      <div className="space-y-2.5 mb-6">
         {question.options.map((option) => (
           <button
             key={option.label}
             onClick={() => !isSubmitted && setLocalSelected(option.label)}
             disabled={isSubmitted}
             className={cn(
-              'w-full text-left p-4 rounded-xl border flex items-start gap-3.5 transition-all duration-150',
+              'w-full text-left p-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150',
               getOptionClass(option.label),
-              !isSubmitted && 'hover:border-accent/40 cursor-pointer active:scale-[0.995]'
+              !isSubmitted && 'hover:border-primary/30 cursor-pointer active:scale-[0.998]'
             )}
           >
             <span className={cn(
-              'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0 transition-colors duration-150',
+              'w-7 h-7 rounded-md flex items-center justify-center text-xs font-semibold shrink-0 transition-colors duration-150',
               currentSelected === option.label
-                ? 'bg-accent text-accent-foreground'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
             )}>
               {option.label}
             </span>
-            <span className="flex-1 pt-1 text-option">{option.text}</span>
+            <span className="flex-1 pt-0.5 text-sm">{option.text}</span>
             {getOptionIcon(option.label)}
           </button>
         ))}
@@ -149,13 +142,13 @@ export function QuestionCard({
       {/* Submit Button */}
       {!isSubmitted && (
         <Button
-          variant="hero"
+          variant="default"
           size="lg"
           onClick={() => localSelected && onSubmit(localSelected)}
           disabled={!localSelected}
           className="w-full"
         >
-          Submit Answer
+          Submit
         </Button>
       )}
     </div>

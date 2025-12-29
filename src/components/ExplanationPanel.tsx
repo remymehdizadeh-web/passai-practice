@@ -19,36 +19,31 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   );
 
   return (
-    <div className="animate-fade-in space-y-4 mt-5">
+    <div className="animate-fade-in space-y-4 mt-4">
       {/* Result Banner */}
       <div 
         className={cn(
           'p-4 rounded-xl flex items-center gap-3 border',
           isCorrect 
-            ? 'border-success/20' 
-            : 'border-destructive/20'
+            ? 'border-success/20 bg-success/5' 
+            : 'border-destructive/20 bg-destructive/5'
         )}
-        style={{
-          backgroundColor: isCorrect 
-            ? 'hsl(var(--success) / 0.1)' 
-            : 'hsl(var(--destructive) / 0.1)'
-        }}
       >
         {isCorrect ? (
-          <CheckCircle2 className="w-6 h-6 text-success shrink-0" />
+          <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
         ) : (
-          <XCircle className="w-6 h-6 text-destructive shrink-0" />
+          <XCircle className="w-5 h-5 text-destructive shrink-0" />
         )}
         <div>
           <p className={cn(
-            'font-semibold',
+            'font-medium text-sm',
             isCorrect ? 'text-success' : 'text-destructive'
           )}>
-            {isCorrect ? 'Correct!' : 'Incorrect'}
+            {isCorrect ? 'Correct' : 'Incorrect'}
           </p>
           {!isCorrect && (
-            <p className="text-sm text-muted-foreground">
-              You selected {selectedLabel}. The correct answer is {question.correct_label}.
+            <p className="text-xs text-muted-foreground">
+              The correct answer is {question.correct_label}.
             </p>
           )}
         </div>
@@ -56,46 +51,38 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
 
       {/* Why incorrect (if wrong) */}
       {!isCorrect && wrongExplanation && (
-        <div 
-          className="p-4 rounded-xl border border-destructive/15"
-          style={{ backgroundColor: 'hsl(var(--destructive) / 0.05)' }}
-        >
-          <p className="text-sm font-medium text-destructive mb-1">
-            Why {selectedLabel} is incorrect:
+        <div className="p-4 rounded-xl border border-border bg-muted/30">
+          <p className="text-xs font-medium text-muted-foreground mb-1">
+            Why {selectedLabel} is incorrect
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground">
             {wrongExplanation.why_wrong}
           </p>
         </div>
       )}
 
       {/* Correct Answer Explanation */}
-      <div className="card-glass p-5">
-        <p className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" />
-          Correct Answer: {question.correct_label}. {correctOption?.text}
+      <div className="bg-card border border-border rounded-xl p-5">
+        <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-success" />
+          {question.correct_label}. {correctOption?.text}
         </p>
         
         {/* Rationale Bullets */}
-        <ul className="space-y-2.5 mb-5">
+        <ul className="space-y-2 mb-4">
           {question.rationale_bullets.slice(0, 5).map((bullet, index) => (
-            <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
-              <span className="text-option">{bullet}</span>
+            <li key={index} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40 mt-2 shrink-0" />
+              <span>{bullet}</span>
             </li>
           ))}
         </ul>
 
         {/* Key Takeaway */}
-        <div 
-          className="p-4 rounded-xl border border-accent/15 flex items-start gap-3"
-          style={{ backgroundColor: 'hsl(var(--accent) / 0.06)' }}
-        >
-          <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
-            <Lightbulb className="w-4 h-4 text-accent" />
-          </div>
+        <div className="p-3.5 rounded-lg border border-border bg-muted/30 flex items-start gap-3">
+          <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-1">
+            <p className="text-xs font-medium text-muted-foreground mb-0.5">
               Key Takeaway
             </p>
             <p className="text-sm text-foreground">
@@ -107,13 +94,13 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
 
       {/* Next Button */}
       <Button
-        variant="hero"
+        variant="default"
         size="lg"
         onClick={onNext}
         className="w-full"
       >
         Next Question
-        <ChevronRight className="w-5 h-5" />
+        <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
     </div>
   );
