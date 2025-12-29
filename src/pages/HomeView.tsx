@@ -4,6 +4,7 @@ import { useProfile, calculateDaysUntilExam } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { ExamDateModal } from '@/components/ExamDateModal';
 import { Button } from '@/components/ui/button';
+import { getPoints } from '@/lib/points';
 import { 
   Play, 
   Target, 
@@ -14,13 +15,16 @@ import {
   Flame,
   Calendar,
   Trophy,
-  LogIn
+  LogIn,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
+type ReviewFilter = 'bookmarked' | 'missed';
+
 interface HomeViewProps {
-  onNavigate: (tab: 'practice' | 'review' | 'settings') => void;
+  onNavigate: (tab: 'practice' | 'review' | 'settings', filter?: ReviewFilter) => void;
 }
 
 export function HomeView({ onNavigate }: HomeViewProps) {
@@ -66,9 +70,10 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       }))
       .sort((a, b) => a.accuracy - b.accuracy);
 
-    // Readiness score (weighted average of accuracy and completion)
+    // Readiness score based primarily on accuracy
+    // Weight accuracy heavily - 8% accuracy should not show 42% ready
     const readinessScore = answeredCount >= 5 
-      ? Math.round((accuracy * 0.7) + (completionRate * 0.3))
+      ? Math.round((accuracy * 0.85) + (completionRate * 0.15))
       : null;
 
     return {
@@ -81,6 +86,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       missedCount: missedQuestions?.length || 0,
       categoryMastery,
       readinessScore,
+      totalPoints: getPoints(),
     };
   }, [questions, progress, bookmarks, missedQuestions]);
 
@@ -201,24 +207,37 @@ export function HomeView({ onNavigate }: HomeViewProps) {
         </div>
       )}
 
+      {/* Points Display */}
+      {stats.totalPoints > 0 && (
+        <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-emerald-500 fill-emerald-500" />
+              <span className="text-sm font-medium text-foreground">Total Points</span>
+            </div>
+            <span className="text-2xl font-bold text-emerald-500">{stats.totalPoints.toLocaleString()}</span>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <button
           onClick={() => onNavigate('practice')}
-          className="bg-primary text-primary-foreground rounded-xl p-4 text-left hover:bg-primary/90 transition-colors"
+          className="bg-primary text-primary-foreground rounded-xl p-4 text-left hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20"
         >
-          <Play className="w-5 h-5 mb-2" />
-          <p className="text-sm font-medium">Practice</p>
-          <p className="text-xs opacity-80">{stats.totalQuestions - stats.answeredCount} remaining</p>
+          <Play className="w-6 h-6 mb-2" />
+          <p className="font-semibold">Practice</p>
+          <p className="text-sm opacity-80">{stats.totalQuestions - stats.answeredCount} remaining</p>
         </button>
         
         <button
-          onClick={() => onNavigate('review')}
-          className="bg-card border border-border rounded-xl p-4 text-left hover:bg-muted/30 transition-colors"
+          onClick={() => onNavigate('review', 'missed')}
+          className="bg-card border-2 border-destructive/20 rounded-xl p-4 text-left hover:bg-destructive/5 transition-all active:scale-[0.98]"
         >
-          <AlertCircle className="w-5 h-5 mb-2 text-destructive" />
-          <p className="text-sm font-medium text-foreground">Missed</p>
-          <p className="text-xs text-muted-foreground">{stats.missedCount} to review</p>
+          <AlertCircle className="w-6 h-6 mb-2 text-destructive" />
+          <p className="font-semibold text-foreground">Missed</p>
+          <p className="text-sm text-muted-foreground">{stats.missedCount} to review</p>
         </button>
       </div>
 
@@ -288,8 +307,8 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       {/* Bookmarks */}
       {stats.bookmarkCount > 0 && (
         <button
-          onClick={() => onNavigate('review')}
-          className="w-full bg-card border border-border rounded-xl p-4 mt-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
+          onClick={() => onNavigate('review', 'bookmarked')}
+          className="w-full bg-card border border-border rounded-xl p-4 mt-4 flex items-center gap-3 hover:bg-muted/30 transition-colors active:scale-[0.98]"
         >
           <Bookmark className="w-5 h-5 text-primary" />
           <div className="flex-1 text-left">

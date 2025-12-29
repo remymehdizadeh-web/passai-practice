@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown, Sparkles, Star } from 'lucide-react';
+import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown, Sparkles, Star, Zap, Clock } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 
@@ -10,9 +10,19 @@ interface ExplanationPanelProps {
   onNext: () => void;
   pointsEarned?: number;
   streak?: number;
+  timeBonus?: number;
+  streakBonus?: number;
 }
 
-export function ExplanationPanel({ question, selectedLabel, onNext, pointsEarned = 10, streak = 1 }: ExplanationPanelProps) {
+export function ExplanationPanel({ 
+  question, 
+  selectedLabel, 
+  onNext, 
+  pointsEarned = 100, 
+  streak = 1,
+  timeBonus = 0,
+  streakBonus = 0
+}: ExplanationPanelProps) {
   const isCorrect = selectedLabel === question.correct_label;
   const correctOption = question.options.find(o => o.label === question.correct_label);
   const [showExplanation, setShowExplanation] = useState(isCorrect);
@@ -26,13 +36,12 @@ export function ExplanationPanel({ question, selectedLabel, onNext, pointsEarned
   useEffect(() => {
     if (isCorrect) {
       setShowCelebration(true);
-      const timer = setTimeout(() => setShowCelebration(false), 2000);
+      const timer = setTimeout(() => setShowCelebration(false), 2500);
       return () => clearTimeout(timer);
     }
   }, [isCorrect]);
 
-  const bonusPoints = streak >= 3 ? Math.floor(pointsEarned * 0.5) : 0;
-  const totalPoints = pointsEarned + bonusPoints;
+  const totalPoints = pointsEarned + timeBonus + streakBonus;
 
   return (
     <div className="animate-fade-in space-y-3 mt-4">
@@ -58,24 +67,34 @@ export function ExplanationPanel({ question, selectedLabel, onNext, pointsEarned
           )}
           
           <div className="relative z-10 text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <CheckCircle2 className="w-6 h-6 text-success" />
-              <span className="text-lg font-bold text-success">Correct!</span>
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <CheckCircle2 className="w-7 h-7 text-success" />
+              <span className="text-xl font-bold text-success">Correct!</span>
             </div>
             
-            {/* Points earned */}
-            <div className="flex items-center justify-center gap-3">
-              <div className="bg-success/20 px-4 py-2 rounded-full">
-                <span className="text-success font-bold text-lg">+{pointsEarned}</span>
-                <span className="text-success/80 text-sm ml-1">pts</span>
+            {/* Points breakdown */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="bg-emerald-500/20 px-4 py-2 rounded-full flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-emerald-500 fill-emerald-500" />
+                <span className="text-emerald-500 font-bold text-lg">+{pointsEarned}</span>
               </div>
-              {bonusPoints > 0 && (
-                <div className="bg-primary/20 px-3 py-2 rounded-full">
-                  <span className="text-primary font-bold">+{bonusPoints}</span>
-                  <span className="text-primary/80 text-xs ml-1">streak bonus</span>
+              {timeBonus > 0 && (
+                <div className="bg-blue-500/20 px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-blue-500 font-semibold text-sm">+{timeBonus}</span>
+                </div>
+              )}
+              {streakBonus > 0 && (
+                <div className="bg-orange-500/20 px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <span className="text-orange-500 font-semibold text-sm">🔥 +{streakBonus}</span>
                 </div>
               )}
             </div>
+            {totalPoints > pointsEarned && (
+              <p className="text-sm text-success/80 mt-2 font-medium">
+                Total: +{totalPoints} points!
+              </p>
+            )}
           </div>
         </div>
       )}

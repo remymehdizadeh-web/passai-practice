@@ -11,7 +11,7 @@ import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUs
 import { useProfile, useUpdateStreak } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions } from '@/lib/session';
-import { getPoints, addPoints, getCorrectStreak, incrementStreak, resetStreak, calculatePointsEarned } from '@/lib/points';
+import { getPoints, addPoints, getCorrectStreak, incrementStreak, resetStreak, calculatePointsEarned, startAnswerTimer } from '@/lib/points';
 import { Loader2 } from 'lucide-react';
 
 export function PracticeView() {
@@ -33,7 +33,7 @@ export function PracticeView() {
   const [hasUpdatedStreak, setHasUpdatedStreak] = useState(false);
   const [totalPoints, setTotalPoints] = useState(getPoints());
   const [currentStreak, setCurrentStreak] = useState(getCorrectStreak());
-  const [lastPointsEarned, setLastPointsEarned] = useState({ base: 0, bonus: 0, total: 0 });
+  const [lastPointsEarned, setLastPointsEarned] = useState({ base: 0, timeBonus: 0, streakBonus: 0, total: 0, answerTime: 0 });
 
   // Update streak when user answers first question of the day
   useEffect(() => {
@@ -42,6 +42,13 @@ export function PracticeView() {
       setHasUpdatedStreak(true);
     }
   }, [user, isSubmitted, hasUpdatedStreak, updateStreak]);
+
+  // Start timer when a new question loads
+  useEffect(() => {
+    if (!isSubmitted) {
+      startAnswerTimer();
+    }
+  }, [currentIndex, isSubmitted]);
 
   // Get prioritized questions based on weak categories
   const prioritizedQuestions = useMemo(() => {
@@ -103,7 +110,7 @@ export function PracticeView() {
     } else {
       resetStreak();
       setCurrentStreak(0);
-      setLastPointsEarned({ base: 0, bonus: 0, total: 0 });
+      setLastPointsEarned({ base: 0, timeBonus: 0, streakBonus: 0, total: 0, answerTime: 0 });
     }
 
     await recordProgress.mutateAsync({
@@ -222,6 +229,8 @@ export function PracticeView() {
           onNext={handleNext}
           pointsEarned={lastPointsEarned.base}
           streak={currentStreak}
+          timeBonus={lastPointsEarned.timeBonus}
+          streakBonus={lastPointsEarned.streakBonus}
         />
       )}
 

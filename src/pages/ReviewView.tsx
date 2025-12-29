@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBookmarks, useMissedQuestions, useToggleBookmark } from '@/hooks/useQuestions';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
@@ -9,16 +9,25 @@ import { cn } from '@/lib/utils';
 
 type FilterType = 'bookmarked' | 'missed';
 
-export function ReviewView() {
+interface ReviewViewProps {
+  initialFilter?: FilterType;
+}
+
+export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const { data: bookmarks, isLoading: loadingBookmarks } = useBookmarks();
   const { data: missedQuestions, isLoading: loadingMissed } = useMissedQuestions();
   const toggleBookmark = useToggleBookmark();
 
-  const [filter, setFilter] = useState<FilterType>('bookmarked');
+  const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
+
+  // Sync with initialFilter when it changes (e.g., from HomeView navigation)
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
 
   const isLoading = loadingBookmarks || loadingMissed;
 
