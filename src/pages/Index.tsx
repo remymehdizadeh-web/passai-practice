@@ -7,7 +7,7 @@ import { ReviewView } from '@/pages/ReviewView';
 import { SettingsView } from '@/pages/SettingsView';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { Helmet } from 'react-helmet';
-import logoIcon from '@/assets/logo-icon.png';
+
 
 type Tab = 'home' | 'practice' | 'review' | 'settings';
 type ReviewFilter = 'bookmarked' | 'missed';
@@ -49,17 +49,7 @@ const Index = () => {
       </Helmet>
       
       <div className="min-h-screen bg-background">
-        {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-center">
-            <div className="flex items-center gap-2">
-              <img src={logoIcon} alt="NCLEX RN Pro" className="w-8 h-8 rounded-lg" />
-              <span className="font-semibold text-foreground">NCLEX RN Pro</span>
-            </div>
-          </div>
-        </header>
-
-        <main className="max-w-lg mx-auto px-4 pt-4 pb-20">
+        <main className="max-w-lg mx-auto px-4 pt-6 pb-20">
           {activeTab === 'home' && <HomeView onNavigate={handleNavigate} />}
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}

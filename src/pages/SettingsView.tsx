@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserProgress } from '@/hooks/useQuestions';
 import { ExamDateModal } from '@/components/ExamDateModal';
+import logoIcon from '@/assets/logo-icon.png';
 import { 
   User, 
   Calendar, 
@@ -14,10 +15,12 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
-  Shield
+  Shield,
+  RotateCcw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { clearProgress } from '@/lib/session';
 
 export function SettingsView() {
   const { user, signOut } = useAuth();
@@ -30,6 +33,13 @@ export function SettingsView() {
     toast.success('Signed out successfully');
   };
 
+  const handleResetProgress = () => {
+    if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+      clearProgress();
+      window.location.reload();
+    }
+  };
+
   const totalAnswered = progress?.length || 0;
   const correctAnswers = progress?.filter(p => p.is_correct).length || 0;
   const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
@@ -40,10 +50,13 @@ export function SettingsView() {
 
   return (
     <div className="pb-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+      {/* App Branding */}
+      <div className="flex items-center gap-3">
+        <img src={logoIcon} alt="NCLEX RN Pro" className="w-12 h-12 rounded-xl shadow-lg" />
+        <div>
+          <h1 className="text-xl font-bold text-foreground">NCLEX RN Pro</h1>
+          <p className="text-sm text-muted-foreground">Settings & Account</p>
+        </div>
       </div>
 
       {/* Profile Card */}
@@ -135,6 +148,14 @@ export function SettingsView() {
           label="Privacy Policy" 
           description="How we protect your data"
           onClick={() => toast.info('Coming soon!')}
+        />
+        <SettingsItem 
+          icon={RotateCcw} 
+          label="Reset Progress" 
+          description="Clear all your data"
+          iconBg="bg-destructive/10"
+          iconColor="text-destructive"
+          onClick={handleResetProgress}
         />
       </div>
 
