@@ -37,7 +37,7 @@ export function QuestionCard({
       case 'hard':
         return 'text-destructive bg-destructive/10 border-destructive/20';
       default:
-        return 'text-muted-foreground bg-muted/50 border-border';
+        return 'text-muted-foreground bg-muted/60 border-border';
     }
   };
 
@@ -92,17 +92,17 @@ export function QuestionCard({
           <button
             onClick={onBookmark}
             className={cn(
-              'p-2.5 rounded-xl transition-all duration-200',
+              'p-2.5 rounded-xl transition-all duration-150',
               isBookmarked 
-                ? 'text-primary bg-primary/10' 
-                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                ? 'text-accent bg-accent/10' 
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
             <Bookmark className={cn('w-5 h-5', isBookmarked && 'fill-current')} />
           </button>
           <button
             onClick={onReport}
-            className="p-2.5 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200"
+            className="p-2.5 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-150"
           >
             <Flag className="w-5 h-5" />
           </button>
@@ -110,7 +110,7 @@ export function QuestionCard({
       </div>
 
       {/* Question counter */}
-      <p className="text-xs text-muted-foreground mb-4">
+      <p className="text-xs text-muted-foreground mb-4 font-mono-custom">
         Question {questionNumber} of {totalQuestions}
       </p>
 
@@ -127,15 +127,15 @@ export function QuestionCard({
             onClick={() => !isSubmitted && setLocalSelected(option.label)}
             disabled={isSubmitted}
             className={cn(
-              'w-full text-left p-4 rounded-2xl border flex items-start gap-3 transition-all duration-200',
+              'w-full text-left p-4 rounded-xl border flex items-start gap-3.5 transition-all duration-150',
               getOptionClass(option.label),
-              !isSubmitted && 'hover:border-muted-foreground/30 cursor-pointer active:scale-[0.99]'
+              !isSubmitted && 'hover:border-accent/40 cursor-pointer active:scale-[0.995]'
             )}
           >
             <span className={cn(
-              'w-8 h-8 rounded-xl flex items-center justify-center text-sm font-semibold shrink-0 transition-colors duration-200',
+              'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0 transition-colors duration-150',
               currentSelected === option.label
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-accent text-accent-foreground'
                 : 'bg-muted text-muted-foreground'
             )}>
               {option.label}

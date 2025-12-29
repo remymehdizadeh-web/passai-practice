@@ -11,7 +11,6 @@ interface ExplanationPanelProps {
 
 export function ExplanationPanel({ question, selectedLabel, onNext }: ExplanationPanelProps) {
   const isCorrect = selectedLabel === question.correct_label;
-  const selectedOption = question.options.find(o => o.label === selectedLabel);
   const correctOption = question.options.find(o => o.label === question.correct_label);
 
   // Find the wrong option explanation for the selected answer
@@ -22,17 +21,18 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   return (
     <div className="animate-fade-in space-y-4 mt-5">
       {/* Result Banner */}
-      <div className={cn(
-        'p-4 rounded-2xl flex items-center gap-3',
-        isCorrect 
-          ? 'bg-success/8 border border-success/20' 
-          : 'bg-destructive/8 border border-destructive/20'
-      )}
-      style={{
-        backgroundColor: isCorrect 
-          ? 'hsl(var(--success) / 0.08)' 
-          : 'hsl(var(--destructive) / 0.08)'
-      }}
+      <div 
+        className={cn(
+          'p-4 rounded-xl flex items-center gap-3 border',
+          isCorrect 
+            ? 'border-success/20' 
+            : 'border-destructive/20'
+        )}
+        style={{
+          backgroundColor: isCorrect 
+            ? 'hsl(var(--success) / 0.1)' 
+            : 'hsl(var(--destructive) / 0.1)'
+        }}
       >
         {isCorrect ? (
           <CheckCircle2 className="w-6 h-6 text-success shrink-0" />
@@ -57,7 +57,7 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       {/* Why incorrect (if wrong) */}
       {!isCorrect && wrongExplanation && (
         <div 
-          className="p-4 rounded-2xl border border-destructive/15"
+          className="p-4 rounded-xl border border-destructive/15"
           style={{ backgroundColor: 'hsl(var(--destructive) / 0.05)' }}
         >
           <p className="text-sm font-medium text-destructive mb-1">
@@ -80,22 +80,22 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         <ul className="space-y-2.5 mb-5">
           {question.rationale_bullets.slice(0, 5).map((bullet, index) => (
             <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
               <span className="text-option">{bullet}</span>
             </li>
           ))}
         </ul>
 
-        {/* Key Takeaway Box */}
+        {/* Key Takeaway */}
         <div 
-          className="p-4 rounded-xl border border-primary/15 flex items-start gap-3"
-          style={{ backgroundColor: 'hsl(var(--primary) / 0.05)' }}
+          className="p-4 rounded-xl border border-accent/15 flex items-start gap-3"
+          style={{ backgroundColor: 'hsl(var(--accent) / 0.06)' }}
         >
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Lightbulb className="w-4 h-4 text-primary" />
+          <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+            <Lightbulb className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">
+            <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-1">
               Key Takeaway
             </p>
             <p className="text-sm text-foreground">

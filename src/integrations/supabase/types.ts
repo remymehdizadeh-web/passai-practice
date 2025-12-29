@@ -78,6 +78,39 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          last_study_date: string | null
+          streak_days: number | null
+          study_goal_daily: number | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          last_study_date?: string | null
+          streak_days?: number | null
+          study_goal_daily?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          last_study_date?: string | null
+          streak_days?: number | null
+          study_goal_daily?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       questions: {
         Row: {
           category: string
