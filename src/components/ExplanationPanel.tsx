@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown } from 'lucide-react';
+import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown, Sparkles, Star } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 
@@ -8,60 +8,92 @@ interface ExplanationPanelProps {
   question: Question;
   selectedLabel: string;
   onNext: () => void;
+  pointsEarned?: number;
+  streak?: number;
 }
 
-export function ExplanationPanel({ question, selectedLabel, onNext }: ExplanationPanelProps) {
+export function ExplanationPanel({ question, selectedLabel, onNext, pointsEarned = 10, streak = 1 }: ExplanationPanelProps) {
   const isCorrect = selectedLabel === question.correct_label;
   const correctOption = question.options.find(o => o.label === question.correct_label);
-  const [showExplanation, setShowExplanation] = useState(isCorrect); // Auto-show if correct
+  const [showExplanation, setShowExplanation] = useState(isCorrect);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const wrongExplanation = question.wrong_option_bullets?.find(
     w => w.label === selectedLabel
   );
 
+  // Trigger celebration animation for correct answers
+  useEffect(() => {
+    if (isCorrect) {
+      setShowCelebration(true);
+      const timer = setTimeout(() => setShowCelebration(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isCorrect]);
+
+  const bonusPoints = streak >= 3 ? Math.floor(pointsEarned * 0.5) : 0;
+  const totalPoints = pointsEarned + bonusPoints;
+
   return (
     <div className="animate-fade-in space-y-3 mt-4">
-      {/* Result Banner */}
-      <div 
-        className={cn(
-          'p-4 rounded-xl flex items-center justify-between border',
-          isCorrect 
-            ? 'border-success/20 bg-success/5' 
-            : 'border-destructive/20 bg-destructive/5'
-        )}
-      >
-        <div className="flex items-center gap-3">
-          {isCorrect ? (
-            <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-          ) : (
-            <XCircle className="w-5 h-5 text-destructive shrink-0" />
+      {/* Correct Answer Celebration */}
+      {isCorrect && (
+        <div className="relative overflow-hidden p-5 rounded-xl bg-gradient-to-br from-success/20 via-success/10 to-success/5 border border-success/30">
+          {/* Floating particles animation */}
+          {showCelebration && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-2 left-4 animate-bounce delay-100">
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              </div>
+              <div className="absolute top-4 right-6 animate-bounce delay-200">
+                <Sparkles className="w-5 h-5 text-success" />
+              </div>
+              <div className="absolute bottom-3 left-8 animate-bounce delay-300">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+              </div>
+              <div className="absolute top-3 left-1/2 animate-bounce">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+            </div>
           )}
-          <div>
-            <p className={cn(
-              'font-medium text-sm',
-              isCorrect ? 'text-success' : 'text-destructive'
-            )}>
-              {isCorrect ? 'Correct!' : 'Incorrect'}
-            </p>
-            {!isCorrect && (
-              <p className="text-xs text-muted-foreground">
-                Correct: {question.correct_label}
-              </p>
-            )}
+          
+          <div className="relative z-10 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <CheckCircle2 className="w-6 h-6 text-success" />
+              <span className="text-lg font-bold text-success">Correct!</span>
+            </div>
+            
+            {/* Points earned */}
+            <div className="flex items-center justify-center gap-3">
+              <div className="bg-success/20 px-4 py-2 rounded-full">
+                <span className="text-success font-bold text-lg">+{pointsEarned}</span>
+                <span className="text-success/80 text-sm ml-1">pts</span>
+              </div>
+              {bonusPoints > 0 && (
+                <div className="bg-primary/20 px-3 py-2 rounded-full">
+                  <span className="text-primary font-bold">+{bonusPoints}</span>
+                  <span className="text-primary/80 text-xs ml-1">streak bonus</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        
-        {/* Quick next button on the banner */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onNext}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          Next
-          <ChevronRight className="w-4 h-4 ml-0.5" />
-        </Button>
-      </div>
+      )}
+
+      {/* Incorrect Answer Banner */}
+      {!isCorrect && (
+        <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+          <div className="flex items-center gap-3">
+            <XCircle className="w-5 h-5 text-destructive shrink-0" />
+            <div>
+              <p className="font-medium text-sm text-destructive">Incorrect</p>
+              <p className="text-xs text-muted-foreground">
+                The correct answer is {question.correct_label}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Show Explanation Toggle (for wrong answers) */}
       {!isCorrect && !showExplanation && (
@@ -124,18 +156,19 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         </>
       )}
 
-      {/* Bottom Next Button */}
-      {showExplanation && (
-        <Button
-          variant="default"
-          size="lg"
-          onClick={onNext}
-          className="w-full"
-        >
-          Next Question
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </Button>
-      )}
+      {/* Next Question Button - Always visible and prominent */}
+      <Button
+        variant="default"
+        size="lg"
+        onClick={onNext}
+        className={cn(
+          "w-full",
+          isCorrect && "bg-success hover:bg-success/90"
+        )}
+      >
+        Next Question
+        <ChevronRight className="w-4 h-4 ml-1" />
+      </Button>
     </div>
   );
 }

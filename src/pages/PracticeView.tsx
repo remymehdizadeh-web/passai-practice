@@ -6,10 +6,12 @@ import { PaywallModal } from '@/components/PaywallModal';
 import { ProgressBar } from '@/components/ProgressBar';
 import { StudyHeader } from '@/components/StudyHeader';
 import { ExamDateModal } from '@/components/ExamDateModal';
+import { PointsDisplay } from '@/components/PointsDisplay';
 import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUserProgress } from '@/hooks/useQuestions';
 import { useProfile, useUpdateStreak } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions } from '@/lib/session';
+import { getPoints, addPoints, getCorrectStreak, incrementStreak, resetStreak, calculatePointsEarned } from '@/lib/points';
 import { Loader2 } from 'lucide-react';
 
 export function PracticeView() {
@@ -29,6 +31,9 @@ export function PracticeView() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showExamDate, setShowExamDate] = useState(false);
   const [hasUpdatedStreak, setHasUpdatedStreak] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(getPoints());
+  const [currentStreak, setCurrentStreak] = useState(getCorrectStreak());
+  const [lastPointsEarned, setLastPointsEarned] = useState({ base: 0, bonus: 0, total: 0 });
 
   // Update streak when user answers first question of the day
   useEffect(() => {
@@ -87,6 +92,20 @@ export function PracticeView() {
     setSelectedLabel(label);
     setIsSubmitted(true);
 
+    // Handle points and streak
+    if (isCorrect) {
+      const newStreak = incrementStreak();
+      setCurrentStreak(newStreak);
+      const pointsInfo = calculatePointsEarned(newStreak);
+      setLastPointsEarned(pointsInfo);
+      const newTotal = addPoints(pointsInfo.total);
+      setTotalPoints(newTotal);
+    } else {
+      resetStreak();
+      setCurrentStreak(0);
+      setLastPointsEarned({ base: 0, bonus: 0, total: 0 });
+    }
+
     await recordProgress.mutateAsync({
       questionId: currentQuestion.id,
       selectedLabel: label,
@@ -142,21 +161,28 @@ export function PracticeView() {
 
   return (
     <div className="pb-6">
-      {/* Study header with streak and exam countdown */}
-      {user && (
-        <StudyHeader onExamDateClick={() => setShowExamDate(true)} />
-      )}
+      {/* Header with points and streak/exam countdown */}
+      <div className="flex items-center justify-between mb-4">
+        {user ? (
+          <StudyHeader onExamDateClick={() => setShowExamDate(true)} />
+        ) : (
+          <PointsDisplay points={totalPoints} />
+        )}
+        {user && <PointsDisplay points={totalPoints} />}
+      </div>
 
       {/* Progress section */}
       <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Question {currentIndex + 1} of {totalQuestions}
-          </p>
-        </div>
-        <div className="text-right">
+        <p className="text-sm text-muted-foreground">
+          Question {currentIndex + 1} of {totalQuestions}
+        </p>
+        <div className="flex items-center gap-2">
+          {currentStreak >= 3 && (
+            <span className="text-xs bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full font-medium">
+              🔥 {currentStreak} streak
+            </span>
+          )}
           <span className="text-sm font-medium text-foreground">{overallProgress}%</span>
-          <span className="text-xs text-muted-foreground ml-1">complete</span>
         </div>
       </div>
 
@@ -194,6 +220,8 @@ export function PracticeView() {
           question={currentQuestion}
           selectedLabel={selectedLabel}
           onNext={handleNext}
+          pointsEarned={lastPointsEarned.base}
+          streak={currentStreak}
         />
       )}
 
