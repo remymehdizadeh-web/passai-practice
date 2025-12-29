@@ -134,28 +134,30 @@ export function PracticeView() {
   const remaining = getRemainingFreeQuestions();
   const totalQuestions = prioritizedQuestions?.length || 0;
 
+  // Calculate how many unique questions have been answered
+  const answeredCount = progress?.length || 0;
+  const overallProgress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+
   return (
     <div className="pb-6">
       {/* Header section */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Practice</h1>
           <p className="text-sm text-muted-foreground">
-            Question {currentIndex + 1} of {totalQuestions}
+            {answeredCount} of {totalQuestions} completed
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">Progress</p>
-          <p className="text-sm font-medium text-foreground">
-            {Math.round(((currentIndex + 1) / totalQuestions) * 100)}%
-          </p>
+          <p className="text-2xl font-semibold text-foreground">{overallProgress}%</p>
+          <p className="text-xs text-muted-foreground">overall</p>
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar - shows overall completion */}
       <div className="mb-6">
         <ProgressBar 
-          current={currentIndex + 1} 
+          current={answeredCount} 
           total={totalQuestions}
           className="h-1.5 rounded-full"
         />

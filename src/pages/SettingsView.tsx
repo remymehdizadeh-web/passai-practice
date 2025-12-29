@@ -10,9 +10,12 @@ import {
   AlertTriangle,
   LogOut,
   User,
-  LogIn
+  LogIn,
+  TrendingUp,
+  Target,
+  Zap
 } from 'lucide-react';
-import { useUserProgress } from '@/hooks/useQuestions';
+import { useUserProgress, useQuestions } from '@/hooks/useQuestions';
 import { useAuth } from '@/hooks/useAuth';
 import { getRemainingFreeQuestions } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +28,7 @@ import {
 
 export function SettingsView() {
   const { data: progress } = useUserProgress();
+  const { data: questions } = useQuestions();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
@@ -36,151 +40,155 @@ export function SettingsView() {
   const accuracy = totalAnswered > 0 
     ? Math.round((correctAnswers / totalAnswered) * 100) 
     : 0;
+  const totalQuestions = questions?.length || 0;
+  const completionRate = totalQuestions > 0 
+    ? Math.round((totalAnswered / totalQuestions) * 100) 
+    : 0;
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
-  const menuItems = [
-    {
-      icon: Crown,
-      label: 'Manage Subscription',
-      description: 'View or change your plan',
-      onClick: () => setShowPaywall(true),
-      accent: true,
-    },
-    {
-      icon: FileText,
-      label: 'Educational Disclaimer',
-      description: 'Important information',
-      onClick: () => setShowDisclaimer(true),
-    },
-    {
-      icon: HelpCircle,
-      label: 'Help & Support',
-      description: 'Get help with PassAI',
-      onClick: () => window.open('mailto:support@passai.app', '_blank'),
-    },
-    {
-      icon: Mail,
-      label: 'Send Feedback',
-      description: 'We love hearing from you',
-      onClick: () => window.open('mailto:feedback@passai.app', '_blank'),
-    },
-  ];
-
   return (
-    <div className="pb-24">
+    <div className="pb-6">
       {/* Header */}
-      <div className="bento-cell mb-6">
-        <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+      <div className="mb-6">
+        <h1 className="text-lg font-semibold text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
       </div>
 
       {/* Account Section */}
       {user ? (
-        <div className="bento-cell mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-primary" />
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <User className="w-5 h-5 text-primary" />
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground">{user.email}</p>
-              <p className="text-sm text-muted-foreground">Signed in</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground">Signed in</p>
             </div>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="gap-2 rounded-xl"
+              className="text-muted-foreground hover:text-foreground"
             >
               <LogOut className="w-4 h-4" />
-              Sign out
             </Button>
           </div>
         </div>
       ) : (
         <button
           onClick={() => navigate('/auth')}
-          className="w-full bento-cell mb-6 flex items-center gap-4 hover:shadow-glass transition-all"
+          className="w-full bg-card border border-border rounded-xl p-4 mb-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
         >
-          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-            <LogIn className="w-6 h-6 text-accent" />
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <LogIn className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground">Sign in or create account</p>
-            <p className="text-sm text-muted-foreground">Save your progress across devices</p>
+            <p className="text-sm font-medium text-foreground">Sign in</p>
+            <p className="text-xs text-muted-foreground">Sync progress across devices</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </button>
       )}
 
-      {/* Stats */}
-      <div className="bento-cell mb-6">
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+      {/* Stats Grid */}
+      <div className="mb-4">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
           Your Progress
-        </h2>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-4 rounded-xl bg-muted/40">
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Completed</span>
+            </div>
             <p className="text-2xl font-semibold text-foreground">{totalAnswered}</p>
-            <p className="text-xs text-muted-foreground mt-1">Questions</p>
+            <p className="text-xs text-muted-foreground">{completionRate}% of {totalQuestions}</p>
           </div>
-          <div className="text-center p-4 rounded-xl" style={{ backgroundColor: 'hsl(var(--success) / 0.1)' }}>
-            <p className="text-2xl font-semibold text-success">{accuracy}%</p>
-            <p className="text-xs text-muted-foreground mt-1">Accuracy</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-muted/40">
-            <p className="text-2xl font-semibold text-foreground">{remaining}</p>
-            <p className="text-xs text-muted-foreground mt-1">Free Left</p>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Accuracy</span>
+            </div>
+            <p className={`text-2xl font-semibold ${accuracy >= 70 ? 'text-success' : accuracy >= 50 ? 'text-foreground' : 'text-destructive'}`}>
+              {accuracy}%
+            </p>
+            <p className="text-xs text-muted-foreground">{correctAnswers} correct</p>
           </div>
         </div>
       </div>
 
-      {/* Upgrade Banner */}
-      {remaining > 0 && (
-        <button
-          onClick={() => setShowPaywall(true)}
-          className="w-full bento-cell mb-6 flex items-center gap-4 hover:shadow-glass transition-all"
-          style={{ background: 'linear-gradient(135deg, hsl(var(--accent) / 0.08) 0%, hsl(var(--accent) / 0.02) 100%)' }}
-        >
-          <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center">
-            <Crown className="w-6 h-6 text-accent" />
+      {/* Free Questions Remaining */}
+      {remaining > 0 && remaining <= 10 && (
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Zap className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">{remaining} free questions left</p>
+              <p className="text-xs text-muted-foreground">Upgrade for unlimited access</p>
+            </div>
           </div>
-          <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground">Upgrade to Premium</p>
-            <p className="text-sm text-muted-foreground">Unlimited questions & analytics</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
+        </div>
       )}
 
+      {/* Upgrade Banner */}
+      <button
+        onClick={() => setShowPaywall(true)}
+        className="w-full bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 flex items-center gap-3 hover:bg-primary/10 transition-colors"
+      >
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Crown className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-sm font-medium text-foreground">Upgrade to Premium</p>
+          <p className="text-xs text-muted-foreground">Unlimited questions & detailed analytics</p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-primary" />
+      </button>
+
       {/* Menu Items */}
-      <div className="space-y-3">
-        {menuItems.map((item, index) => (
-          <button
-            key={index}
-            onClick={item.onClick}
-            className="w-full bento-cell flex items-center gap-4 hover:shadow-glass transition-all"
-          >
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-              item.accent ? 'bg-accent/10' : 'bg-muted/50'
-            }`}>
-              <item.icon className={`w-5 h-5 ${
-                item.accent ? 'text-accent' : 'text-muted-foreground'
-              }`} />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="font-medium text-foreground">{item.label}</p>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-        ))}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+          Support
+        </p>
+        
+        <button
+          onClick={() => setShowDisclaimer(true)}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors"
+        >
+          <FileText className="w-4 h-4 text-muted-foreground" />
+          <span className="flex-1 text-left text-sm text-foreground">Educational Disclaimer</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </button>
+        
+        <button
+          onClick={() => window.open('mailto:support@nclexgo.app', '_blank')}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors"
+        >
+          <HelpCircle className="w-4 h-4 text-muted-foreground" />
+          <span className="flex-1 text-left text-sm text-foreground">Help & Support</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </button>
+        
+        <button
+          onClick={() => window.open('mailto:feedback@nclexgo.app', '_blank')}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors"
+        >
+          <Mail className="w-4 h-4 text-muted-foreground" />
+          <span className="flex-1 text-left text-sm text-foreground">Send Feedback</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </button>
       </div>
 
       {/* Version */}
       <p className="text-center text-xs text-muted-foreground mt-8">
-        PassAI v1.0.0
+        NCLEX Go v1.0.0
       </p>
 
       <PaywallModal
@@ -190,41 +198,41 @@ export function SettingsView() {
 
       {/* Disclaimer Modal */}
       <Dialog open={showDisclaimer} onOpenChange={setShowDisclaimer}>
-        <DialogContent className="sm:max-w-md bg-card border-border rounded-2xl">
+        <DialogContent className="sm:max-w-md bg-card border-border rounded-xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-foreground">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <DialogTitle className="flex items-center gap-2 text-foreground text-base">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
               Educational Disclaimer
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 text-sm text-muted-foreground">
+          <div className="space-y-3 text-sm text-muted-foreground">
             <p>
-              <strong className="text-foreground">For Educational Purposes Only</strong>
+              NCLEX Go is designed to help you prepare for the NCLEX-RN examination 
+              through practice questions and educational content.
             </p>
-            <p>
-              PassAI is designed to help you prepare for the NCLEX-RN examination 
-              through practice questions and educational content. This app is:
-            </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>
-                <strong>NOT a substitute for professional nursing education</strong>
+            <ul className="space-y-1.5 text-xs">
+              <li className="flex items-start gap-2">
+                <span className="w-1 h-1 rounded-full bg-muted-foreground mt-1.5 shrink-0" />
+                Not a substitute for professional nursing education
               </li>
-              <li>
-                <strong>NOT providing medical advice</strong>
+              <li className="flex items-start gap-2">
+                <span className="w-1 h-1 rounded-full bg-muted-foreground mt-1.5 shrink-0" />
+                Not providing medical advice
               </li>
-              <li>
-                <strong>NOT affiliated with NCSBN</strong>
+              <li className="flex items-start gap-2">
+                <span className="w-1 h-1 rounded-full bg-muted-foreground mt-1.5 shrink-0" />
+                Not affiliated with NCSBN
               </li>
-              <li>
-                <strong>NOT a guarantee of passing</strong>
+              <li className="flex items-start gap-2">
+                <span className="w-1 h-1 rounded-full bg-muted-foreground mt-1.5 shrink-0" />
+                Not a guarantee of passing the exam
               </li>
             </ul>
-            <p>
-              Always verify information with authoritative nursing resources and 
-              your educational institution.
+            <p className="text-xs">
+              Always verify information with authoritative nursing resources.
             </p>
           </div>
-          <Button onClick={() => setShowDisclaimer(false)} className="w-full mt-4 rounded-xl">
+          <Button onClick={() => setShowDisclaimer(false)} className="w-full mt-2">
             I Understand
           </Button>
         </DialogContent>
