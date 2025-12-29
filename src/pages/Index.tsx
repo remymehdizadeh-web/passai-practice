@@ -1,21 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SplashScreen } from '@/components/SplashScreen';
 import { BottomNav } from '@/components/BottomNav';
+import { HomeView } from '@/pages/HomeView';
 import { PracticeView } from '@/pages/PracticeView';
 import { ReviewView } from '@/pages/ReviewView';
 import { SettingsView } from '@/pages/SettingsView';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { Helmet } from 'react-helmet';
 
-type Tab = 'practice' | 'review' | 'settings';
+type Tab = 'home' | 'practice' | 'review' | 'settings';
 
 const Index = () => {
   const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
-  const [activeTab, setActiveTab] = useState<Tab>('practice');
+  const [activeTab, setActiveTab] = useState<Tab>('home');
 
   const handleStart = () => {
     markOnboardingSeen();
     setShowSplash(false);
+  };
+
+  const handleNavigate = (tab: 'practice' | 'review' | 'settings') => {
+    setActiveTab(tab);
   };
 
   if (showSplash) {
@@ -39,6 +44,7 @@ const Index = () => {
       
       <div className="min-h-screen bg-background">
         <main className="max-w-lg mx-auto px-4 pt-5 pb-20 safe-top">
+          {activeTab === 'home' && <HomeView onNavigate={handleNavigate} />}
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView />}
           {activeTab === 'settings' && <SettingsView />}
