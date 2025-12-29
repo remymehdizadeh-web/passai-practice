@@ -1,13 +1,52 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from 'react';
+import { SplashScreen } from '@/components/SplashScreen';
+import { BottomNav } from '@/components/BottomNav';
+import { PracticeView } from '@/pages/PracticeView';
+import { ReviewView } from '@/pages/ReviewView';
+import { SettingsView } from '@/pages/SettingsView';
+import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
+import { Helmet } from 'react-helmet';
+
+type Tab = 'practice' | 'review' | 'settings';
 
 const Index = () => {
+  const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
+  const [activeTab, setActiveTab] = useState<Tab>('practice');
+
+  const handleStart = () => {
+    markOnboardingSeen();
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return (
+      <>
+        <Helmet>
+          <title>PassAI - NCLEX-RN Practice Questions</title>
+          <meta name="description" content="Prepare for your NCLEX-RN exam with PassAI. Practice high-quality questions with instant feedback and adaptive learning." />
+        </Helmet>
+        <SplashScreen onStart={handleStart} />
+      </>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <>
+      <Helmet>
+        <title>PassAI - NCLEX-RN Practice</title>
+        <meta name="description" content="Practice NCLEX-RN questions with detailed explanations and adaptive learning." />
+      </Helmet>
+      
+      <div className="min-h-screen bg-background">
+        <main className="max-w-lg mx-auto px-4 pt-6 pb-24 safe-top">
+          {activeTab === 'practice' && <PracticeView />}
+          {activeTab === 'review' && <ReviewView />}
+          {activeTab === 'settings' && <SettingsView />}
+        </main>
+
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
-    </div>
+    </>
   );
 };
 
