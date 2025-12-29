@@ -18,7 +18,6 @@ import {
   LogIn,
   BarChart3,
   Bookmark,
-  TrendingUp,
   Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -58,7 +57,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
   const navigate = useNavigate();
   const [showExamDate, setShowExamDate] = useState(false);
   const [showWeeklyReport, setShowWeeklyReport] = useState(false);
-  const [showCategoryMastery, setShowCategoryMastery] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
 
   const daysUntilExam = calculateDaysUntilExam(profile?.exam_date || null);
@@ -255,23 +253,15 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           </div>
         </div>
 
-        {/* Category Mastery Quick Access */}
+        {/* Category Mastery - directly on home */}
         {user && stats.answeredCount >= 5 && (
-          <button
-            onClick={() => setShowCategoryMastery(true)}
-            className="card-organic p-3 flex items-center gap-3 hover:shadow-lg transition-all flex-shrink-0"
-          >
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-accent" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="font-semibold text-sm text-foreground">Category Mastery</p>
-              <p className="text-xs text-muted-foreground">
-                {stats.weakestArea ? `Focus: ${stats.weakestArea.category.split(' ')[0]}...` : 'Track your progress'}
-              </p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <div className="flex-shrink-0">
+            <CategoryMastery 
+              categories={stats.categoryMastery}
+              onCategoryClick={() => {}}
+              compact
+            />
+          </div>
         )}
 
         {/* Action buttons */}
@@ -335,17 +325,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showCategoryMastery} onOpenChange={setShowCategoryMastery}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Category Mastery</DialogTitle>
-          </DialogHeader>
-          <CategoryMastery 
-            categories={stats.categoryMastery}
-            onCategoryClick={() => {}}
-          />
-        </DialogContent>
-      </Dialog>
 
       {/* Achievements Dialog */}
       <Dialog open={showAchievements} onOpenChange={setShowAchievements}>
