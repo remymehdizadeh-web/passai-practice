@@ -22,8 +22,8 @@ const Index = () => {
     return (
       <>
         <Helmet>
-          <title>PassAI - NCLEX-RN Practice Questions</title>
-          <meta name="description" content="Prepare for your NCLEX-RN exam with PassAI. Practice high-quality questions with instant feedback and adaptive learning." />
+          <title>NCLEX Go - Quick NCLEX-RN Practice</title>
+          <meta name="description" content="Study anywhere, anytime. Quick NCLEX-RN practice questions designed for busy nursing students on the go." />
         </Helmet>
         <SplashScreen onStart={handleStart} />
       </>
@@ -33,8 +33,8 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>PassAI - NCLEX-RN Practice</title>
-        <meta name="description" content="Practice NCLEX-RN questions with detailed explanations and adaptive learning." />
+        <title>NCLEX Go - Practice</title>
+        <meta name="description" content="Practice NCLEX-RN questions with detailed explanations. Study on the go with quick, focused sessions." />
       </Helmet>
       
       <div className="min-h-screen bg-background">
