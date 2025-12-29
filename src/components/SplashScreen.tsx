@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Zap, Target, LogIn } from 'lucide-react';
+import { Clock, Brain, Shield, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import logoIcon from '@/assets/logo-icon.png';
@@ -14,48 +14,49 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
-      {/* Subtle accent line */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent opacity-40" />
+      {/* Subtle top accent */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-sm animate-fade-in">
+      <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full animate-fade-in">
         {/* Logo */}
-        <div className="relative mb-8">
-          <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-premium">
-            <img src={logoIcon} alt="NCLEX Go Logo" className="w-full h-full object-cover" />
+        <div className="relative mb-6">
+          <div className="w-16 h-16 rounded-xl overflow-hidden shadow-premium border border-border/50">
+            <img src={logoIcon} alt="NCLEX Go" className="w-full h-full object-cover" />
           </div>
         </div>
 
         {/* Brand */}
-        <h1 className="text-4xl font-semibold tracking-tight mb-2">
-          <span className="text-gradient">NCLEX</span>
-          <span className="text-foreground"> Go</span>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-1">
+          NCLEX Go
         </h1>
         
-        <p className="text-muted-foreground text-lg mb-8">
-          NCLEX-RN Practice
+        {/* Tagline */}
+        <p className="text-muted-foreground text-base mb-8">
+          Study Anywhere, Anytime
         </p>
 
-        {/* Features */}
-        <div className="space-y-3 mb-10 w-full">
-          <div className="bento-cell flex items-center gap-4 text-left">
-            <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-              <Zap className="w-5 h-5 text-accent" />
+        {/* Features - more professional grid */}
+        <div className="grid grid-cols-3 gap-3 mb-8 w-full">
+          <div className="flex flex-col items-center p-4 rounded-xl bg-card border border-border">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-2">
+              <Clock className="w-5 h-5 text-accent" />
             </div>
-            <div>
-              <p className="font-medium text-foreground">Instant Practice</p>
-              <p className="text-muted-foreground text-sm">Answer questions in seconds</p>
-            </div>
+            <p className="text-xs font-medium text-foreground">Quick Sessions</p>
           </div>
           
-          <div className="bento-cell flex items-center gap-4 text-left">
-            <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-              <Target className="w-5 h-5 text-accent" />
+          <div className="flex flex-col items-center p-4 rounded-xl bg-card border border-border">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-2">
+              <Brain className="w-5 h-5 text-accent" />
             </div>
-            <div>
-              <p className="font-medium text-foreground">Adaptive Learning</p>
-              <p className="text-muted-foreground text-sm">Focus on your weak areas</p>
+            <p className="text-xs font-medium text-foreground">Smart Review</p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 rounded-xl bg-card border border-border">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-2">
+              <Shield className="w-5 h-5 text-accent" />
             </div>
+            <p className="text-xs font-medium text-foreground">Exam Ready</p>
           </div>
         </div>
 
@@ -67,26 +68,29 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
             onClick={onStart}
             className="w-full"
           >
-            Start Practice
+            Start Practicing
           </Button>
           
           {!user && (
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="lg" 
               onClick={() => navigate('/auth')}
-              className="w-full gap-2"
+              className="w-full gap-2 text-muted-foreground hover:text-foreground"
             >
               <LogIn className="w-4 h-4" />
-              Sign in to save progress
+              Sign in to sync progress
             </Button>
           )}
         </div>
 
-        <p className="text-muted-foreground text-xs mt-5">
-          10 free questions • No account required
+        <p className="text-muted-foreground text-xs mt-6">
+          10 free questions · No signup required
         </p>
       </div>
+      
+      {/* Bottom accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
     </div>
   );
 }
