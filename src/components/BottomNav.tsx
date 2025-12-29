@@ -1,7 +1,7 @@
-import { Home, BookOpen, RotateCcw, Settings } from 'lucide-react';
+import { Home, BookOpen, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'home' | 'practice' | 'review' | 'settings';
+type Tab = 'home' | 'practice' | 'review';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -12,13 +12,12 @@ const navItems = [
   { id: 'home' as Tab, label: 'Home', icon: Home },
   { id: 'practice' as Tab, label: 'Practice', icon: BookOpen },
   { id: 'review' as Tab, label: 'Review', icon: RotateCcw },
-  { id: 'settings' as Tab, label: 'Settings', icon: Settings },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border">
-      <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto safe-bottom">
+      <div className="flex items-center justify-around py-2 px-6 max-w-lg mx-auto safe-bottom">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -26,9 +25,9 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={cn(
-                'flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-colors duration-150',
+                'flex flex-col items-center gap-1 py-2 px-5 rounded-xl transition-all duration-150',
                 isActive
-                  ? 'text-primary'
+                  ? 'text-primary bg-primary/10'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
