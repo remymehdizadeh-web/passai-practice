@@ -26,7 +26,8 @@ const sampleQuestion = {
   },
   takeaway: "Prioritize patients with acute changes in condition.",
   category: "Management of Care",
-  difficulty: "medium"
+  difficulty: "medium",
+  exam_type: "Both" // Options: 'RN', 'PN', or 'Both'
 };
 
 export default function AdminQuestionsPage() {
@@ -54,6 +55,7 @@ export default function AdminQuestionsPage() {
         takeaway: q.takeaway,
         category: q.category,
         difficulty: q.difficulty || "medium",
+        exam_type: q.exam_type || "Both",
         is_active: true
       }));
 

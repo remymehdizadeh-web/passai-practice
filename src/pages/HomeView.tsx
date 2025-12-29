@@ -20,14 +20,36 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import type { ExamType } from '@/lib/session';
 
 type ReviewFilter = 'bookmarked' | 'missed';
 
 interface HomeViewProps {
   onNavigate: (tab: 'practice' | 'review' | 'settings', filter?: ReviewFilter) => void;
+  examType: ExamType;
 }
 
-export function HomeView({ onNavigate }: HomeViewProps) {
+// The 8 NCLEX categories
+const NCLEX_CATEGORIES = [
+  'Management of Care',
+  'Safety and Infection Control',
+  'Health Promotion and Maintenance',
+  'Psychosocial Integrity',
+  'Basic Care and Comfort',
+  'Pharmacological and Parenteral Therapies',
+  'Reduction of Risk Potential',
+  'Physiological Adaptation',
+];
+
+// Get display name for category based on exam type
+function getCategoryDisplayName(category: string, examType: ExamType): string {
+  if (category === 'Management of Care' && examType === 'PN') {
+    return 'Coordinated Care';
+  }
+  return category;
+}
+
+export function HomeView({ onNavigate, examType }: HomeViewProps) {
   const { data: questions } = useQuestions();
   const { data: progress } = useUserProgress();
   const { data: bookmarks } = useBookmarks();
@@ -60,18 +82,19 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       }
     });
 
-    // Calculate mastery for each category
-    const categoryMastery = Object.entries(categoryStats)
-      .map(([category, catStats]) => ({
+    // Build mastery for all 8 categories
+    const categoryMastery = NCLEX_CATEGORIES.map(category => {
+      const catStats = categoryStats[category];
+      return {
         category,
-        accuracy: Math.round((catStats.correct / catStats.total) * 100),
-        total: catStats.total,
-        correct: catStats.correct,
-      }))
-      .sort((a, b) => a.accuracy - b.accuracy);
+        displayName: getCategoryDisplayName(category, examType),
+        accuracy: catStats ? Math.round((catStats.correct / catStats.total) * 100) : 0,
+        total: catStats?.total || 0,
+        correct: catStats?.correct || 0,
+      };
+    });
 
     // Readiness score based primarily on accuracy
-    // Weight accuracy heavily - 8% accuracy should not show 42% ready
     const readinessScore = answeredCount >= 5 
       ? Math.round((accuracy * 0.85) + (completionRate * 0.15))
       : null;
@@ -88,7 +111,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       readinessScore,
       totalPoints: getPoints(),
     };
-  }, [questions, progress, bookmarks, missedQuestions]);
+  }, [questions, progress, bookmarks, missedQuestions, examType]);
 
   return (
     <div className="pb-6">
@@ -261,48 +284,43 @@ export function HomeView({ onNavigate }: HomeViewProps) {
         </div>
       </div>
 
-      {/* Category Mastery */}
-      {stats.categoryMastery.length > 0 && (
-        <div className="bg-card border border-border rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Category Mastery
-            </p>
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <div className="space-y-3">
-            {stats.categoryMastery.slice(0, 5).map(({ category, accuracy, total }) => (
-              <div key={category}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-foreground">{category}</span>
-                  <span className={cn(
-                    "text-xs font-medium",
-                    accuracy >= 80 ? "text-success" :
-                    accuracy >= 60 ? "text-amber-500" : "text-destructive"
-                  )}>
-                    {accuracy}%
-                  </span>
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full rounded-full transition-all duration-500",
-                      accuracy >= 80 ? "bg-success" :
-                      accuracy >= 60 ? "bg-amber-500" : "bg-destructive"
-                    )}
-                    style={{ width: `${accuracy}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-          {stats.categoryMastery.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Answer questions to see your category mastery
-            </p>
-          )}
+      {/* Category Mastery - All 8 Categories */}
+      <div className="bg-card border border-border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Category Mastery
+          </p>
+          <TrendingUp className="w-4 h-4 text-muted-foreground" />
         </div>
-      )}
+        <div className="space-y-3">
+          {stats.categoryMastery.map(({ category, displayName, accuracy, total }) => (
+            <div key={category}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-foreground truncate pr-2">{displayName}</span>
+                <span className={cn(
+                  "text-xs font-medium shrink-0",
+                  total === 0 ? "text-muted-foreground" :
+                  accuracy >= 80 ? "text-success" :
+                  accuracy >= 60 ? "text-amber-500" : "text-destructive"
+                )}>
+                  {total === 0 ? '—' : `${accuracy}%`}
+                </span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    total === 0 ? "bg-muted" :
+                    accuracy >= 80 ? "bg-success" :
+                    accuracy >= 60 ? "bg-amber-500" : "bg-destructive"
+                  )}
+                  style={{ width: total === 0 ? '0%' : `${accuracy}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Bookmarks */}
       {stats.bookmarkCount > 0 && (
