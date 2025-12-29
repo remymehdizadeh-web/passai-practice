@@ -8,14 +8,14 @@ import { DailyGoal } from '@/components/DailyGoal';
 import { ExamCountdown } from '@/components/ExamCountdown';
 import { StudyStreak } from '@/components/StudyStreak';
 import { PercentileRank } from '@/components/PercentileRank';
-import { Leaderboard } from '@/components/Leaderboard';
 import { WeeklyReport } from '@/components/WeeklyReport';
 import { 
   Play, 
   AlertCircle,
   ChevronRight,
   LogIn,
-  BarChart3
+  BarChart3,
+  Bookmark
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -42,15 +42,6 @@ const NCLEX_CATEGORIES = [
   'Pharmacological and Parenteral Therapies',
   'Reduction of Risk Potential',
   'Physiological Adaptation',
-];
-
-// Mock leaderboard data
-const MOCK_LEADERBOARD = [
-  { rank: 1, name: 'Sarah M.', accuracy: 94, questionsCompleted: 847 },
-  { rank: 2, name: 'James L.', accuracy: 91, questionsCompleted: 723 },
-  { rank: 3, name: 'Emily R.', accuracy: 89, questionsCompleted: 654 },
-  { rank: 4, name: 'Michael K.', accuracy: 87, questionsCompleted: 598 },
-  { rank: 5, name: 'Jessica T.', accuracy: 85, questionsCompleted: 521 },
 ];
 
 export function HomeView({ onNavigate }: HomeViewProps) {
@@ -138,6 +129,8 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       weakestCategory: weakestArea?.category || 'Pharmacological and Parenteral Therapies',
       daysStudied: Math.min(7, streakDays || 3),
       percentileRank: percentile,
+      streakDays: streakDays,
+      totalCompleted: answeredCount,
     };
 
     return {
@@ -169,7 +162,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           {user && streakDays > 0 && (
             <StudyStreak days={streakDays} compact />
           )}
-          {stats.answeredCount >= 10 && (
+          {user && stats.answeredCount >= 10 && (
             <button
               onClick={() => setShowWeeklyReport(true)}
               className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center hover:bg-accent/20 transition-colors"
@@ -186,27 +179,35 @@ export function HomeView({ onNavigate }: HomeViewProps) {
         {!user ? (
           <button
             onClick={() => navigate('/auth')}
-            className="card-organic p-3 flex items-center gap-3 hover:shadow-lg transition-all flex-shrink-0"
+            className="card-organic p-4 flex items-center gap-4 hover:shadow-lg transition-all flex-shrink-0"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <LogIn className="w-5 h-5 text-primary-foreground" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+              <LogIn className="w-6 h-6 text-primary-foreground" />
             </div>
             <div className="flex-1 text-left">
-              <p className="font-semibold text-sm text-foreground">Sign in to compete</p>
-              <p className="text-xs text-muted-foreground">Track progress & join leaderboards</p>
+              <p className="font-semibold text-foreground">Sign in to unlock</p>
+              <p className="text-sm text-muted-foreground">Set goals, track progress, and more</p>
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
         ) : (
-          <ExamCountdown
-            daysUntil={daysUntilExam}
-            examDate={profile?.exam_date}
-            onPress={() => setShowExamDate(true)}
-          />
+          <>
+            <ExamCountdown
+              daysUntil={daysUntilExam}
+              examDate={profile?.exam_date}
+              onPress={() => setShowExamDate(true)}
+            />
+            {/* Daily Goal - only for signed in users */}
+            <DailyGoal
+              target={dailyGoal}
+              completed={todayProgress}
+              onStartPractice={() => onNavigate('practice')}
+            />
+          </>
         )}
 
-        {/* Stats row: Readiness + Percentile */}
-        {stats.readinessScore !== null && (
+        {/* Stats row: Readiness + Percentile (signed in only) */}
+        {user && stats.readinessScore !== null && (
           <div className="grid grid-cols-2 gap-3 flex-shrink-0">
             <ReadinessGauge 
               score={stats.readinessScore} 
@@ -218,13 +219,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
             />
           </div>
         )}
-
-        {/* Daily Goal - compact */}
-        <DailyGoal
-          target={dailyGoal}
-          completed={todayProgress}
-          onStartPractice={() => onNavigate('practice')}
-        />
 
         {/* Quick stats row */}
         <div className="grid grid-cols-3 gap-2 flex-shrink-0">
@@ -274,18 +268,22 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           </button>
         </div>
 
-        {/* Leaderboard - compact */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <Leaderboard
-            entries={MOCK_LEADERBOARD.map((entry, i) => ({
-              ...entry,
-              isCurrentUser: i === 3,
-            }))}
-            currentUserRank={4}
-            totalUsers={12847}
-            compact
-          />
-        </div>
+        {/* Bookmarks quick access */}
+        {stats.bookmarkCount > 0 && (
+          <button
+            onClick={() => onNavigate('review', 'bookmarked')}
+            className="card-organic p-3 flex items-center gap-3 hover:shadow-lg transition-all flex-shrink-0"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Bookmark className="w-5 h-5 text-primary fill-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-sm text-foreground">{stats.bookmarkCount} Saved Questions</p>
+              <p className="text-xs text-muted-foreground">Review your bookmarks</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
 
       {/* Modals */}
