@@ -4,90 +4,86 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 interface ReadinessGaugeProps {
   score: number;
   trend?: 'up' | 'down' | 'stable';
-  questionsNeeded?: number;
 }
 
-export function ReadinessGauge({ score, trend, questionsNeeded }: ReadinessGaugeProps) {
+export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
   const getScoreColor = () => {
-    if (score >= 80) return 'text-emerald-500';
-    if (score >= 65) return 'text-amber-500';
+    if (score >= 80) return 'text-success';
+    if (score >= 65) return 'text-warning';
     return 'text-destructive';
-  };
-
-  const getBarColor = () => {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 65) return 'bg-amber-500';
-    return 'bg-destructive';
   };
 
   const getReadinessLabel = () => {
     if (score >= 85) return 'Exam Ready';
     if (score >= 75) return 'Almost There';
-    if (score >= 65) return 'Building Confidence';
-    if (score >= 50) return 'Keep Practicing';
-    return 'Just Starting';
+    if (score >= 65) return 'Building';
+    if (score >= 50) return 'Progressing';
+    return 'Starting';
   };
 
-  const getMessage = () => {
-    if (score >= 85) return "You're performing well. Trust your preparation.";
-    if (score >= 75) return "Strong progress. A few more focused sessions.";
-    if (score >= 65) return "You're on track. Stay consistent.";
-    if (score >= 50) return "Building your foundation. Keep going.";
-    return "Every question helps. You'll get there.";
-  };
+  // Calculate circumference for the ring
+  const radius = 32;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-5">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-            Readiness Score
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span className={cn("text-4xl font-bold", getScoreColor())}>
-              {score}
-            </span>
-            <span className="text-lg text-muted-foreground">/ 100</span>
-          </div>
-        </div>
-        
-        {trend && (
-          <div className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium",
-            trend === 'up' && "bg-emerald-500/10 text-emerald-500",
-            trend === 'down' && "bg-destructive/10 text-destructive",
-            trend === 'stable' && "bg-muted text-muted-foreground"
-          )}>
-            {trend === 'up' && <TrendingUp className="w-3 h-3" />}
-            {trend === 'down' && <TrendingDown className="w-3 h-3" />}
-            {trend === 'stable' && <Minus className="w-3 h-3" />}
-            <span>{trend === 'up' ? 'Improving' : trend === 'down' ? 'Review needed' : 'Steady'}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-3 bg-muted rounded-full overflow-hidden mb-3">
-        <div 
-          className={cn("h-full rounded-full transition-all duration-700 ease-out", getBarColor())}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className={cn("text-sm font-medium", getScoreColor())}>
-          {getReadinessLabel()}
-        </span>
-        {questionsNeeded && questionsNeeded > 0 && (
-          <span className="text-xs text-muted-foreground">
-            ~{questionsNeeded} questions to level up
+    <div className="card-organic p-4 flex items-center gap-4">
+      {/* Circular progress */}
+      <div className="relative w-20 h-20 flex-shrink-0">
+        <svg className="w-full h-full progress-ring" viewBox="0 0 80 80">
+          {/* Background circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke="hsl(var(--muted))"
+            strokeWidth="6"
+          />
+          {/* Progress circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            fill="none"
+            stroke={score >= 80 ? 'hsl(var(--success))' : score >= 65 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))'}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            className="progress-ring-circle"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={cn("text-xl font-bold", getScoreColor())}>
+            {score}
           </span>
-        )}
+        </div>
       </div>
 
-      <p className="text-sm text-muted-foreground mt-2">
-        {getMessage()}
-      </p>
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Readiness
+          </p>
+          {trend && (
+            <div className={cn(
+              "flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium",
+              trend === 'up' && "bg-success/10 text-success",
+              trend === 'down' && "bg-destructive/10 text-destructive",
+              trend === 'stable' && "bg-muted text-muted-foreground"
+            )}>
+              {trend === 'up' && <TrendingUp className="w-2.5 h-2.5" />}
+              {trend === 'down' && <TrendingDown className="w-2.5 h-2.5" />}
+              {trend === 'stable' && <Minus className="w-2.5 h-2.5" />}
+            </div>
+          )}
+        </div>
+        <p className={cn("text-sm font-semibold", getScoreColor())}>
+          {getReadinessLabel()}
+        </p>
+      </div>
     </div>
   );
 }

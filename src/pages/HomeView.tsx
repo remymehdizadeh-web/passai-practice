@@ -4,21 +4,17 @@ import { useProfile, calculateDaysUntilExam } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { ExamDateModal } from '@/components/ExamDateModal';
 import { ReadinessGauge } from '@/components/ReadinessGauge';
-import { CategoryMastery } from '@/components/CategoryMastery';
 import { DailyGoal } from '@/components/DailyGoal';
 import { ExamCountdown } from '@/components/ExamCountdown';
 import { StudyStreak } from '@/components/StudyStreak';
-import { WeakAreaAlert } from '@/components/WeakAreaAlert';
 import { PercentileRank } from '@/components/PercentileRank';
 import { Leaderboard } from '@/components/Leaderboard';
 import { WeeklyReport } from '@/components/WeeklyReport';
 import { 
   Play, 
-  Bookmark, 
   AlertCircle,
   ChevronRight,
   LogIn,
-  TrendingUp,
   BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,7 +44,7 @@ const NCLEX_CATEGORIES = [
   'Physiological Adaptation',
 ];
 
-// Mock leaderboard data - in production this would come from the database
+// Mock leaderboard data
 const MOCK_LEADERBOARD = [
   { rank: 1, name: 'Sarah M.', accuracy: 94, questionsCompleted: 847 },
   { rank: 2, name: 'James L.', accuracy: 91, questionsCompleted: 723 },
@@ -72,7 +68,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
   const streakDays = profile?.streak_days || 0;
   const dailyGoal = profile?.study_goal_daily || 15;
 
-  // Calculate today's progress
   const todayProgress = useMemo(() => {
     if (!progress) return 0;
     const today = new Date().toISOString().split('T')[0];
@@ -86,7 +81,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
     const completionRate = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
     
-    // Calculate category performance
     const categoryStats: Record<string, { correct: number; total: number }> = {};
     progress?.forEach((p) => {
       const q = questions?.find((q) => q.id === p.question_id);
@@ -99,7 +93,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       }
     });
 
-    // Build mastery for all 8 categories
     const categoryMastery = NCLEX_CATEGORIES.map(category => {
       const catStats = categoryStats[category];
       return {
@@ -110,12 +103,10 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       };
     });
 
-    // Find weakest and strongest areas with enough data
     const categoriesWithData = categoryMastery.filter(c => c.total >= 3);
     const weakestArea = categoriesWithData.sort((a, b) => a.accuracy - b.accuracy)[0];
     const strongestArea = categoriesWithData.sort((a, b) => b.accuracy - a.accuracy)[0];
 
-    // Readiness score (weighted by accuracy primarily)
     let readinessScore: number | null = null;
     if (answeredCount >= 10) {
       const accuracyWeight = accuracy * 0.75;
@@ -124,7 +115,6 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       readinessScore = Math.round(accuracyWeight + completionWeight + streakWeight);
     }
 
-    // Calculate trend based on recent performance
     const recentProgress = progress?.slice(-20) || [];
     const olderProgress = progress?.slice(-40, -20) || [];
     let trend: 'up' | 'down' | 'stable' = 'stable';
@@ -137,10 +127,8 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       else if (diff < -0.05) trend = 'down';
     }
 
-    // Mock percentile (in production, calculate from all users)
     const percentile = Math.min(95, Math.max(20, Math.round(accuracy * 0.9 + completionRate * 0.1)));
 
-    // Weekly stats (mock - would be calculated from last 7 days of progress)
     const weeklyData = {
       questionsThisWeek: Math.min(answeredCount, 87),
       questionsLastWeek: Math.round(Math.min(answeredCount, 87) * 0.8),
@@ -164,183 +152,141 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       readinessScore,
       trend,
       weakestArea,
-      strongestArea,
       percentile,
       weeklyData,
     };
   }, [questions, progress, bookmarks, missedQuestions, streakDays]);
 
   return (
-    <div className="pb-6 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Track your NCLEX journey</p>
+          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs text-muted-foreground">Your NCLEX journey</p>
         </div>
-        {user && streakDays > 0 && (
-          <StudyStreak days={streakDays} compact />
-        )}
-      </div>
-
-      {/* Sign in prompt */}
-      {!user && (
-        <button
-          onClick={() => navigate('/auth')}
-          className="w-full card-organic p-4 flex items-center gap-4 hover:shadow-lg transition-all"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-            <LogIn className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground">Sign in to compete</p>
-            <p className="text-sm text-muted-foreground">Track progress, join leaderboards</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
-      )}
-
-      {/* Exam Countdown */}
-      {user && (
-        <ExamCountdown
-          daysUntil={daysUntilExam}
-          examDate={profile?.exam_date}
-          onPress={() => setShowExamDate(true)}
-        />
-      )}
-
-      {/* Readiness Score + Percentile Row */}
-      {stats.readinessScore !== null && (
-        <div className="grid grid-cols-2 gap-4">
-          <ReadinessGauge 
-            score={stats.readinessScore} 
-            trend={stats.trend}
-          />
-          <PercentileRank 
-            percentile={stats.percentile}
-            totalUsers={12847}
-          />
-        </div>
-      )}
-
-      {/* Daily Goal */}
-      <DailyGoal
-        target={dailyGoal}
-        completed={todayProgress}
-        onStartPractice={() => onNavigate('practice')}
-      />
-
-      {/* Weekly Report Button */}
-      {stats.answeredCount >= 10 && (
-        <button
-          onClick={() => setShowWeeklyReport(true)}
-          className="w-full card-organic p-4 flex items-center gap-4 hover:shadow-lg transition-all"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center">
-            <BarChart3 className="w-6 h-6 text-accent-foreground" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground">Weekly Report</p>
-            <p className="text-sm text-muted-foreground">View your progress insights</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
-      )}
-
-      {/* Weak Area Alert */}
-      {stats.weakestArea && stats.weakestArea.accuracy < 70 && stats.weakestArea.total >= 5 && (
-        <WeakAreaAlert
-          category={stats.weakestArea.category}
-          accuracy={stats.weakestArea.accuracy}
-          onPractice={() => onNavigate('practice')}
-        />
-      )}
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="stat-card text-center">
-          <p className="text-2xl font-bold text-foreground">{stats.answeredCount}</p>
-          <p className="text-xs text-muted-foreground mt-1">Completed</p>
-        </div>
-        <div className="stat-card text-center">
-          <p className={cn(
-            "text-2xl font-bold",
-            stats.accuracy >= 75 ? "text-success" : 
-            stats.accuracy >= 60 ? "text-warning" : 
-            stats.accuracy > 0 ? "text-destructive" : "text-foreground"
-          )}>{stats.accuracy}%</p>
-          <p className="text-xs text-muted-foreground mt-1">Accuracy</p>
-        </div>
-        <div className="stat-card text-center">
-          <p className="text-2xl font-bold text-foreground">{stats.missedCount}</p>
-          <p className="text-xs text-muted-foreground mt-1">To Review</p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <button
-          onClick={() => onNavigate('practice')}
-          className="btn-premium text-primary-foreground p-5 text-left"
-        >
-          <Play className="w-7 h-7 mb-3" />
-          <p className="font-bold text-lg">Practice</p>
-          <p className="text-sm opacity-80">{stats.totalQuestions - stats.answeredCount} remaining</p>
-        </button>
-        
-        <button
-          onClick={() => onNavigate('review', 'missed')}
-          className={cn(
-            "card-organic p-5 text-left transition-all hover:shadow-lg",
-            stats.missedCount > 0 && "border-2 border-destructive/20"
+        <div className="flex items-center gap-2">
+          {user && streakDays > 0 && (
+            <StudyStreak days={streakDays} compact />
           )}
-        >
-          <AlertCircle className={cn(
-            "w-7 h-7 mb-3",
-            stats.missedCount > 0 ? "text-destructive" : "text-muted-foreground"
-          )} />
-          <p className="font-bold text-lg text-foreground">Review</p>
-          <p className="text-sm text-muted-foreground">{stats.missedCount} missed</p>
-        </button>
+          {stats.answeredCount >= 10 && (
+            <button
+              onClick={() => setShowWeeklyReport(true)}
+              className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center hover:bg-accent/20 transition-colors"
+            >
+              <BarChart3 className="w-4 h-4 text-accent" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Leaderboard */}
-      <Leaderboard
-        entries={MOCK_LEADERBOARD.map((entry, i) => ({
-          ...entry,
-          isCurrentUser: i === 3, // Mock: current user is 4th
-        }))}
-        currentUserRank={4}
-        totalUsers={12847}
-      />
+      {/* Main content - no scroll */}
+      <div className="flex-1 flex flex-col gap-3 min-h-0">
+        {/* Sign in prompt OR Exam countdown */}
+        {!user ? (
+          <button
+            onClick={() => navigate('/auth')}
+            className="card-organic p-3 flex items-center gap-3 hover:shadow-lg transition-all flex-shrink-0"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+              <LogIn className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-semibold text-sm text-foreground">Sign in to compete</p>
+              <p className="text-xs text-muted-foreground">Track progress & join leaderboards</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        ) : (
+          <ExamCountdown
+            daysUntil={daysUntilExam}
+            examDate={profile?.exam_date}
+            onPress={() => setShowExamDate(true)}
+          />
+        )}
 
-      {/* Category Mastery */}
-      <CategoryMastery 
-        categories={stats.categoryMastery}
-        onCategoryClick={() => onNavigate('practice')}
-      />
-
-      {/* Bookmarks */}
-      {stats.bookmarkCount > 0 && (
-        <button
-          onClick={() => onNavigate('review', 'bookmarked')}
-          className="w-full card-organic p-4 flex items-center gap-4 hover:shadow-lg transition-all"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Bookmark className="w-6 h-6 text-primary" />
+        {/* Stats row: Readiness + Percentile */}
+        {stats.readinessScore !== null && (
+          <div className="grid grid-cols-2 gap-3 flex-shrink-0">
+            <ReadinessGauge 
+              score={stats.readinessScore} 
+              trend={stats.trend}
+            />
+            <PercentileRank 
+              percentile={stats.percentile}
+              totalUsers={12847}
+            />
           </div>
-          <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground">{stats.bookmarkCount} Saved</p>
-            <p className="text-sm text-muted-foreground">Review your bookmarks</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
-      )}
+        )}
 
-      {/* Streak Celebration */}
-      {user && streakDays >= 3 && (
-        <StudyStreak days={streakDays} />
-      )}
+        {/* Daily Goal - compact */}
+        <DailyGoal
+          target={dailyGoal}
+          completed={todayProgress}
+          onStartPractice={() => onNavigate('practice')}
+        />
+
+        {/* Quick stats row */}
+        <div className="grid grid-cols-3 gap-2 flex-shrink-0">
+          <div className="stat-card text-center py-3">
+            <p className="text-lg font-bold text-foreground">{stats.answeredCount}</p>
+            <p className="text-[10px] text-muted-foreground">Completed</p>
+          </div>
+          <div className="stat-card text-center py-3">
+            <p className={cn(
+              "text-lg font-bold",
+              stats.accuracy >= 75 ? "text-success" : 
+              stats.accuracy >= 60 ? "text-warning" : 
+              stats.accuracy > 0 ? "text-destructive" : "text-foreground"
+            )}>{stats.accuracy}%</p>
+            <p className="text-[10px] text-muted-foreground">Accuracy</p>
+          </div>
+          <div className="stat-card text-center py-3">
+            <p className="text-lg font-bold text-destructive">{stats.missedCount}</p>
+            <p className="text-[10px] text-muted-foreground">To Review</p>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="grid grid-cols-2 gap-3 flex-shrink-0">
+          <button
+            onClick={() => onNavigate('practice')}
+            className="btn-premium text-primary-foreground p-4 text-left"
+          >
+            <Play className="w-6 h-6 mb-2" />
+            <p className="font-bold">Practice</p>
+            <p className="text-xs opacity-80">{stats.totalQuestions - stats.answeredCount} left</p>
+          </button>
+          
+          <button
+            onClick={() => onNavigate('review', 'missed')}
+            className={cn(
+              "card-organic p-4 text-left transition-all hover:shadow-lg",
+              stats.missedCount > 0 && "border-2 border-destructive/20"
+            )}
+          >
+            <AlertCircle className={cn(
+              "w-6 h-6 mb-2",
+              stats.missedCount > 0 ? "text-destructive" : "text-muted-foreground"
+            )} />
+            <p className="font-bold text-foreground">Review</p>
+            <p className="text-xs text-muted-foreground">{stats.missedCount} missed</p>
+          </button>
+        </div>
+
+        {/* Leaderboard - compact */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <Leaderboard
+            entries={MOCK_LEADERBOARD.map((entry, i) => ({
+              ...entry,
+              isCurrentUser: i === 3,
+            }))}
+            currentUserRank={4}
+            totalUsers={12847}
+            compact
+          />
+        </div>
+      </div>
 
       {/* Modals */}
       <ExamDateModal
