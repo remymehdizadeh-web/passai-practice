@@ -3,6 +3,7 @@ import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
 import { PaywallModal } from '@/components/PaywallModal';
+import { ProgressBar } from '@/components/ProgressBar';
 import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUserProgress } from '@/hooks/useQuestions';
 import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions, getSessionId } from '@/lib/session';
 import { Loader2 } from 'lucide-react';
@@ -131,12 +132,22 @@ export function PracticeView() {
   }
 
   const remaining = getRemainingFreeQuestions();
+  const totalQuestions = prioritizedQuestions?.length || 0;
 
   return (
     <div className="pb-24">
+      {/* Progress bar at top */}
+      <div className="mb-5">
+        <ProgressBar 
+          current={currentIndex + 1} 
+          total={totalQuestions}
+          className="h-1"
+        />
+      </div>
+
       {/* Free questions remaining indicator */}
       {remaining > 0 && remaining <= 5 && (
-        <div className="mb-4 p-3 rounded-xl bg-primary/10 border border-primary/20 text-center">
+        <div className="mb-4 p-3 rounded-2xl bg-primary/5 border border-primary/10 text-center">
           <p className="text-sm text-primary font-medium">
             {remaining} free question{remaining !== 1 ? 's' : ''} remaining
           </p>
@@ -146,7 +157,7 @@ export function PracticeView() {
       <QuestionCard
         question={currentQuestion}
         questionNumber={currentIndex + 1}
-        totalQuestions={prioritizedQuestions?.length || 0}
+        totalQuestions={totalQuestions}
         isBookmarked={isBookmarked}
         onSubmit={handleSubmit}
         onBookmark={handleBookmark}

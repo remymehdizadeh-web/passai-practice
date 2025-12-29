@@ -6,7 +6,6 @@ import {
   HelpCircle, 
   FileText, 
   Mail, 
-  ExternalLink,
   ChevronRight,
   AlertTriangle
 } from 'lucide-react';
@@ -61,25 +60,28 @@ export function SettingsView() {
 
   return (
     <div className="pb-24">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Settings</h1>
+      {/* Header Bento Cell */}
+      <div className="bento-cell mb-6">
+        <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+      </div>
 
-      {/* Stats Card */}
-      <div className="card-premium rounded-2xl p-5 mb-6">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+      {/* Stats Card - Bento Grid */}
+      <div className="bento-cell mb-6">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
           Your Progress
         </h2>
         <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{totalAnswered}</p>
-            <p className="text-xs text-muted-foreground">Questions</p>
+          <div className="text-center p-3 rounded-xl bg-muted/30">
+            <p className="text-2xl font-semibold text-foreground">{totalAnswered}</p>
+            <p className="text-xs text-muted-foreground mt-1">Questions</p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-success">{accuracy}%</p>
-            <p className="text-xs text-muted-foreground">Accuracy</p>
+          <div className="text-center p-3 rounded-xl bg-success/8" style={{ backgroundColor: 'hsl(var(--success) / 0.08)' }}>
+            <p className="text-2xl font-semibold text-success">{accuracy}%</p>
+            <p className="text-xs text-muted-foreground mt-1">Accuracy</p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{remaining}</p>
-            <p className="text-xs text-muted-foreground">Free Left</p>
+          <div className="text-center p-3 rounded-xl bg-muted/30">
+            <p className="text-2xl font-semibold text-foreground">{remaining}</p>
+            <p className="text-xs text-muted-foreground mt-1">Free Left</p>
           </div>
         </div>
       </div>
@@ -88,31 +90,32 @@ export function SettingsView() {
       {remaining > 0 && (
         <button
           onClick={() => setShowPaywall(true)}
-          className="w-full p-4 rounded-2xl bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/30 mb-6 flex items-center gap-4 hover:from-primary/25 hover:to-primary/10 transition-all"
+          className="w-full bento-cell mb-6 flex items-center gap-4 hover:shadow-glass transition-all duration-200"
+          style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0.02) 100%)' }}
         >
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
             <Crown className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1 text-left">
             <p className="font-semibold text-foreground">Upgrade to Premium</p>
             <p className="text-sm text-muted-foreground">
-              Unlock unlimited questions and detailed analytics
+              Unlock unlimited questions and analytics
             </p>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </button>
       )}
 
-      {/* Menu Items */}
-      <div className="space-y-2">
+      {/* Menu Items - Bento Style */}
+      <div className="space-y-3">
         {menuItems.map((item, index) => (
           <button
             key={index}
             onClick={item.onClick}
-            className="w-full p-4 rounded-xl bg-card border border-border flex items-center gap-4 hover:border-muted-foreground/30 transition-all"
+            className="w-full bento-cell flex items-center gap-4 hover:shadow-glass transition-all duration-200"
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              item.accent ? 'bg-primary/10' : 'bg-muted'
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+              item.accent ? 'bg-primary/10' : 'bg-muted/50'
             }`}>
               <item.icon className={`w-5 h-5 ${
                 item.accent ? 'text-primary' : 'text-muted-foreground'
@@ -139,7 +142,7 @@ export function SettingsView() {
 
       {/* Disclaimer Modal */}
       <Dialog open={showDisclaimer} onOpenChange={setShowDisclaimer}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogContent className="sm:max-w-md bg-card border-border rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -180,7 +183,7 @@ export function SettingsView() {
               qualified healthcare professional.
             </p>
           </div>
-          <Button onClick={() => setShowDisclaimer(false)} className="w-full mt-4">
+          <Button onClick={() => setShowDisclaimer(false)} className="w-full mt-4 rounded-xl">
             I Understand
           </Button>
         </DialogContent>

@@ -33,11 +33,11 @@ export function QuestionCard({
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy':
-        return 'text-success bg-success/10 border-success/30';
+        return 'text-success bg-success/10 border-success/20';
       case 'hard':
-        return 'text-destructive bg-destructive/10 border-destructive/30';
+        return 'text-destructive bg-destructive/10 border-destructive/20';
       default:
-        return 'text-muted-foreground bg-muted border-border';
+        return 'text-muted-foreground bg-muted/50 border-border';
     }
   };
 
@@ -58,7 +58,7 @@ export function QuestionCard({
     if (wasSelected && !isCorrect) {
       return 'option-incorrect';
     }
-    return 'option-default opacity-50';
+    return 'option-default opacity-40';
   };
 
   const getOptionIcon = (label: string) => {
@@ -77,12 +77,12 @@ export function QuestionCard({
   };
 
   return (
-    <div className="card-premium rounded-2xl p-5 animate-fade-in">
+    <div className="card-glass p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <span className={cn(
-            'text-xs font-medium px-2.5 py-1 rounded-full border',
+            'text-xs font-medium px-3 py-1.5 rounded-full border',
             getDifficultyColor(question.difficulty)
           )}>
             {question.category}
@@ -92,17 +92,17 @@ export function QuestionCard({
           <button
             onClick={onBookmark}
             className={cn(
-              'p-2 rounded-lg transition-colors',
+              'p-2.5 rounded-xl transition-all duration-200',
               isBookmarked 
                 ? 'text-primary bg-primary/10' 
-                : 'text-muted-foreground hover:bg-accent'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             )}
           >
             <Bookmark className={cn('w-5 h-5', isBookmarked && 'fill-current')} />
           </button>
           <button
             onClick={onReport}
-            className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="p-2.5 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200"
           >
             <Flag className="w-5 h-5" />
           </button>
@@ -110,37 +110,37 @@ export function QuestionCard({
       </div>
 
       {/* Question counter */}
-      <p className="text-xs text-muted-foreground mb-3">
+      <p className="text-xs text-muted-foreground mb-4">
         Question {questionNumber} of {totalQuestions}
       </p>
 
       {/* Question Stem */}
-      <p className="text-foreground font-medium leading-relaxed mb-6">
+      <p className="text-foreground text-stem text-base mb-7">
         {question.stem}
       </p>
 
       {/* Options */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-7">
         {question.options.map((option) => (
           <button
             key={option.label}
             onClick={() => !isSubmitted && setLocalSelected(option.label)}
             disabled={isSubmitted}
             className={cn(
-              'w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-all duration-200',
+              'w-full text-left p-4 rounded-2xl border flex items-start gap-3 transition-all duration-200',
               getOptionClass(option.label),
-              !isSubmitted && 'hover:border-muted-foreground/50 cursor-pointer'
+              !isSubmitted && 'hover:border-muted-foreground/30 cursor-pointer active:scale-[0.99]'
             )}
           >
             <span className={cn(
-              'w-7 h-7 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0',
+              'w-8 h-8 rounded-xl flex items-center justify-center text-sm font-semibold shrink-0 transition-colors duration-200',
               currentSelected === option.label
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
             )}>
               {option.label}
             </span>
-            <span className="flex-1 pt-0.5">{option.text}</span>
+            <span className="flex-1 pt-1 text-option">{option.text}</span>
             {getOptionIcon(option.label)}
           </button>
         ))}

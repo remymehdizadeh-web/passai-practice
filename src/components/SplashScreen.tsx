@@ -8,22 +8,20 @@ interface SplashScreenProps {
 export function SplashScreen({ onStart }: SplashScreenProps) {
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
-      {/* Background gradient orbs */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Subtle background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/3 to-transparent" />
       
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center max-w-sm animate-fade-in">
         {/* Logo/Brand */}
         <div className="relative mb-8">
-          <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
-          <div className="relative w-20 h-20 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center shadow-premium">
+          <div className="relative w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-premium">
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
         </div>
 
         {/* Brand Name */}
-        <h1 className="text-4xl font-bold tracking-tight mb-2">
+        <h1 className="text-4xl font-semibold tracking-tight mb-2">
           <span className="text-gradient">Pass</span>
           <span className="text-foreground">AI</span>
         </h1>
@@ -32,10 +30,10 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
           NCLEX-RN Practice
         </p>
 
-        {/* Value propositions */}
+        {/* Value propositions - Bento style */}
         <div className="space-y-3 mb-10 w-full">
-          <div className="flex items-center gap-3 text-left p-3 rounded-xl bg-secondary/50 border border-border/50">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="bento-cell flex items-center gap-3 text-left">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <Zap className="w-5 h-5 text-primary" />
             </div>
             <div>
@@ -44,8 +42,8 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
             </div>
           </div>
           
-          <div className="flex items-center gap-3 text-left p-3 rounded-xl bg-secondary/50 border border-border/50">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="bento-cell flex items-center gap-3 text-left">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <Target className="w-5 h-5 text-primary" />
             </div>
             <div>
