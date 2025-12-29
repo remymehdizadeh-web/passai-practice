@@ -83,6 +83,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          exam_date: string | null
           id: string
           last_study_date: string | null
           streak_days: number | null
@@ -93,6 +94,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          exam_date?: string | null
           id: string
           last_study_date?: string | null
           streak_days?: number | null
@@ -103,6 +105,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          exam_date?: string | null
           id?: string
           last_study_date?: string | null
           streak_days?: number | null
