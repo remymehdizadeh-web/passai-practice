@@ -1,25 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SplashScreen } from '@/components/SplashScreen';
+import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNav } from '@/components/BottomNav';
 import { HomeView } from '@/pages/HomeView';
 import { PracticeView } from '@/pages/PracticeView';
 import { ReviewView } from '@/pages/ReviewView';
 import { SettingsView } from '@/pages/SettingsView';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { Helmet } from 'react-helmet';
-
 
 type Tab = 'home' | 'practice' | 'review' | 'settings';
 type ReviewFilter = 'bookmarked' | 'missed';
 
 const Index = () => {
   const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('practice');
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('bookmarked');
+  
+  const { user } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+
+  // Check if new user needs onboarding (signed in but no exam_date or goal set)
+  useEffect(() => {
+    if (user && !profileLoading && profile) {
+      const needsOnboarding = !profile.exam_date && profile.study_goal_daily === 10;
+      if (needsOnboarding && !showSplash) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [user, profile, profileLoading, showSplash]);
 
   const handleStart = () => {
     markOnboardingSeen();
     setShowSplash(false);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
   };
 
   const handleNavigate = (tab: 'practice' | 'review', filter?: ReviewFilter) => {
@@ -37,6 +57,18 @@ const Index = () => {
           <meta name="description" content="Comprehensive NCLEX-RN practice for nursing students. Study with confidence using expert-crafted questions." />
         </Helmet>
         <SplashScreen onStart={handleStart} />
+      </>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <>
+        <Helmet>
+          <title>Welcome - NCLEX RN Pro</title>
+          <meta name="description" content="Set up your NCLEX study plan" />
+        </Helmet>
+        <OnboardingFlow onComplete={handleOnboardingComplete} />
       </>
     );
   }
