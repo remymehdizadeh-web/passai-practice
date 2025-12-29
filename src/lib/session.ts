@@ -1,7 +1,7 @@
 // Session management for anonymous users
 
-const SESSION_KEY = 'passai_session_id';
-const QUESTIONS_ANSWERED_KEY = 'passai_questions_answered';
+const SESSION_KEY = 'nclexgo_session_id';
+const QUESTIONS_ANSWERED_KEY = 'nclexgo_questions_answered';
 const FREE_QUESTION_LIMIT = 10;
 
 export function getSessionId(): string {
@@ -35,9 +35,9 @@ export function getRemainingFreeQuestions(): number {
 }
 
 export function hasSeenOnboarding(): boolean {
-  return localStorage.getItem('passai_onboarding_seen') === 'true';
+  return localStorage.getItem('nclexgo_onboarding_seen') === 'true';
 }
 
 export function markOnboardingSeen(): void {
-  localStorage.setItem('passai_onboarding_seen', 'true');
+  localStorage.setItem('nclexgo_onboarding_seen', 'true');
 }

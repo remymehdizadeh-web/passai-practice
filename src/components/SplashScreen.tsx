@@ -22,14 +22,14 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         {/* Logo */}
         <div className="relative mb-8">
           <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-premium">
-            <img src={logoIcon} alt="PassAI Logo" className="w-full h-full object-cover" />
+            <img src={logoIcon} alt="NCLEX Go Logo" className="w-full h-full object-cover" />
           </div>
         </div>
 
         {/* Brand */}
         <h1 className="text-4xl font-semibold tracking-tight mb-2">
-          <span className="text-gradient">Pass</span>
-          <span className="text-foreground">AI</span>
+          <span className="text-gradient">NCLEX</span>
+          <span className="text-foreground"> Go</span>
         </h1>
         
         <p className="text-muted-foreground text-lg mb-8">
