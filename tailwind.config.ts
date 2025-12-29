@@ -31,10 +31,12 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+          glow: "hsl(var(--destructive-glow))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+          glow: "hsl(var(--success-glow))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -67,6 +69,16 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1.5rem",
+        "3xl": "1.75rem",
+      },
+      boxShadow: {
+        premium: "var(--shadow-premium)",
+        card: "var(--shadow-card)",
+        glass: "var(--shadow-glass)",
+        glow: "var(--shadow-glow)",
+        correct: "var(--shadow-correct)",
+        incorrect: "var(--shadow-incorrect)",
       },
       keyframes: {
         "accordion-down": {
