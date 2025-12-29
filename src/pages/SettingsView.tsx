@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserProgress } from '@/hooks/useQuestions';
 import { ExamDateModal } from '@/components/ExamDateModal';
+import { GoalEditModal } from '@/components/GoalEditModal';
 import logoIcon from '@/assets/logo-icon.png';
 import { 
   User, 
@@ -27,6 +28,7 @@ export function SettingsView() {
   const { data: profile } = useProfile();
   const { data: progress } = useUserProgress();
   const [showExamDate, setShowExamDate] = useState(false);
+  const [showGoalEdit, setShowGoalEdit] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -101,25 +103,43 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Exam Date */}
-      <button
-        onClick={() => setShowExamDate(true)}
-        className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:bg-muted/30 transition-all active:scale-[0.99]"
-      >
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Calendar className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1 text-left">
-          <p className="text-sm font-medium text-foreground">Exam Date</p>
-          <p className="text-xs text-muted-foreground">
-            {profile?.exam_date 
-              ? `${new Date(profile.exam_date).toLocaleDateString()} (${daysUntilExam} days)`
-              : 'Set your exam date'
-            }
-          </p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground" />
-      </button>
+      {/* Exam Date & Daily Goal */}
+      <div className="space-y-3">
+        <button
+          onClick={() => setShowExamDate(true)}
+          className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:bg-muted/30 transition-all active:scale-[0.99]"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-foreground">Exam Date</p>
+            <p className="text-xs text-muted-foreground">
+              {profile?.exam_date 
+                ? `${new Date(profile.exam_date).toLocaleDateString()} (${daysUntilExam} days)`
+                : 'Set your exam date'
+              }
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </button>
+
+        <button
+          onClick={() => setShowGoalEdit(true)}
+          className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:bg-muted/30 transition-all active:scale-[0.99]"
+        >
+          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+            <Target className="w-5 h-5 text-accent" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-foreground">Daily Goal</p>
+            <p className="text-xs text-muted-foreground">
+              {profile?.study_goal_daily || 15} questions per day
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </button>
+      </div>
 
       {/* Settings List */}
       <div className="bg-card border border-border rounded-xl overflow-hidden divide-y divide-border">
@@ -173,6 +193,12 @@ export function SettingsView() {
       <ExamDateModal 
         isOpen={showExamDate} 
         onClose={() => setShowExamDate(false)} 
+      />
+
+      <GoalEditModal
+        isOpen={showGoalEdit}
+        onClose={() => setShowGoalEdit(false)}
+        currentGoal={profile?.study_goal_daily || 15}
       />
     </div>
   );
