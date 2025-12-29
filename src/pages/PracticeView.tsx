@@ -4,15 +4,12 @@ import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
 import { PaywallModal } from '@/components/PaywallModal';
 import { ProgressBar } from '@/components/ProgressBar';
-import { StudyHeader } from '@/components/StudyHeader';
-import { ExamDateModal } from '@/components/ExamDateModal';
-import { PointsDisplay } from '@/components/PointsDisplay';
 import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUserProgress } from '@/hooks/useQuestions';
 import { useProfile, useUpdateStreak } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions } from '@/lib/session';
-import { getPoints, addPoints, getCorrectStreak, incrementStreak, resetStreak, calculatePointsEarned, startAnswerTimer } from '@/lib/points';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Flame, Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function PracticeView() {
   const { data: questions, isLoading } = useQuestions();
@@ -29,11 +26,8 @@ export function PracticeView() {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [showExamDate, setShowExamDate] = useState(false);
   const [hasUpdatedStreak, setHasUpdatedStreak] = useState(false);
-  const [totalPoints, setTotalPoints] = useState(getPoints());
-  const [currentStreak, setCurrentStreak] = useState(getCorrectStreak());
-  const [lastPointsEarned, setLastPointsEarned] = useState({ base: 0, timeBonus: 0, streakBonus: 0, total: 0, answerTime: 0 });
+  const [correctStreak, setCorrectStreak] = useState(0);
 
   // Update streak when user answers first question of the day
   useEffect(() => {
@@ -42,13 +36,6 @@ export function PracticeView() {
       setHasUpdatedStreak(true);
     }
   }, [user, isSubmitted, hasUpdatedStreak, updateStreak]);
-
-  // Start timer when a new question loads
-  useEffect(() => {
-    if (!isSubmitted) {
-      startAnswerTimer();
-    }
-  }, [currentIndex, isSubmitted]);
 
   // Get prioritized questions based on weak categories
   const prioritizedQuestions = useMemo(() => {
@@ -99,18 +86,11 @@ export function PracticeView() {
     setSelectedLabel(label);
     setIsSubmitted(true);
 
-    // Handle points and streak
+    // Track correct streak for session
     if (isCorrect) {
-      const newStreak = incrementStreak();
-      setCurrentStreak(newStreak);
-      const pointsInfo = calculatePointsEarned(newStreak);
-      setLastPointsEarned(pointsInfo);
-      const newTotal = addPoints(pointsInfo.total);
-      setTotalPoints(newTotal);
+      setCorrectStreak(prev => prev + 1);
     } else {
-      resetStreak();
-      setCurrentStreak(0);
-      setLastPointsEarned({ base: 0, timeBonus: 0, streakBonus: 0, total: 0, answerTime: 0 });
+      setCorrectStreak(0);
     }
 
     await recordProgress.mutateAsync({
@@ -164,18 +144,41 @@ export function PracticeView() {
   const remaining = getRemainingFreeQuestions();
   const totalQuestions = prioritizedQuestions?.length || 0;
   const answeredCount = progress?.length || 0;
+  const correctCount = progress?.filter(p => p.is_correct).length || 0;
+  const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
   const overallProgress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+
+  const daysUntilExam = profile?.exam_date 
+    ? Math.max(0, Math.ceil((new Date(profile.exam_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
 
   return (
     <div className="pb-6">
-      {/* Header with points and streak/exam countdown */}
-      <div className="flex items-center justify-between mb-4">
-        {user ? (
-          <StudyHeader onExamDateClick={() => setShowExamDate(true)} />
-        ) : (
-          <PointsDisplay points={totalPoints} />
-        )}
-        {user && <PointsDisplay points={totalPoints} />}
+      {/* Header with stats */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          {user && profile?.streak_days && profile.streak_days > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+              <Flame className="w-4 h-4 text-orange-500" />
+              <span className="text-sm font-bold text-orange-500">{profile.streak_days}</span>
+            </div>
+          )}
+          {user && daysUntilExam !== null && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+              <Calendar className="w-4 h-4 text-primary" />
+              <span className="text-sm font-semibold text-primary">{daysUntilExam}d</span>
+            </div>
+          )}
+        </div>
+        
+        <div className={cn(
+          "px-3 py-1.5 rounded-full text-sm font-bold",
+          accuracy >= 75 ? "bg-success/10 text-success" :
+          accuracy >= 60 ? "bg-warning/10 text-warning" :
+          accuracy > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+        )}>
+          {accuracy}% accuracy
+        </div>
       </div>
 
       {/* Progress section */}
@@ -184,9 +187,9 @@ export function PracticeView() {
           Question {currentIndex + 1} of {totalQuestions}
         </p>
         <div className="flex items-center gap-2">
-          {currentStreak >= 3 && (
-            <span className="text-xs bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full font-medium">
-              🔥 {currentStreak} streak
+          {correctStreak >= 3 && (
+            <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full font-medium">
+              🔥 {correctStreak} in a row
             </span>
           )}
           <span className="text-sm font-medium text-foreground">{overallProgress}%</span>
@@ -197,15 +200,15 @@ export function PracticeView() {
         <ProgressBar 
           current={answeredCount} 
           total={totalQuestions}
-          className="h-1.5 rounded-full"
+          className="h-2 rounded-full"
         />
       </div>
 
       {/* Free questions remaining */}
       {remaining > 0 && remaining <= 5 && (
-        <div className="mb-4 p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
-          <p className="text-sm text-primary font-medium">
-            {remaining} free question{remaining !== 1 ? 's' : ''} left
+        <div className="mb-4 p-3 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/10 text-center">
+          <p className="text-sm text-foreground font-medium">
+            {remaining} free question{remaining !== 1 ? 's' : ''} remaining
           </p>
         </div>
       )}
@@ -227,10 +230,6 @@ export function PracticeView() {
           question={currentQuestion}
           selectedLabel={selectedLabel}
           onNext={handleNext}
-          pointsEarned={lastPointsEarned.base}
-          streak={currentStreak}
-          timeBonus={lastPointsEarned.timeBonus}
-          streakBonus={lastPointsEarned.streakBonus}
         />
       )}
 
@@ -243,12 +242,6 @@ export function PracticeView() {
       <PaywallModal
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}
-      />
-
-      <ExamDateModal
-        isOpen={showExamDate}
-        onClose={() => setShowExamDate(false)}
-        currentDate={profile?.exam_date}
       />
     </div>
   );
