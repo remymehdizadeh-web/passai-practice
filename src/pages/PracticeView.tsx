@@ -1,31 +1,47 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
 import { PaywallModal } from '@/components/PaywallModal';
 import { ProgressBar } from '@/components/ProgressBar';
+import { StudyHeader } from '@/components/StudyHeader';
+import { ExamDateModal } from '@/components/ExamDateModal';
 import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUserProgress } from '@/hooks/useQuestions';
-import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions, getSessionId } from '@/lib/session';
+import { useProfile, useUpdateStreak } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
+import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions } from '@/lib/session';
 import { Loader2 } from 'lucide-react';
 
 export function PracticeView() {
   const { data: questions, isLoading } = useQuestions();
   const { data: bookmarks } = useBookmarks();
   const { data: progress } = useUserProgress();
+  const { data: profile } = useProfile();
+  const { user } = useAuth();
   const toggleBookmark = useToggleBookmark();
   const recordProgress = useRecordProgress();
+  const updateStreak = useUpdateStreak();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showExamDate, setShowExamDate] = useState(false);
+  const [hasUpdatedStreak, setHasUpdatedStreak] = useState(false);
+
+  // Update streak when user answers first question of the day
+  useEffect(() => {
+    if (user && isSubmitted && !hasUpdatedStreak) {
+      updateStreak.mutate();
+      setHasUpdatedStreak(true);
+    }
+  }, [user, isSubmitted, hasUpdatedStreak, updateStreak]);
 
   // Get prioritized questions based on weak categories
   const prioritizedQuestions = useMemo(() => {
     if (!questions || !progress) return questions || [];
     
-    // Calculate category weakness
     const categoryStats: Record<string, { correct: number; total: number }> = {};
     progress.forEach((p) => {
       const q = questions.find((q) => q.id === p.question_id);
@@ -38,24 +54,20 @@ export function PracticeView() {
       }
     });
 
-    // Calculate weakness scores (lower = weaker)
     const weaknessScores: Record<string, number> = {};
     Object.entries(categoryStats).forEach(([category, stats]) => {
       weaknessScores[category] = stats.total > 0 ? stats.correct / stats.total : 0.5;
     });
 
-    // Sort questions: unanswered first, then by weakness
     const answeredIds = new Set(progress.map((p) => p.question_id));
     
     return [...questions].sort((a, b) => {
       const aAnswered = answeredIds.has(a.id);
       const bAnswered = answeredIds.has(b.id);
       
-      // Unanswered questions first
       if (!aAnswered && bAnswered) return -1;
       if (aAnswered && !bAnswered) return 1;
       
-      // Then sort by weakness (weaker categories first)
       const aScore = weaknessScores[a.category] ?? 0.5;
       const bScore = weaknessScores[b.category] ?? 0.5;
       return aScore - bScore;
@@ -63,7 +75,6 @@ export function PracticeView() {
   }, [questions, progress]);
 
   const currentQuestion = prioritizedQuestions?.[currentIndex];
-  const sessionId = getSessionId();
 
   const isBookmarked = bookmarks?.some(
     (b) => b.question_id === currentQuestion?.id
@@ -76,29 +87,24 @@ export function PracticeView() {
     setSelectedLabel(label);
     setIsSubmitted(true);
 
-    // Record progress
     await recordProgress.mutateAsync({
       questionId: currentQuestion.id,
       selectedLabel: label,
       isCorrect,
     });
 
-    // Increment questions answered counter
     incrementQuestionsAnswered();
   };
 
   const handleNext = () => {
-    // Check if paywall should be shown
     if (shouldShowPaywall()) {
       setShowPaywall(true);
       return;
     }
 
-    // Move to next question
     if (currentIndex < (prioritizedQuestions?.length || 0) - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
-      // Loop back to beginning for MVP
       setCurrentIndex(0);
     }
     setIsSubmitted(false);
@@ -116,7 +122,7 @@ export function PracticeView() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
       </div>
     );
   }
@@ -124,38 +130,37 @@ export function PracticeView() {
   if (!currentQuestion) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] text-center p-6">
-        <div>
-          <p className="text-muted-foreground">No questions available.</p>
-        </div>
+        <p className="text-muted-foreground">No questions available.</p>
       </div>
     );
   }
 
   const remaining = getRemainingFreeQuestions();
   const totalQuestions = prioritizedQuestions?.length || 0;
-
-  // Calculate how many unique questions have been answered
   const answeredCount = progress?.length || 0;
   const overallProgress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   return (
     <div className="pb-6">
-      {/* Header section */}
-      <div className="flex items-center justify-between mb-5">
+      {/* Study header with streak and exam countdown */}
+      {user && (
+        <StudyHeader onExamDateClick={() => setShowExamDate(true)} />
+      )}
+
+      {/* Progress section */}
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <h1 className="text-lg font-semibold text-foreground">Practice</h1>
           <p className="text-sm text-muted-foreground">
-            {answeredCount} of {totalQuestions} completed
+            Question {currentIndex + 1} of {totalQuestions}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-semibold text-foreground">{overallProgress}%</p>
-          <p className="text-xs text-muted-foreground">overall</p>
+          <span className="text-sm font-medium text-foreground">{overallProgress}%</span>
+          <span className="text-xs text-muted-foreground ml-1">complete</span>
         </div>
       </div>
 
-      {/* Progress bar - shows overall completion */}
-      <div className="mb-6">
+      <div className="mb-5">
         <ProgressBar 
           current={answeredCount} 
           total={totalQuestions}
@@ -163,11 +168,11 @@ export function PracticeView() {
         />
       </div>
 
-      {/* Free questions remaining indicator */}
+      {/* Free questions remaining */}
       {remaining > 0 && remaining <= 5 && (
-        <div className="mb-5 p-3 rounded-xl bg-muted/50 border border-border text-center">
-          <p className="text-sm text-muted-foreground">
-            {remaining} free question{remaining !== 1 ? 's' : ''} remaining
+        <div className="mb-4 p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+          <p className="text-sm text-primary font-medium">
+            {remaining} free question{remaining !== 1 ? 's' : ''} left
           </p>
         </div>
       )}
@@ -201,6 +206,12 @@ export function PracticeView() {
       <PaywallModal
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}
+      />
+
+      <ExamDateModal
+        isOpen={showExamDate}
+        onClose={() => setShowExamDate(false)}
+        currentDate={profile?.exam_date}
       />
     </div>
   );

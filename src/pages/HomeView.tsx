@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import { useQuestions, useUserProgress, useBookmarks, useMissedQuestions } from '@/hooks/useQuestions';
+import { useProfile, calculateDaysUntilExam } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
+import { ExamDateModal } from '@/components/ExamDateModal';
 import { Button } from '@/components/ui/button';
 import { 
   Play, 
@@ -9,9 +11,13 @@ import {
   Bookmark, 
   AlertCircle,
   ChevronRight,
-  Flame
+  Flame,
+  Calendar,
+  Trophy,
+  LogIn
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface HomeViewProps {
   onNavigate: (tab: 'practice' | 'review' | 'settings') => void;
@@ -22,6 +28,13 @@ export function HomeView({ onNavigate }: HomeViewProps) {
   const { data: progress } = useUserProgress();
   const { data: bookmarks } = useBookmarks();
   const { data: missedQuestions } = useMissedQuestions();
+  const { data: profile } = useProfile();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showExamDate, setShowExamDate] = useState(false);
+
+  const daysUntilExam = calculateDaysUntilExam(profile?.exam_date || null);
+  const streakDays = profile?.streak_days || 0;
 
   const stats = useMemo(() => {
     const totalQuestions = questions?.length || 0;
@@ -30,7 +43,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
     const completionRate = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
     
-    // Calculate category performance
+    // Calculate category performance with mastery levels
     const categoryStats: Record<string, { correct: number; total: number }> = {};
     progress?.forEach((p) => {
       const q = questions?.find((q) => q.id === p.question_id);
@@ -43,11 +56,20 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       }
     });
 
-    // Find weak categories (< 70% accuracy, min 2 questions)
-    const weakCategories = Object.entries(categoryStats)
-      .filter(([_, stats]) => stats.total >= 2 && (stats.correct / stats.total) < 0.7)
-      .sort((a, b) => (a[1].correct / a[1].total) - (b[1].correct / b[1].total))
-      .slice(0, 3);
+    // Calculate mastery for each category
+    const categoryMastery = Object.entries(categoryStats)
+      .map(([category, catStats]) => ({
+        category,
+        accuracy: Math.round((catStats.correct / catStats.total) * 100),
+        total: catStats.total,
+        correct: catStats.correct,
+      }))
+      .sort((a, b) => a.accuracy - b.accuracy);
+
+    // Readiness score (weighted average of accuracy and completion)
+    const readinessScore = answeredCount >= 5 
+      ? Math.round((accuracy * 0.7) + (completionRate * 0.3))
+      : null;
 
     return {
       totalQuestions,
@@ -57,47 +79,127 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       completionRate,
       bookmarkCount: bookmarks?.length || 0,
       missedCount: missedQuestions?.length || 0,
-      weakCategories,
+      categoryMastery,
+      readinessScore,
     };
   }, [questions, progress, bookmarks, missedQuestions]);
-
-  // Simple daily goal (10 questions per day for now - stored in session)
-  const dailyGoal = 10;
-  const todayAnswered = Math.min(stats.answeredCount, dailyGoal); // Simplified for MVP
-  const dailyProgress = Math.round((todayAnswered / dailyGoal) * 100);
 
   return (
     <div className="pb-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-lg font-semibold text-foreground">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">Ready to study?</p>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Your study overview</p>
+        </div>
+        {user && (
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg",
+              streakDays > 0 ? "bg-orange-500/10" : "bg-muted"
+            )}>
+              <Flame className={cn(
+                "w-4 h-4",
+                streakDays > 0 ? "text-orange-500" : "text-muted-foreground"
+              )} />
+              <span className={cn(
+                "text-sm font-semibold",
+                streakDays > 0 ? "text-orange-500" : "text-muted-foreground"
+              )}>
+                {streakDays}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Daily Goal Card */}
-      <div className="bg-card border border-border rounded-xl p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Target className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Daily Goal</p>
-              <p className="text-xs text-muted-foreground">{todayAnswered} of {dailyGoal} questions</p>
-            </div>
+      {/* Sign in prompt for non-authenticated users */}
+      {!user && (
+        <button
+          onClick={() => navigate('/auth')}
+          className="w-full bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4 flex items-center gap-3 hover:bg-primary/10 transition-colors"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <LogIn className="w-5 h-5 text-primary" />
           </div>
-          <div className="flex items-center gap-1.5 text-primary">
-            <Flame className="w-4 h-4" />
-            <span className="text-sm font-semibold">1</span>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-foreground">Sign in to track progress</p>
+            <p className="text-xs text-muted-foreground">Streaks, exam countdown & more</p>
           </div>
+          <ChevronRight className="w-4 h-4 text-primary" />
+        </button>
+      )}
+
+      {/* Exam Countdown */}
+      {user && (
+        <button
+          onClick={() => setShowExamDate(true)}
+          className="w-full bg-card border border-border rounded-xl p-4 mb-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            {daysUntilExam !== null ? (
+              <>
+                <p className="text-sm font-medium text-foreground">
+                  <span className={cn(
+                    "text-lg font-semibold mr-1",
+                    daysUntilExam <= 7 ? "text-destructive" : 
+                    daysUntilExam <= 30 ? "text-amber-500" : "text-primary"
+                  )}>
+                    {daysUntilExam}
+                  </span>
+                  days until exam
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(profile?.exam_date || '').toLocaleDateString('en-US', { 
+                    month: 'long', day: 'numeric', year: 'numeric' 
+                  })}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-foreground">Set your exam date</p>
+                <p className="text-xs text-muted-foreground">Track your countdown to test day</p>
+              </>
+            )}
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </button>
+      )}
+
+      {/* Readiness Score */}
+      {stats.readinessScore !== null && (
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Readiness Score</span>
+            </div>
+            <span className={cn(
+              "text-2xl font-bold",
+              stats.readinessScore >= 75 ? "text-success" :
+              stats.readinessScore >= 50 ? "text-amber-500" : "text-destructive"
+            )}>
+              {stats.readinessScore}%
+            </span>
+          </div>
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                stats.readinessScore >= 75 ? "bg-success" :
+                stats.readinessScore >= 50 ? "bg-amber-500" : "bg-destructive"
+              )}
+              style={{ width: `${stats.readinessScore}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Based on accuracy and completion rate
+          </p>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(dailyProgress, 100)}%` }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -106,7 +208,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           className="bg-primary text-primary-foreground rounded-xl p-4 text-left hover:bg-primary/90 transition-colors"
         >
           <Play className="w-5 h-5 mb-2" />
-          <p className="text-sm font-medium">Continue Practice</p>
+          <p className="text-sm font-medium">Practice</p>
           <p className="text-xs opacity-80">{stats.totalQuestions - stats.answeredCount} remaining</p>
         </button>
         
@@ -115,79 +217,93 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           className="bg-card border border-border rounded-xl p-4 text-left hover:bg-muted/30 transition-colors"
         >
           <AlertCircle className="w-5 h-5 mb-2 text-destructive" />
-          <p className="text-sm font-medium text-foreground">Review Missed</p>
-          <p className="text-xs text-muted-foreground">{stats.missedCount} questions</p>
+          <p className="text-sm font-medium text-foreground">Missed</p>
+          <p className="text-xs text-muted-foreground">{stats.missedCount} to review</p>
         </button>
       </div>
 
-      {/* Stats Overview */}
-      <div className="bg-card border border-border rounded-xl p-4 mb-4">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-          Your Progress
-        </p>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <p className="text-2xl font-semibold text-foreground">{stats.answeredCount}</p>
-            <p className="text-xs text-muted-foreground">Completed</p>
-          </div>
-          <div className="text-center">
-            <p className={cn(
-              "text-2xl font-semibold",
-              stats.accuracy >= 70 ? "text-success" : stats.accuracy >= 50 ? "text-foreground" : "text-destructive"
-            )}>{stats.accuracy}%</p>
-            <p className="text-xs text-muted-foreground">Accuracy</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-semibold text-foreground">{stats.completionRate}%</p>
-            <p className="text-xs text-muted-foreground">Progress</p>
-          </div>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <p className="text-xl font-semibold text-foreground">{stats.answeredCount}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Done</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <p className={cn(
+            "text-xl font-semibold",
+            stats.accuracy >= 70 ? "text-success" : 
+            stats.accuracy >= 50 ? "text-foreground" : "text-destructive"
+          )}>{stats.accuracy}%</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Accuracy</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <p className="text-xl font-semibold text-foreground">{stats.completionRate}%</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Progress</p>
         </div>
       </div>
 
-      {/* Weak Categories */}
-      {stats.weakCategories.length > 0 && (
-        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+      {/* Category Mastery */}
+      {stats.categoryMastery.length > 0 && (
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Focus Areas
+              Category Mastery
             </p>
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
           </div>
-          <div className="space-y-2">
-            {stats.weakCategories.map(([category, catStats]) => {
-              const catAccuracy = Math.round((catStats.correct / catStats.total) * 100);
-              return (
-                <div key={category} className="flex items-center justify-between">
+          <div className="space-y-3">
+            {stats.categoryMastery.slice(0, 5).map(({ category, accuracy, total }) => (
+              <div key={category}>
+                <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-foreground">{category}</span>
                   <span className={cn(
-                    "text-xs font-medium px-2 py-0.5 rounded",
-                    catAccuracy < 50 ? "bg-destructive/10 text-destructive" : "bg-amber-500/10 text-amber-600"
+                    "text-xs font-medium",
+                    accuracy >= 80 ? "text-success" :
+                    accuracy >= 60 ? "text-amber-500" : "text-destructive"
                   )}>
-                    {catAccuracy}%
+                    {accuracy}%
                   </span>
                 </div>
-              );
-            })}
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      accuracy >= 80 ? "bg-success" :
+                      accuracy >= 60 ? "bg-amber-500" : "bg-destructive"
+                    )}
+                    style={{ width: `${accuracy}%` }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
+          {stats.categoryMastery.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Answer questions to see your category mastery
+            </p>
+          )}
         </div>
       )}
 
-      {/* Bookmarks Quick Access */}
+      {/* Bookmarks */}
       {stats.bookmarkCount > 0 && (
         <button
           onClick={() => onNavigate('review')}
-          className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
+          className="w-full bg-card border border-border rounded-xl p-4 mt-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Bookmark className="w-5 h-5 text-primary" />
-          </div>
+          <Bookmark className="w-5 h-5 text-primary" />
           <div className="flex-1 text-left">
-            <p className="text-sm font-medium text-foreground">{stats.bookmarkCount} Bookmarked</p>
-            <p className="text-xs text-muted-foreground">Questions you saved for later</p>
+            <p className="text-sm font-medium text-foreground">{stats.bookmarkCount} Saved</p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </button>
       )}
+
+      <ExamDateModal
+        isOpen={showExamDate}
+        onClose={() => setShowExamDate(false)}
+        currentDate={profile?.exam_date}
+      />
     </div>
   );
 }

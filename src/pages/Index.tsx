@@ -12,7 +12,7 @@ type Tab = 'home' | 'practice' | 'review' | 'settings';
 
 const Index = () => {
   const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [activeTab, setActiveTab] = useState<Tab>('practice'); // Default to practice
 
   const handleStart = () => {
     markOnboardingSeen();
