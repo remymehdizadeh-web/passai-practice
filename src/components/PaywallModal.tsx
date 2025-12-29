@@ -20,18 +20,10 @@ const plans = [
   {
     id: 'monthly',
     name: 'Monthly',
-    price: '$29.99',
+    price: '$24.99',
     period: '/month',
     popular: true,
-    save: '25%',
-  },
-  {
-    id: 'quarterly',
-    name: '3 Months',
-    price: '$79.99',
-    period: '/3 months',
-    popular: false,
-    save: '33%',
+    save: '40%',
   },
 ];
 
