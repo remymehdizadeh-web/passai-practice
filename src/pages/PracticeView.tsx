@@ -135,20 +135,36 @@ export function PracticeView() {
   const totalQuestions = prioritizedQuestions?.length || 0;
 
   return (
-    <div className="pb-24">
-      {/* Progress bar at top */}
-      <div className="mb-5">
+    <div className="pb-6">
+      {/* Header section */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">Practice</h1>
+          <p className="text-sm text-muted-foreground">
+            Question {currentIndex + 1} of {totalQuestions}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Progress</p>
+          <p className="text-sm font-medium text-foreground">
+            {Math.round(((currentIndex + 1) / totalQuestions) * 100)}%
+          </p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-6">
         <ProgressBar 
           current={currentIndex + 1} 
           total={totalQuestions}
-          className="h-1"
+          className="h-1.5 rounded-full"
         />
       </div>
 
       {/* Free questions remaining indicator */}
       {remaining > 0 && remaining <= 5 && (
-        <div className="mb-4 p-3 rounded-2xl bg-primary/5 border border-primary/10 text-center">
-          <p className="text-sm text-primary font-medium">
+        <div className="mb-5 p-3 rounded-xl bg-muted/50 border border-border text-center">
+          <p className="text-sm text-muted-foreground">
             {remaining} free question{remaining !== 1 ? 's' : ''} remaining
           </p>
         </div>

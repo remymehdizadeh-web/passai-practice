@@ -38,7 +38,7 @@ const Index = () => {
       </Helmet>
       
       <div className="min-h-screen bg-background">
-        <main className="max-w-lg mx-auto px-4 pt-6 pb-24 safe-top">
+        <main className="max-w-lg mx-auto px-4 pt-5 pb-20 safe-top">
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView />}
           {activeTab === 'settings' && <SettingsView />}
