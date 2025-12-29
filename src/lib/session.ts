@@ -41,3 +41,8 @@ export function hasSeenOnboarding(): boolean {
 export function markOnboardingSeen(): void {
   localStorage.setItem('nclexgo_onboarding_seen', 'true');
 }
+
+export function clearProgress(): void {
+  localStorage.removeItem(QUESTIONS_ANSWERED_KEY);
+  localStorage.removeItem('nclexgo_points');
+}
