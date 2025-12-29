@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getSessionId, getExamType } from '@/lib/session';
+import { getSessionId } from '@/lib/session';
 import type { Question, QuestionOption, WrongOptionBullet } from '@/types/question';
 
 // Helper function to parse question from database
@@ -21,22 +21,15 @@ function parseQuestion(raw: any): Question {
 }
 
 export function useQuestions() {
-  const examType = getExamType();
-  
   return useQuery({
-    queryKey: ['questions', examType],
+    queryKey: ['questions'],
     queryFn: async () => {
-      let query = supabase
+      // Filter for RN or Both questions only
+      const { data, error } = await supabase
         .from('questions')
         .select('*')
+        .or('exam_type.eq.RN,exam_type.eq.Both')
         .order('created_at', { ascending: true });
-      
-      // Filter by exam type: get questions matching user's exam type OR 'Both'
-      if (examType) {
-        query = query.or(`exam_type.eq.${examType},exam_type.eq.Both`);
-      }
-      
-      const { data, error } = await query;
       
       if (error) throw error;
       return (data || []).map(parseQuestion);

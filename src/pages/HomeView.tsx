@@ -3,7 +3,6 @@ import { useQuestions, useUserProgress, useBookmarks, useMissedQuestions } from 
 import { useProfile, calculateDaysUntilExam } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { ExamDateModal } from '@/components/ExamDateModal';
-import { Button } from '@/components/ui/button';
 import { getPoints } from '@/lib/points';
 import { 
   Play, 
@@ -20,16 +19,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import type { ExamType } from '@/lib/session';
 
 type ReviewFilter = 'bookmarked' | 'missed';
 
 interface HomeViewProps {
   onNavigate: (tab: 'practice' | 'review' | 'settings', filter?: ReviewFilter) => void;
-  examType: ExamType;
 }
 
-// The 8 NCLEX categories
+// The 8 NCLEX-RN categories
 const NCLEX_CATEGORIES = [
   'Management of Care',
   'Safety and Infection Control',
@@ -41,15 +38,7 @@ const NCLEX_CATEGORIES = [
   'Physiological Adaptation',
 ];
 
-// Get display name for category based on exam type
-function getCategoryDisplayName(category: string, examType: ExamType): string {
-  if (category === 'Management of Care' && examType === 'PN') {
-    return 'Coordinated Care';
-  }
-  return category;
-}
-
-export function HomeView({ onNavigate, examType }: HomeViewProps) {
+export function HomeView({ onNavigate }: HomeViewProps) {
   const { data: questions } = useQuestions();
   const { data: progress } = useUserProgress();
   const { data: bookmarks } = useBookmarks();
@@ -87,7 +76,6 @@ export function HomeView({ onNavigate, examType }: HomeViewProps) {
       const catStats = categoryStats[category];
       return {
         category,
-        displayName: getCategoryDisplayName(category, examType),
         accuracy: catStats ? Math.round((catStats.correct / catStats.total) * 100) : 0,
         total: catStats?.total || 0,
         correct: catStats?.correct || 0,
@@ -111,7 +99,7 @@ export function HomeView({ onNavigate, examType }: HomeViewProps) {
       readinessScore,
       totalPoints: getPoints(),
     };
-  }, [questions, progress, bookmarks, missedQuestions, examType]);
+  }, [questions, progress, bookmarks, missedQuestions]);
 
   return (
     <div className="pb-6">
@@ -293,10 +281,10 @@ export function HomeView({ onNavigate, examType }: HomeViewProps) {
           <TrendingUp className="w-4 h-4 text-muted-foreground" />
         </div>
         <div className="space-y-3">
-          {stats.categoryMastery.map(({ category, displayName, accuracy, total }) => (
+          {stats.categoryMastery.map(({ category, accuracy, total }) => (
             <div key={category}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-foreground truncate pr-2">{displayName}</span>
+                <span className="text-sm text-foreground truncate pr-2">{category}</span>
                 <span className={cn(
                   "text-xs font-medium shrink-0",
                   total === 0 ? "text-muted-foreground" :

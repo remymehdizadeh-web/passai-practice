@@ -28,12 +28,12 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
 
         {/* Brand */}
         <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-1">
-          NCLEX Go
+          NCLEX RN Pro
         </h1>
         
         {/* Tagline */}
         <p className="text-muted-foreground text-base mb-8">
-          Study Anywhere, Anytime
+          Master Your NCLEX-RN Exam
         </p>
 
         {/* Features - more professional grid */}

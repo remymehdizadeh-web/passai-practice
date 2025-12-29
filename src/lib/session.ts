@@ -2,10 +2,7 @@
 
 const SESSION_KEY = 'nclexgo_session_id';
 const QUESTIONS_ANSWERED_KEY = 'nclexgo_questions_answered';
-const EXAM_TYPE_KEY = 'nclexgo_exam_type';
 const FREE_QUESTION_LIMIT = 10;
-
-export type ExamType = 'RN' | 'PN';
 
 export function getSessionId(): string {
   let sessionId = localStorage.getItem(SESSION_KEY);
@@ -43,16 +40,4 @@ export function hasSeenOnboarding(): boolean {
 
 export function markOnboardingSeen(): void {
   localStorage.setItem('nclexgo_onboarding_seen', 'true');
-}
-
-export function getExamType(): ExamType | null {
-  const examType = localStorage.getItem(EXAM_TYPE_KEY);
-  if (examType === 'RN' || examType === 'PN') {
-    return examType;
-  }
-  return null;
-}
-
-export function setExamType(examType: ExamType): void {
-  localStorage.setItem(EXAM_TYPE_KEY, examType);
 }
