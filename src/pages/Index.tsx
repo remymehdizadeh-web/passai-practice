@@ -9,18 +9,23 @@ import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { Helmet } from 'react-helmet';
 
 type Tab = 'home' | 'practice' | 'review' | 'settings';
+type ReviewFilter = 'bookmarked' | 'missed';
 
 const Index = () => {
   const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
-  const [activeTab, setActiveTab] = useState<Tab>('practice'); // Default to practice
+  const [activeTab, setActiveTab] = useState<Tab>('practice');
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('bookmarked');
 
   const handleStart = () => {
     markOnboardingSeen();
     setShowSplash(false);
   };
 
-  const handleNavigate = (tab: 'practice' | 'review' | 'settings') => {
+  const handleNavigate = (tab: 'practice' | 'review' | 'settings', filter?: ReviewFilter) => {
     setActiveTab(tab);
+    if (tab === 'review' && filter) {
+      setReviewFilter(filter);
+    }
   };
 
   if (showSplash) {
@@ -46,7 +51,7 @@ const Index = () => {
         <main className="max-w-lg mx-auto px-4 pt-5 pb-20 safe-top">
           {activeTab === 'home' && <HomeView onNavigate={handleNavigate} />}
           {activeTab === 'practice' && <PracticeView />}
-          {activeTab === 'review' && <ReviewView />}
+          {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}
           {activeTab === 'settings' && <SettingsView />}
         </main>
 
