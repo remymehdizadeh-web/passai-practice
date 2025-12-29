@@ -1,7 +1,7 @@
-import { Home, BookOpen, RotateCcw } from 'lucide-react';
+import { Home, BookOpen, RotateCcw, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'home' | 'practice' | 'review';
+type Tab = 'home' | 'practice' | 'review' | 'settings';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -12,6 +12,7 @@ const navItems = [
   { id: 'home' as Tab, label: 'Home', icon: Home },
   { id: 'practice' as Tab, label: 'Practice', icon: BookOpen },
   { id: 'review' as Tab, label: 'Review', icon: RotateCcw },
+  { id: 'settings' as Tab, label: 'Settings', icon: Settings },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {

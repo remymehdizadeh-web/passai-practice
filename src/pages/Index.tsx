@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { SplashScreen } from '@/components/SplashScreen';
 import { BottomNav } from '@/components/BottomNav';
-import { ProfileMenu } from '@/components/ProfileMenu';
 import { HomeView } from '@/pages/HomeView';
 import { PracticeView } from '@/pages/PracticeView';
 import { ReviewView } from '@/pages/ReviewView';
+import { SettingsView } from '@/pages/SettingsView';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { Helmet } from 'react-helmet';
 import logoIcon from '@/assets/logo-icon.png';
 
-type Tab = 'home' | 'practice' | 'review';
+type Tab = 'home' | 'practice' | 'review' | 'settings';
 type ReviewFilter = 'bookmarked' | 'missed';
 
 const Index = () => {
@@ -51,12 +51,11 @@ const Index = () => {
       <div className="min-h-screen bg-background">
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-center">
             <div className="flex items-center gap-2">
               <img src={logoIcon} alt="NCLEX RN Pro" className="w-8 h-8 rounded-lg" />
               <span className="font-semibold text-foreground">NCLEX RN Pro</span>
             </div>
-            <ProfileMenu />
           </div>
         </header>
 
@@ -64,6 +63,7 @@ const Index = () => {
           {activeTab === 'home' && <HomeView onNavigate={handleNavigate} />}
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}
+          {activeTab === 'settings' && <SettingsView />}
         </main>
 
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
