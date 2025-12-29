@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useBookmarks, useMissedQuestions, useToggleBookmark } from '@/hooks/useQuestions';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
@@ -68,7 +68,7 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
-          Back
+          Back to list
         </button>
 
         <QuestionCard
@@ -105,7 +105,7 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
       {/* Header */}
       <div className="mb-5">
         <h1 className="text-lg font-semibold text-foreground">Review</h1>
-        <p className="text-sm text-muted-foreground">Practice saved and missed questions</p>
+        <p className="text-sm text-muted-foreground">Revisit saved and missed questions</p>
       </div>
 
       {/* Filter Tabs */}
@@ -113,26 +113,38 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
         <button
           onClick={() => setFilter('bookmarked')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all',
             filter === 'bookmarked'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+              : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/30'
           )}
         >
-          <Bookmark className="w-4 h-4" />
-          Saved ({bookmarkedQuestions.length})
+          <Bookmark className={cn("w-4 h-4", filter === 'bookmarked' && "fill-current")} />
+          <span>Saved</span>
+          <span className={cn(
+            "px-1.5 py-0.5 rounded text-xs font-semibold",
+            filter === 'bookmarked' ? "bg-primary-foreground/20" : "bg-muted"
+          )}>
+            {bookmarkedQuestions.length}
+          </span>
         </button>
         <button
           onClick={() => setFilter('missed')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all',
             filter === 'missed'
-              ? 'bg-destructive text-destructive-foreground'
-              : 'bg-muted text-muted-foreground hover:text-foreground'
+              ? 'bg-destructive text-destructive-foreground shadow-lg shadow-destructive/20'
+              : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/30'
           )}
         >
           <XCircle className="w-4 h-4" />
-          Missed ({missedQuestions?.length || 0})
+          <span>Missed</span>
+          <span className={cn(
+            "px-1.5 py-0.5 rounded text-xs font-semibold",
+            filter === 'missed' ? "bg-destructive-foreground/20" : "bg-muted"
+          )}>
+            {missedQuestions?.length || 0}
+          </span>
         </button>
       </div>
 
@@ -142,22 +154,22 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
         </div>
       ) : displayedQuestions.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-8 text-center">
-          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
             {filter === 'bookmarked' ? (
-              <Bookmark className="w-6 h-6 text-muted-foreground" />
+              <Bookmark className="w-7 h-7 text-muted-foreground" />
             ) : (
-              <XCircle className="w-6 h-6 text-muted-foreground" />
+              <XCircle className="w-7 h-7 text-muted-foreground" />
             )}
           </div>
-          <p className="text-sm font-medium text-foreground mb-1">
+          <p className="text-base font-medium text-foreground mb-1">
             {filter === 'bookmarked'
               ? 'No saved questions yet'
               : 'No missed questions'}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {filter === 'bookmarked'
-              ? 'Tap the bookmark icon to save questions'
-              : 'Incorrect answers will appear here'}
+              ? 'Tap the bookmark icon while practicing to save questions for later'
+              : 'Questions you answer incorrectly will appear here for review'}
           </p>
         </div>
       ) : (
@@ -166,22 +178,22 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
             <button
               key={question.id}
               onClick={() => setSelectedQuestion(question)}
-              className="w-full text-left bg-card border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors"
+              className="w-full text-left bg-card border border-border rounded-xl p-4 hover:bg-muted/30 transition-all active:scale-[0.99]"
             >
               <div className="flex items-start gap-3">
-                <span className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground shrink-0">
+                <span className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground shrink-0">
                   {index + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground line-clamp-2 mb-2">
+                  <p className="text-sm text-foreground line-clamp-2 mb-2 leading-relaxed">
                     {question.stem}
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
                       {question.category}
                     </span>
                     {isBookmarked(question.id) && (
-                      <Bookmark className="w-3 h-3 text-primary fill-current" />
+                      <Bookmark className="w-3.5 h-3.5 text-primary fill-current" />
                     )}
                   </div>
                 </div>

@@ -6,7 +6,6 @@ import { ExamDateModal } from '@/components/ExamDateModal';
 import { getPoints } from '@/lib/points';
 import { 
   Play, 
-  Target, 
   TrendingUp, 
   Bookmark, 
   AlertCircle,
@@ -23,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 type ReviewFilter = 'bookmarked' | 'missed';
 
 interface HomeViewProps {
-  onNavigate: (tab: 'practice' | 'review' | 'settings', filter?: ReviewFilter) => void;
+  onNavigate: (tab: 'practice' | 'review', filter?: ReviewFilter) => void;
 }
 
 // The 8 NCLEX-RN categories
@@ -103,29 +102,16 @@ export function HomeView({ onNavigate }: HomeViewProps) {
 
   return (
     <div className="pb-6">
-      {/* Header */}
+      {/* Header with streak */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Your study overview</p>
         </div>
-        {user && (
-          <div className="flex items-center gap-2">
-            <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg",
-              streakDays > 0 ? "bg-orange-500/10" : "bg-muted"
-            )}>
-              <Flame className={cn(
-                "w-4 h-4",
-                streakDays > 0 ? "text-orange-500" : "text-muted-foreground"
-              )} />
-              <span className={cn(
-                "text-sm font-semibold",
-                streakDays > 0 ? "text-orange-500" : "text-muted-foreground"
-              )}>
-                {streakDays}
-              </span>
-            </div>
+        {user && streakDays > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-500/10">
+            <Flame className="w-4 h-4 text-orange-500" />
+            <span className="text-sm font-semibold text-orange-500">{streakDays}</span>
           </div>
         )}
       </div>
