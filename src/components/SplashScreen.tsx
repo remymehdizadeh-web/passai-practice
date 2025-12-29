@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Sparkles, Zap, Target, LogIn } from 'lucide-react';
+import { Zap, Target, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import logoIcon from '@/assets/logo-icon.png';
 
 interface SplashScreenProps {
   onStart: () => void;
@@ -20,8 +21,8 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
       <div className="relative z-10 flex flex-col items-center text-center max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="relative mb-8">
-          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-premium">
-            <Sparkles className="w-10 h-10 text-primary-foreground" />
+          <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-premium">
+            <img src={logoIcon} alt="PassAI Logo" className="w-full h-full object-cover" />
           </div>
         </div>
 
