@@ -5,6 +5,7 @@ import { useUserProgress } from '@/hooks/useQuestions';
 import { ExamDateModal } from '@/components/ExamDateModal';
 import { GoalEditModal } from '@/components/GoalEditModal';
 import { PaywallModal } from '@/components/PaywallModal';
+import { ProfileEditModal } from '@/components/ProfileEditModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import logoIcon from '@/assets/logo-icon.png';
@@ -21,13 +22,13 @@ import {
   ChevronRight,
   Sparkles,
   Shield,
-  RotateCcw,
   Crown,
   Check,
   Flame,
   Moon,
   Sun,
-  Monitor
+  Monitor,
+  Pencil
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -45,6 +46,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const [showExamDate, setShowExamDate] = useState(false);
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
@@ -99,11 +101,22 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   return (
     <div className="pb-6 space-y-6">
       {/* Profile Section */}
-      <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-border rounded-2xl p-5">
+      <button
+        onClick={() => user && setShowProfileEdit(true)}
+        className="w-full bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-border rounded-2xl p-5 hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99] text-left"
+      >
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-            <span className="text-xl font-bold text-white">{initials}</span>
-          </div>
+          {profile?.avatar_url ? (
+            <img 
+              src={profile.avatar_url} 
+              alt="Avatar" 
+              className="w-16 h-16 rounded-2xl object-cover shadow-lg"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+              <span className="text-xl font-bold text-white">{initials}</span>
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-semibold text-lg text-foreground truncate">
@@ -117,9 +130,13 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
               {user?.email || 'Not signed in'}
             </p>
           </div>
-          <img src={logoIcon} alt="NCLEX RN Go" className="w-10 h-10 rounded-xl opacity-50" />
+          {user && (
+            <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-muted-foreground" />
+            </div>
+          )}
         </div>
-      </div>
+      </button>
 
       {/* Progress Summary - Links to Stats */}
       <button
@@ -313,6 +330,11 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       <PaywallModal
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}
+      />
+
+      <ProfileEditModal
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
       />
     </div>
   );
