@@ -12,7 +12,7 @@ const plans = [
   {
     id: 'weekly',
     name: 'Weekly',
-    price: '$4.88',
+    price: '$4.99',
     period: '/week',
     popular: false,
     save: null,

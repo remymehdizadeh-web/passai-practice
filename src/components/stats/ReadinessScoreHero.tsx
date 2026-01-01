@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, ChevronDown, ChevronUp, Target, Flame, BarChart3, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronDown, ChevronUp, Target, Flame, BarChart3, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateDaysUntilExam } from '@/hooks/useProfile';
 
@@ -12,6 +12,7 @@ interface ReadinessScoreHeroProps {
   todayCount: number;
   dailyGoal: number;
   accuracyComponent: number;
+  volumeComponent: number;
   consistencyComponent: number;
   coverageComponent: number;
 }
@@ -25,6 +26,7 @@ export function ReadinessScoreHero({
   todayCount,
   dailyGoal,
   accuracyComponent,
+  volumeComponent,
   consistencyComponent,
   coverageComponent,
 }: ReadinessScoreHeroProps) {
@@ -74,20 +76,17 @@ export function ReadinessScoreHero({
   // Status badge colors
   const getStatusBadgeStyles = () => {
     if (readinessScore === null) return 'bg-muted text-muted-foreground';
-    if (readinessScore >= 75) return 'bg-success/15 text-success';
-    if (readinessScore >= 55) return 'bg-primary/15 text-primary';
-    if (readinessScore >= 35) return 'bg-warning/15 text-warning';
+    if (readinessScore >= 80) return 'bg-success/15 text-success';
+    if (readinessScore >= 65) return 'bg-primary/15 text-primary';
+    if (readinessScore >= 45) return 'bg-warning/15 text-warning';
     return 'bg-destructive/15 text-destructive';
   };
 
-  // Velocity component (10% weight)
-  const velocityComponent = Math.min(10, Math.round((todayCount / dailyGoal) * 10));
-
   const breakdownItems = [
-    { label: 'Accuracy', value: accuracyComponent, max: 45, color: 'bg-primary', icon: Target },
-    { label: 'Consistency', value: consistencyComponent, max: 25, color: 'bg-accent', icon: Flame },
-    { label: 'Coverage', value: coverageComponent, max: 20, color: 'bg-success', icon: BarChart3 },
-    { label: 'Velocity', value: velocityComponent, max: 10, color: 'bg-warning', icon: Zap },
+    { label: 'Accuracy', value: accuracyComponent, max: 60, color: 'bg-primary', icon: Target },
+    { label: 'Volume', value: volumeComponent, max: 20, color: 'bg-accent', icon: BookOpen },
+    { label: 'Consistency', value: consistencyComponent, max: 10, color: 'bg-success', icon: Flame },
+    { label: 'Coverage', value: coverageComponent, max: 10, color: 'bg-warning', icon: BarChart3 },
   ];
 
   return (
