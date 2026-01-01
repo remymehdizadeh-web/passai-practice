@@ -127,43 +127,38 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   }
 
   return (
-    <div ref={panelRef} className="animate-fade-in space-y-4 mt-6">
-      {/* Incorrect Banner */}
-      <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/10">
-        <div className="flex items-center gap-3 mb-3">
-          <XCircle className="w-6 h-6 text-destructive" />
-          <p className="text-lg font-semibold text-destructive">Incorrect</p>
-        </div>
+    <div ref={panelRef} className="animate-fade-in space-y-3 mt-6">
+      {/* Incorrect Banner - Simple */}
+      <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center gap-3">
+        <XCircle className="w-5 h-5 text-destructive shrink-0" />
+        <p className="font-semibold text-destructive">Incorrect</p>
+      </div>
 
-        {/* Why your answer was wrong */}
-        {wrongExplanation && (
-          <div className="mb-4">
-            <p className="text-sm font-medium text-foreground mb-1">Why {selectedLabel} is wrong:</p>
-            <p className="text-sm text-muted-foreground">{truncateWords(wrongExplanation.why_wrong, 20)}</p>
-          </div>
-        )}
-
-        {/* Correct answer */}
-        <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-          <p className="text-sm font-medium text-success flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Correct: {question.correct_label}. {correctOption?.text}
-          </p>
-          <ul className="space-y-1.5">
-            {question.rationale_bullets.slice(0, 2).map((bullet, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
-                <span>{truncateWords(bullet, 20)}</span>
-              </li>
-            ))}
-          </ul>
+      {/* Why your answer was wrong */}
+      {wrongExplanation && (
+        <div className="p-3 rounded-xl bg-muted/50 border border-border">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Why {selectedLabel} is wrong</p>
+          <p className="text-sm text-foreground">{truncateWords(wrongExplanation.why_wrong, 18)}</p>
         </div>
+      )}
+
+      {/* Correct answer */}
+      <div className="p-3 rounded-xl bg-success/10 border border-success/20">
+        <div className="flex items-center gap-2 mb-2">
+          <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+          <p className="text-sm font-medium text-success">Correct: {question.correct_label}</p>
+        </div>
+        <p className="text-sm text-foreground mb-2">{truncateWords(correctOption?.text || '', 15)}</p>
+        <p className="text-sm text-muted-foreground">{truncateWords(question.rationale_bullets[0] || '', 20)}</p>
       </div>
 
       {/* Key Takeaway */}
-      <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
+      <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-2">
         <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-        <p className="text-sm text-foreground">{truncateWords(question.takeaway, 25)}</p>
+        <div>
+          <p className="text-xs font-medium text-primary mb-1">Key Takeaway</p>
+          <p className="text-sm text-foreground">{truncateWords(question.takeaway, 20)}</p>
+        </div>
       </div>
 
       {/* Actions */}
