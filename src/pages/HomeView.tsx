@@ -7,7 +7,6 @@ import { ReadinessGauge } from '@/components/ReadinessGauge';
 import { DailyGoal } from '@/components/DailyGoal';
 import { ExamCountdown } from '@/components/ExamCountdown';
 import { StudyStreak } from '@/components/StudyStreak';
-import { PercentileRank } from '@/components/PercentileRank';
 import { WeeklyReport } from '@/components/WeeklyReport';
 import { CategoryMastery } from '@/components/CategoryMastery';
 import { FullAchievements } from '@/components/FullAchievements';
@@ -116,8 +115,6 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
       else if (diff < -0.05) trend = 'down';
     }
 
-    const percentile = Math.min(95, Math.max(20, Math.round(accuracy * 0.9 + completionRate * 0.1)));
-
     const weeklyData = {
       questionsThisWeek: Math.min(answeredCount, 87),
       questionsLastWeek: Math.round(Math.min(answeredCount, 87) * 0.8),
@@ -126,7 +123,6 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
       strongestCategory: strongestArea?.category || 'Safety and Infection Control',
       weakestCategory: weakestArea?.category || 'Pharmacological and Parenteral Therapies',
       daysStudied: Math.min(7, streakDays || 3),
-      percentileRank: percentile,
       streakDays: streakDays,
       totalCompleted: answeredCount,
     };
@@ -143,7 +139,6 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
       readinessScore,
       trend,
       weakestArea,
-      percentile,
       weeklyData,
     };
   }, [questions, progress, bookmarks, missedQuestions, streakDays]);
@@ -212,16 +207,12 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
           </>
         )}
 
-        {/* Stats row: Readiness + Percentile (signed in only) */}
+        {/* Readiness Score (signed in only) */}
         {user && stats.readinessScore !== null && (
-          <div className="grid grid-cols-2 gap-3 flex-shrink-0">
+          <div className="flex-shrink-0">
             <ReadinessGauge 
               score={stats.readinessScore} 
               trend={stats.trend}
-            />
-            <PercentileRank 
-              percentile={stats.percentile}
-              totalUsers={12847}
             />
           </div>
         )}

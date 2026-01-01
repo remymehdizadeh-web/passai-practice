@@ -9,7 +9,6 @@ interface WeeklyReportData {
   strongestCategory: string;
   weakestCategory: string;
   daysStudied: number;
-  percentileRank: number;
   streakDays?: number;
   totalCompleted?: number;
 }
@@ -137,15 +136,6 @@ export function WeeklyReport({ data }: WeeklyReportProps) {
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Ranking */}
-      <div className="card-organic p-4 text-center bg-gradient-to-br from-primary/5 to-accent/5">
-        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Your Ranking</p>
-        <p className="text-3xl font-bold text-primary">Top {100 - data.percentileRank}%</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {data.percentileRank >= 75 ? "You're ahead of most students" : "Keep pushing to climb higher"}
-        </p>
       </div>
     </div>
   );
