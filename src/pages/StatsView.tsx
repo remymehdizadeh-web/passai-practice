@@ -3,8 +3,6 @@ import { useQuestions, useUserProgress } from '@/hooks/useQuestions';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import {
-  TrendingUp,
-  TrendingDown,
   Shield,
   Pill,
   Heart,
@@ -13,16 +11,22 @@ import {
   AlertTriangle,
   Users,
   Stethoscope,
-  ChevronRight,
   BarChart3,
-  Lightbulb,
-  Target,
-  Flame,
-  CheckCircle2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
+import { QuickWinsBar } from '@/components/stats/QuickWinsBar';
+import { ReadinessScoreHero } from '@/components/stats/ReadinessScoreHero';
+import { FocusAreasSection } from '@/components/stats/FocusAreasSection';
+import { MasteredSection } from '@/components/stats/MasteredSection';
+import { SmartInsightsBox } from '@/components/stats/SmartInsightsBox';
+import { StudyStreakCalendar } from '@/components/stats/StudyStreakCalendar';
+import { PremiumTeasers } from '@/components/stats/PremiumTeasers';
+import { TimeInvestedCard } from '@/components/stats/TimeInvestedCard';
+import { DailyGoalProgress } from '@/components/stats/DailyGoalProgress';
+import { ContinuePracticeCTA } from '@/components/stats/ContinuePracticeCTA';
+import { PaywallModal } from '@/components/PaywallModal';
+import { GoalEditModal } from '@/components/GoalEditModal';
 
 // Icon mapping for NCLEX categories
 const CATEGORY_ICONS: Record<NclexCategory, React.ElementType> = {
@@ -42,8 +46,15 @@ export function StatsView() {
   const { data: profile } = useProfile();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [animatedScore, setAnimatedScore] = useState(0);
   const [showBars, setShowBars] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [showGoalEdit, setShowGoalEdit] = useState(false);
+
+  // Trigger bar animations
+  useEffect(() => {
+    const timer = setTimeout(() => setShowBars(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const stats = useMemo(() => {
     if (!progress || !questions) {
@@ -53,7 +64,6 @@ export function StatsView() {
         readinessScore: null,
         statusText: 'Start Practicing',
         statusColor: 'text-muted-foreground',
-        // Score breakdown components
         accuracyComponent: 0,
         consistencyComponent: 0,
         coverageComponent: 0,
@@ -61,10 +71,11 @@ export function StatsView() {
         categoryMastery: [],
         weakestAreas: [],
         strongestAreas: [],
-        improvementTips: [] as { icon: React.ElementType; text: string; priority: 'high' | 'medium' | 'low' }[],
         weeklyTrend: null as number | null,
         todayCount: 0,
+        weekCount: 0,
         dailyGoal: profile?.study_goal_daily || 10,
+        activityData: [] as { date: string; count: number }[],
       };
     }
 
@@ -77,6 +88,21 @@ export function StatsView() {
     const todayCount = progress.filter(p => p.created_at.split('T')[0] === today).length;
     const dailyGoal = profile?.study_goal_daily || 10;
     const streakDays = profile?.streak_days || 0;
+
+    // This week's progress
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const weekCount = progress.filter(p => new Date(p.created_at) >= startOfWeek).length;
+
+    // Activity data for calendar (last 30 days)
+    const activityMap: Record<string, number> = {};
+    progress.forEach(p => {
+      const date = p.created_at.split('T')[0];
+      activityMap[date] = (activityMap[date] || 0) + 1;
+    });
+    const activityData = Object.entries(activityMap).map(([date, count]) => ({ date, count }));
 
     // Category stats using NCLEX categories
     const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
@@ -108,7 +134,6 @@ export function StatsView() {
     const strongestAreas = sortedByAccuracy.filter(c => c.accuracy >= 70).slice(-4).reverse();
 
     // Weekly trend calculation
-    const now = new Date();
     const oneWeekAgo = new Date(now);
     oneWeekAgo.setDate(now.getDate() - 7);
     const twoWeeksAgo = new Date(now);
@@ -128,16 +153,16 @@ export function StatsView() {
     }
 
     // READINESS SCORE CALCULATION
-    // Component 1: Accuracy (50% weight) - How correct are your answers?
-    const accuracyComponent = Math.round(accuracy * 0.5);
+    // Component 1: Accuracy (45% weight)
+    const accuracyComponent = Math.round(accuracy * 0.45);
     
-    // Component 2: Consistency (30% weight) - Based on streak and daily practice
-    const streakScore = Math.min(streakDays * 5, 50); // Max 50 points from 10+ day streak
-    const dailyProgress = Math.min((todayCount / dailyGoal) * 50, 50); // Max 50 points from hitting goal
+    // Component 2: Consistency (25% weight)
+    const streakScore = Math.min(streakDays * 5, 50);
+    const dailyProgress = Math.min((todayCount / dailyGoal) * 50, 50);
     const consistencyRaw = (streakScore + dailyProgress) / 100 * 100;
-    const consistencyComponent = Math.round(consistencyRaw * 0.3);
+    const consistencyComponent = Math.round(consistencyRaw * 0.25);
     
-    // Component 3: Coverage (20% weight) - How many categories have you practiced?
+    // Component 3: Coverage (20% weight)
     const categoriesPracticed = Object.keys(nclexCategoryStats).length;
     const coverageRaw = Math.min((categoriesPracticed / 8) * 100, 100);
     const coverageComponent = Math.round(coverageRaw * 0.2);
@@ -147,61 +172,23 @@ export function StatsView() {
     let statusColor = 'text-muted-foreground';
     
     if (totalAnswered >= 10) {
-      readinessScore = Math.min(100, accuracyComponent + consistencyComponent + coverageComponent);
+      // Add velocity component (10%)
+      const velocityComponent = Math.min(10, Math.round((todayCount / dailyGoal) * 10));
+      readinessScore = Math.min(100, accuracyComponent + consistencyComponent + coverageComponent + velocityComponent);
       
       if (readinessScore >= 75) {
-        statusText = 'Likely to Pass';
+        statusText = 'Exam Ready';
         statusColor = 'text-success';
-      } else if (readinessScore >= 55) {
-        statusText = 'On Track';
+      } else if (readinessScore >= 60) {
+        statusText = 'Almost There';
+        statusColor = 'text-primary';
+      } else if (readinessScore >= 40) {
+        statusText = 'Building Momentum';
         statusColor = 'text-warning';
       } else {
         statusText = 'Focus Required';
         statusColor = 'text-destructive';
       }
-    }
-
-    // Generate improvement tips based on weak areas
-    const improvementTips: { icon: React.ElementType; text: string; priority: 'high' | 'medium' | 'low' }[] = [];
-    
-    if (accuracy < 70) {
-      improvementTips.push({
-        icon: Target,
-        text: 'Focus on accuracy — review explanations after each question',
-        priority: 'high'
-      });
-    }
-    
-    if (streakDays < 3) {
-      improvementTips.push({
-        icon: Flame,
-        text: 'Build a study streak — practice daily to boost your score',
-        priority: streakDays === 0 ? 'high' : 'medium'
-      });
-    }
-    
-    if (todayCount < dailyGoal) {
-      improvementTips.push({
-        icon: CheckCircle2,
-        text: `Complete ${dailyGoal - todayCount} more questions to hit your daily goal`,
-        priority: 'medium'
-      });
-    }
-    
-    if (categoriesPracticed < 6) {
-      improvementTips.push({
-        icon: BarChart3,
-        text: `Practice more categories — you've covered ${categoriesPracticed}/8 NCLEX areas`,
-        priority: 'medium'
-      });
-    }
-    
-    if (weakestAreas.length > 0) {
-      improvementTips.push({
-        icon: Lightbulb,
-        text: `Strengthen "${weakestAreas[0].shortName}" — your lowest category`,
-        priority: 'high'
-      });
     }
 
     return {
@@ -217,38 +204,13 @@ export function StatsView() {
       categoryMastery,
       weakestAreas,
       strongestAreas,
-      improvementTips: improvementTips.slice(0, 3),
       weeklyTrend,
       todayCount,
+      weekCount,
       dailyGoal,
+      activityData,
     };
   }, [questions, progress, profile]);
-
-  // Animate score on mount
-  useEffect(() => {
-    if (stats.readinessScore !== null) {
-      const duration = 1500;
-      const steps = 60;
-      const increment = stats.readinessScore / steps;
-      let current = 0;
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= stats.readinessScore!) {
-          setAnimatedScore(stats.readinessScore!);
-          clearInterval(timer);
-        } else {
-          setAnimatedScore(Math.round(current));
-        }
-      }, duration / steps);
-      return () => clearInterval(timer);
-    }
-  }, [stats.readinessScore]);
-
-  // Trigger progress bar animation
-  useEffect(() => {
-    const timer = setTimeout(() => setShowBars(true), 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleCategoryTap = (category: string) => {
     navigate('/', { state: { tab: 'practice', category } });
@@ -272,252 +234,98 @@ export function StatsView() {
     );
   }
 
-  // Calculate gauge path
-  const gaugeRadius = 80;
-  const gaugeCircumference = Math.PI * gaugeRadius;
-  const gaugeProgress = stats.readinessScore !== null 
-    ? (animatedScore / 100) * gaugeCircumference 
-    : 0;
-
   return (
-    <div className="px-4 pb-6 space-y-5">
-      {/* 1. HERO - Circular Gauge */}
-      <div className="relative bg-card border border-border rounded-3xl p-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 via-warning/5 to-success/5" />
-        
-        <div className="relative flex flex-col items-center">
-          <div className="relative">
-            <svg width="180" height="100" viewBox="0 0 180 100" className="overflow-visible">
-              <path
-                d="M 10 90 A 80 80 0 0 1 170 90"
-                fill="none"
-                stroke="hsl(var(--muted))"
-                strokeWidth="12"
-                strokeLinecap="round"
-              />
-              <defs>
-                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="hsl(0, 72%, 51%)" />
-                  <stop offset="50%" stopColor="hsl(38, 92%, 50%)" />
-                  <stop offset="100%" stopColor="hsl(160, 60%, 45%)" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M 10 90 A 80 80 0 0 1 170 90"
-                fill="none"
-                stroke="url(#gaugeGradient)"
-                strokeWidth="12"
-                strokeLinecap="round"
-                strokeDasharray={gaugeCircumference}
-                strokeDashoffset={gaugeCircumference - gaugeProgress}
-                className="transition-all duration-1000 ease-out"
-                style={{ filter: 'drop-shadow(0 0 8px hsl(38, 92%, 50%, 0.4))' }}
-              />
-              {stats.readinessScore !== null && (
-                <circle
-                  cx={90 + 80 * Math.cos(Math.PI - (animatedScore / 100) * Math.PI)}
-                  cy={90 - 80 * Math.sin(Math.PI - (animatedScore / 100) * Math.PI)}
-                  r="6"
-                  fill="hsl(var(--background))"
-                  stroke="url(#gaugeGradient)"
-                  strokeWidth="3"
-                  className="animate-pulse"
-                />
-              )}
-            </svg>
-            
-            <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-              <div className="flex items-center gap-2">
-                <span className="text-5xl font-black text-foreground tracking-tight">
-                  {stats.readinessScore !== null ? animatedScore : '—'}
-                </span>
-                {stats.weeklyTrend !== null && stats.weeklyTrend !== 0 && (
-                  <div className={cn(
-                    "flex items-center gap-0.5 text-xs font-semibold",
-                    stats.weeklyTrend > 0 ? "text-success" : "text-destructive"
-                  )}>
-                    {stats.weeklyTrend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {stats.weeklyTrend > 0 ? '+' : ''}{stats.weeklyTrend}%
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          <p className={cn("text-sm font-semibold mt-2", stats.statusColor)}>
-            {stats.statusText}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">Readiness Score</p>
-        </div>
+    <div className="px-4 pb-24 space-y-5">
+      {/* 1. QUICK WINS BAR */}
+      <QuickWinsBar
+        streakDays={stats.streakDays}
+        todayCount={stats.todayCount}
+        weekCount={stats.weekCount}
+      />
+
+      {/* 2. HERO READINESS SCORE */}
+      <ReadinessScoreHero
+        readinessScore={stats.readinessScore}
+        statusText={stats.statusText}
+        statusColor={stats.statusColor}
+        weeklyTrend={stats.weeklyTrend}
+        examDate={profile?.exam_date || null}
+        todayCount={stats.todayCount}
+        dailyGoal={stats.dailyGoal}
+        accuracyComponent={stats.accuracyComponent}
+        consistencyComponent={stats.consistencyComponent}
+        coverageComponent={stats.coverageComponent}
+      />
+
+      {/* 3. DAILY GOAL PROGRESS */}
+      <DailyGoalProgress
+        todayCount={stats.todayCount}
+        dailyGoal={stats.dailyGoal}
+        onEditGoal={() => setShowGoalEdit(true)}
+      />
+
+      {/* 4. AI COACH / SMART INSIGHTS */}
+      <SmartInsightsBox
+        readinessScore={stats.readinessScore}
+        accuracy={stats.accuracy}
+        streakDays={stats.streakDays}
+        weakestCategory={stats.weakestAreas[0]?.shortName || null}
+        todayCount={stats.todayCount}
+        dailyGoal={stats.dailyGoal}
+      />
+
+      {/* 5. FOCUS AREAS (Weaknesses) */}
+      <FocusAreasSection
+        areas={stats.weakestAreas}
+        onCategoryTap={handleCategoryTap}
+        showBars={showBars}
+      />
+
+      {/* 6. MASTERED AREAS */}
+      <MasteredSection
+        areas={stats.strongestAreas}
+        onCategoryTap={handleCategoryTap}
+      />
+
+      {/* 7. STUDY STREAK CALENDAR */}
+      <StudyStreakCalendar
+        streakDays={stats.streakDays}
+        activityData={stats.activityData}
+      />
+
+      {/* 8. TIME INVESTED */}
+      <TimeInvestedCard
+        totalQuestions={stats.totalAnswered}
+        weekQuestions={stats.weekCount}
+      />
+
+      {/* 9. PREMIUM TEASERS */}
+      <PremiumTeasers onUpgradeClick={() => setShowPaywall(true)} />
+
+      {/* 10. CONTINUE PRACTICE CTA */}
+      <div className="fixed bottom-20 left-4 right-4 z-10">
+        <ContinuePracticeCTA weakestCategory={stats.weakestAreas[0]?.category} />
       </div>
-
-      {/* 2. SCORE BREAKDOWN - How it's calculated */}
-      {stats.readinessScore !== null && (
-        <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">How your score is calculated</h3>
-          
-          <div className="space-y-3">
-            {/* Accuracy */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">Accuracy (50%)</span>
-                <span className="text-xs font-semibold text-foreground">{stats.accuracyComponent}/50</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-1000"
-                  style={{ width: showBars ? `${(stats.accuracyComponent / 50) * 100}%` : '0%' }}
-                />
-              </div>
-            </div>
-            
-            {/* Consistency */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">Consistency (30%)</span>
-                <span className="text-xs font-semibold text-foreground">{stats.consistencyComponent}/30</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-accent rounded-full transition-all duration-1000"
-                  style={{ width: showBars ? `${(stats.consistencyComponent / 30) * 100}%` : '0%' }}
-                />
-              </div>
-            </div>
-            
-            {/* Coverage */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">Category Coverage (20%)</span>
-                <span className="text-xs font-semibold text-foreground">{stats.coverageComponent}/20</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-success rounded-full transition-all duration-1000"
-                  style={{ width: showBars ? `${(stats.coverageComponent / 20) * 100}%` : '0%' }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. IMPROVEMENT TIPS */}
-      {stats.improvementTips.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 text-warning" />
-            <h3 className="text-sm font-semibold text-foreground">How to improve</h3>
-          </div>
-          
-          <div className="space-y-2">
-            {stats.improvementTips.map((tip, index) => {
-              const Icon = tip.icon;
-              return (
-                <div 
-                  key={index}
-                  className={cn(
-                    "flex items-start gap-3 p-3 rounded-xl",
-                    tip.priority === 'high' ? "bg-warning/10 border border-warning/20" :
-                    "bg-muted/50"
-                  )}
-                >
-                  <Icon className={cn(
-                    "w-4 h-4 mt-0.5 shrink-0",
-                    tip.priority === 'high' ? "text-warning" : "text-muted-foreground"
-                  )} />
-                  <span className="text-sm text-foreground">{tip.text}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 4. CRITICAL WEAKNESSES */}
-      {stats.weakestAreas.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-            <h3 className="text-sm font-semibold text-foreground">Critical Weaknesses</h3>
-          </div>
-          <div className="bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
-            {stats.weakestAreas.map((area) => {
-              const Icon = area.icon;
-              return (
-                <button
-                  key={area.category}
-                  onClick={() => handleCategoryTap(area.category)}
-                  className="w-full flex items-center gap-3 p-4 hover:bg-muted/50 active:bg-muted transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-destructive" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-foreground truncate">{area.shortName}</span>
-                      <span className="text-xs font-bold text-destructive">{area.accuracy}%</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-destructive to-warning rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: showBars ? `${area.accuracy}%` : '0%' }}
-                      />
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 5. MASTERED AREAS */}
-      {stats.strongestAreas.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success" />
-            <h3 className="text-sm font-semibold text-foreground">Mastered Areas</h3>
-          </div>
-          <div className="bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
-            {stats.strongestAreas.map((area) => {
-              const Icon = area.icon;
-              return (
-                <button
-                  key={area.category}
-                  onClick={() => handleCategoryTap(area.category)}
-                  className="w-full flex items-center gap-3 p-4 hover:bg-muted/50 active:bg-muted transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-success" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-foreground truncate">{area.shortName}</span>
-                      <span className="text-xs font-bold text-success">{area.accuracy}%</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-primary to-success rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: showBars ? `${area.accuracy}%` : '0%' }}
-                      />
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Empty state */}
       {stats.totalAnswered === 0 && (
-        <div className="text-center py-8">
-          <p className="text-sm text-muted-foreground">Start practicing to see your readiness dashboard</p>
+        <div className="text-center py-8 bg-card border border-border rounded-2xl">
+          <p className="text-sm text-muted-foreground mb-2">No streak yet? Start one today! 🔥</p>
+          <p className="text-xs text-muted-foreground">Complete your first question to unlock insights</p>
         </div>
       )}
+
+      {/* Modals */}
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
+      
+      <GoalEditModal
+        isOpen={showGoalEdit}
+        onClose={() => setShowGoalEdit(false)}
+        currentGoal={stats.dailyGoal}
+      />
     </div>
   );
 }
