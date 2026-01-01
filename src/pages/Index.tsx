@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { SplashScreen } from '@/components/SplashScreen';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNav, type Tab } from '@/components/BottomNav';
+import { HomeView } from '@/pages/HomeView';
 import { PracticeView } from '@/pages/PracticeView';
 import { ReviewView } from '@/pages/ReviewView';
 import { PlanView } from '@/pages/PlanView';
 import { StatsView } from '@/pages/StatsView';
 import { SettingsView } from '@/pages/SettingsView';
+import { WeakAreaMode } from '@/components/WeakAreaMode';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -17,7 +19,8 @@ type ReviewFilter = 'bookmarked' | 'missed';
 const Index = () => {
   const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>('practice');
+  const [showWeakAreaMode, setShowWeakAreaMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('home');
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('bookmarked');
   
   const { user } = useAuth();
@@ -53,6 +56,10 @@ const Index = () => {
     setActiveTab(tab);
   };
 
+  const handleOpenWeakArea = () => {
+    setShowWeakAreaMode(true);
+  };
+
   if (showSplash) {
     return (
       <>
@@ -86,14 +93,24 @@ const Index = () => {
       
       <div className="min-h-screen bg-background">
         <main className="max-w-lg mx-auto px-4 pt-6 pb-20">
+          {activeTab === 'home' && (
+            <HomeView 
+              onNavigate={handleNavigate} 
+              onOpenWeakArea={handleOpenWeakArea}
+            />
+          )}
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}
-          {activeTab === 'plan' && <PlanView onNavigate={handlePlanNavigate} />}
           {activeTab === 'stats' && <StatsView />}
           {activeTab === 'account' && <SettingsView />}
         </main>
 
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Weak Area Mode Overlay */}
+        {showWeakAreaMode && (
+          <WeakAreaMode onClose={() => setShowWeakAreaMode(false)} />
+        )}
       </div>
     </>
   );

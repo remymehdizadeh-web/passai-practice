@@ -1,7 +1,7 @@
-import { BookOpen, RotateCcw, Calendar, BarChart3, User } from 'lucide-react';
+import { BookOpen, RotateCcw, Calendar, BarChart3, User, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type Tab = 'practice' | 'review' | 'plan' | 'stats' | 'account';
+export type Tab = 'home' | 'practice' | 'review' | 'plan' | 'stats' | 'account';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -9,9 +9,9 @@ interface BottomNavProps {
 }
 
 const navItems = [
+  { id: 'home' as Tab, label: 'Home', icon: Home },
   { id: 'practice' as Tab, label: 'Practice', icon: BookOpen },
   { id: 'review' as Tab, label: 'Review', icon: RotateCcw },
-  { id: 'plan' as Tab, label: 'Plan', icon: Calendar },
   { id: 'stats' as Tab, label: 'Stats', icon: BarChart3 },
   { id: 'account' as Tab, label: 'Account', icon: User },
 ];
