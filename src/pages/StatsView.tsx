@@ -127,8 +127,8 @@ export function StatsView() {
 
     const sortedByAccuracy = [...categoryMastery].sort((a, b) => a.accuracy - b.accuracy);
     const weakestAreas = sortedByAccuracy.filter(c => c.accuracy < 70).slice(0, 4);
-    // Only show 100% mastered categories (with at least 5 questions answered)
-    const masteredAreas = sortedByAccuracy.filter(c => c.accuracy === 100 && c.total >= 5);
+    // Mastery: 90%+ accuracy with at least 10 questions answered
+    const masteredAreas = sortedByAccuracy.filter(c => c.accuracy >= 90 && c.total >= 10);
 
     // Weekly trend calculation
     const oneWeekAgo = new Date(now);
@@ -233,14 +233,20 @@ export function StatsView() {
 
   return (
     <div className="px-4 pb-6 space-y-4">
-      {/* 1. QUICK WINS BAR - Refined */}
+      {/* 1. QUICK WINS BAR */}
       <QuickWinsBar
         streakDays={stats.streakDays}
         todayCount={stats.todayCount}
         weekCount={stats.weekCount}
       />
 
-      {/* 2. HERO READINESS SCORE */}
+      {/* 2. STUDY STREAK CALENDAR - Above readiness */}
+      <StudyStreakCalendar
+        streakDays={stats.streakDays}
+        activityData={stats.activityData}
+      />
+
+      {/* 3. HERO READINESS SCORE */}
       <ReadinessScoreHero
         readinessScore={stats.readinessScore}
         statusText={stats.statusText}
@@ -254,7 +260,13 @@ export function StatsView() {
         coverageComponent={stats.coverageComponent}
       />
 
-      {/* 3. AI COACH / SMART INSIGHTS - Starts collapsed */}
+      {/* 4. TIME INVESTED - Above AI Coach */}
+      <TimeInvestedCard
+        totalQuestions={stats.totalAnswered}
+        weekQuestions={stats.weekCount}
+      />
+
+      {/* 5. AI COACH / SMART INSIGHTS - Starts collapsed */}
       <SmartInsightsBox
         readinessScore={stats.readinessScore}
         accuracy={stats.accuracy}
@@ -264,7 +276,7 @@ export function StatsView() {
         dailyGoal={stats.dailyGoal}
       />
 
-      {/* 4. MASTERED AREAS - Only 100% mastered with explanation */}
+      {/* 6. MASTERED AREAS - 90%+ with 10+ questions */}
       {stats.masteredAreas.length > 0 ? (
         <MasteredSection
           areas={stats.masteredAreas}
@@ -285,26 +297,14 @@ export function StatsView() {
                 How to master a category:
               </p>
               <ul className="text-xs text-muted-foreground space-y-1 ml-5">
-                <li>• Answer at least 5 questions in a category</li>
-                <li>• Achieve 100% accuracy in that category</li>
+                <li>• Answer at least 10 questions in a category</li>
+                <li>• Achieve 90%+ accuracy in that category</li>
                 <li>• Keep practicing to maintain mastery!</li>
               </ul>
             </div>
           </div>
         </div>
       )}
-
-      {/* 5. STUDY STREAK CALENDAR */}
-      <StudyStreakCalendar
-        streakDays={stats.streakDays}
-        activityData={stats.activityData}
-      />
-
-      {/* 6. TIME INVESTED */}
-      <TimeInvestedCard
-        totalQuestions={stats.totalAnswered}
-        weekQuestions={stats.weekCount}
-      />
 
       {/* Empty state */}
       {stats.totalAnswered === 0 && (
