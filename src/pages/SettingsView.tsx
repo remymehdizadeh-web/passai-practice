@@ -45,7 +45,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: progress } = useUserProgress();
-  const { subscribed, tier, subscriptionEnd, openCustomerPortal } = useSubscription();
+  const { subscribed, tier, subscriptionEnd, isTrialing, trialDaysRemaining, openCustomerPortal } = useSubscription();
   const [showExamDate, setShowExamDate] = useState(false);
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -200,19 +200,37 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
         {subscribed ? (
           /* Subscribed State */
           <div className="space-y-2">
-            <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/30 rounded-xl p-4">
+            <div className={cn(
+              "border rounded-xl p-4",
+              isTrialing 
+                ? "bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-amber-500/30"
+                : "bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border-emerald-500/30"
+            )}>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <Crown className="w-5 h-5 text-emerald-600" />
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center",
+                  isTrialing ? "bg-amber-500/20" : "bg-emerald-500/20"
+                )}>
+                  <Crown className={cn("w-5 h-5", isTrialing ? "text-amber-600" : "text-emerald-600")} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-foreground">Pro {tier === 'weekly' ? 'Weekly' : 'Monthly'}</p>
-                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 text-[10px] font-bold rounded-full">
-                      ACTIVE
-                    </span>
+                    {isTrialing ? (
+                      <span className="px-2 py-0.5 bg-amber-500/20 text-amber-600 text-[10px] font-bold rounded-full">
+                        FREE TRIAL
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 text-[10px] font-bold rounded-full">
+                        ACTIVE
+                      </span>
+                    )}
                   </div>
-                  {subscriptionEnd && (
+                  {isTrialing && trialDaysRemaining !== null ? (
+                    <p className="text-xs text-amber-600 font-medium">
+                      {trialDaysRemaining} {trialDaysRemaining === 1 ? 'day' : 'days'} remaining in trial
+                    </p>
+                  ) : subscriptionEnd && (
                     <p className="text-xs text-muted-foreground">
                       Renews {new Date(subscriptionEnd).toLocaleDateString()}
                     </p>

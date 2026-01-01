@@ -27,6 +27,9 @@ export interface SubscriptionStatus {
   subscriptionEnd: string | null;
   tier: 'weekly' | 'monthly' | null;
   isLoading: boolean;
+  isTrialing: boolean;
+  trialEnd: string | null;
+  trialDaysRemaining: number | null;
 }
 
 export function useSubscription() {
@@ -38,6 +41,9 @@ export function useSubscription() {
     subscriptionEnd: null,
     tier: null,
     isLoading: true,
+    isTrialing: false,
+    trialEnd: null,
+    trialDaysRemaining: null,
   });
 
   const checkSubscription = useCallback(async () => {
@@ -49,6 +55,9 @@ export function useSubscription() {
         subscriptionEnd: null,
         tier: null,
         isLoading: false,
+        isTrialing: false,
+        trialEnd: null,
+        trialDaysRemaining: null,
       });
       return;
     }
@@ -80,6 +89,14 @@ export function useSubscription() {
         tier = 'monthly';
       }
 
+      // Calculate trial days remaining
+      let trialDaysRemaining: number | null = null;
+      if (data.is_trialing && data.trial_end) {
+        const trialEndDate = new Date(data.trial_end);
+        const now = new Date();
+        trialDaysRemaining = Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      }
+
       setStatus({
         subscribed: data.subscribed,
         productId: data.product_id,
@@ -87,6 +104,9 @@ export function useSubscription() {
         subscriptionEnd: data.subscription_end,
         tier,
         isLoading: false,
+        isTrialing: data.is_trialing || false,
+        trialEnd: data.trial_end || null,
+        trialDaysRemaining,
       });
     } catch (error) {
       console.error('Error checking subscription:', error);
