@@ -201,7 +201,7 @@ export function PracticeView() {
       {/* Progress section */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-muted-foreground">
-          Question {currentIndex + 1} of {totalQuestions}
+          {answeredCount} completed
         </p>
         <div className="flex items-center gap-2">
           {correctStreak >= 3 && (
@@ -210,7 +210,6 @@ export function PracticeView() {
               {correctStreak} in a row
             </span>
           )}
-          <span className="text-sm font-medium text-foreground">{overallProgress}%</span>
         </div>
       </div>
 

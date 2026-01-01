@@ -144,7 +144,7 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
   }, [questions, progress, bookmarks, missedQuestions, streakDays]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+    <div className="flex flex-col min-h-[calc(100vh-120px)] overflow-y-auto pb-4">
       {/* Header row */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
@@ -193,8 +193,8 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
         </div>
       </div>
 
-      {/* Main content - no scroll */}
-      <div className="flex-1 flex flex-col gap-3 min-h-0">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col gap-3">
         {/* Sign in prompt OR Exam countdown */}
         {!user ? (
           <button
