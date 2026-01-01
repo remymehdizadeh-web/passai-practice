@@ -174,12 +174,12 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         <p className="text-sm text-muted-foreground">{truncateWords(question.rationale_bullets[0] || '', 20)}</p>
       </div>
 
-      {/* Key Takeaway */}
-      <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-2">
-        <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+      {/* Key Takeaway - Gold Nugget */}
+      <div className="gold-nugget flex items-start gap-2">
+        <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
-          <p className="text-xs font-medium text-primary mb-1">Key Takeaway</p>
-          <p className="text-sm text-foreground">{truncateWords(question.takeaway, 20)}</p>
+          <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">Key Takeaway</p>
+          <p className="text-sm text-amber-900 dark:text-amber-100">{truncateWords(question.takeaway, 20)}</p>
         </div>
       </div>
 

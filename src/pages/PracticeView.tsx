@@ -134,8 +134,35 @@ export function PracticeView() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+      <div className="pb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex gap-2">
+            <div className="h-7 w-14 skeleton-premium rounded-full" />
+            <div className="h-7 w-14 skeleton-premium rounded-full" />
+          </div>
+          <div className="h-7 w-16 skeleton-premium rounded-full" />
+        </div>
+        <div className="h-1.5 skeleton-premium rounded-full mb-4" />
+        <div className="bg-card border border-border rounded-2xl p-5 animate-pulse">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-6 w-24 skeleton-premium rounded-md" />
+            <div className="flex gap-2">
+              <div className="w-8 h-8 skeleton-premium rounded-lg" />
+              <div className="w-8 h-8 skeleton-premium rounded-lg" />
+            </div>
+          </div>
+          <div className="space-y-2 mb-6">
+            <div className="h-4 skeleton-premium rounded w-full" />
+            <div className="h-4 skeleton-premium rounded w-5/6" />
+            <div className="h-4 skeleton-premium rounded w-4/6" />
+          </div>
+          <div className="space-y-2.5">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-14 skeleton-premium rounded-xl" />
+            ))}
+          </div>
+          <div className="mt-6 h-12 skeleton-premium rounded-xl" />
+        </div>
       </div>
     );
   }

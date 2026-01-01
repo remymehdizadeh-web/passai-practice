@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { SplashScreen } from '@/components/SplashScreen';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNav, type Tab } from '@/components/BottomNav';
@@ -9,6 +10,7 @@ import { StatsView } from '@/pages/StatsView';
 import { SettingsView } from '@/pages/SettingsView';
 import { WeakAreaMode } from '@/components/WeakAreaMode';
 import { SmartReminderBanner } from '@/components/SmartReminderBanner';
+import { PageTransition } from '@/components/ui/page-transition';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -105,24 +107,46 @@ const Index = () => {
       
       <div className="min-h-screen bg-background">
         <main className="max-w-lg mx-auto px-4 pt-6 pb-20">
-          {activeTab === 'home' && (
-            <HomeView 
-              onNavigate={handleNavigate} 
-              onOpenWeakArea={handleOpenWeakArea}
-            />
-          )}
-          {activeTab === 'practice' && <PracticeView />}
-          {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}
-          {activeTab === 'stats' && <StatsView />}
-          {activeTab === 'account' && <SettingsView onNavigateToStats={() => setActiveTab('stats')} />}
+          <AnimatePresence mode="wait">
+            {activeTab === 'home' && (
+              <PageTransition key="home">
+                <HomeView 
+                  onNavigate={handleNavigate} 
+                  onOpenWeakArea={handleOpenWeakArea}
+                />
+              </PageTransition>
+            )}
+            {activeTab === 'practice' && (
+              <PageTransition key="practice">
+                <PracticeView />
+              </PageTransition>
+            )}
+            {activeTab === 'review' && (
+              <PageTransition key="review">
+                <ReviewView initialFilter={reviewFilter} />
+              </PageTransition>
+            )}
+            {activeTab === 'stats' && (
+              <PageTransition key="stats">
+                <StatsView />
+              </PageTransition>
+            )}
+            {activeTab === 'account' && (
+              <PageTransition key="account">
+                <SettingsView onNavigateToStats={() => setActiveTab('stats')} />
+              </PageTransition>
+            )}
+          </AnimatePresence>
         </main>
 
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Weak Area Mode Overlay */}
-        {showWeakAreaMode && (
-          <WeakAreaMode onClose={() => setShowWeakAreaMode(false)} />
-        )}
+        <AnimatePresence>
+          {showWeakAreaMode && (
+            <WeakAreaMode onClose={() => setShowWeakAreaMode(false)} />
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

@@ -58,13 +58,12 @@ serve(async (req) => {
     // Check for active subscriptions (includes trialing)
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "all",
       limit: 10,
     });
 
     // Find active or trialing subscription
     const activeSubscription = subscriptions.data.find(
-      (sub: Stripe.Subscription) => sub.status === 'active' || sub.status === 'trialing'
+      (sub: { status: string }) => sub.status === 'active' || sub.status === 'trialing'
     );
 
     const hasActiveSub = !!activeSubscription;
