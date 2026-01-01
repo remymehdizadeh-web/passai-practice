@@ -3,7 +3,8 @@ import { useBookmarks, useMissedQuestions, useToggleBookmark, useReviewQueue, us
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
-import { Bookmark, XCircle, ChevronLeft, ChevronRight, Loader2, Clock, AlertTriangle, Zap, Shield, Pill, Heart, Brain, Activity, Users, Stethoscope, Sparkles } from 'lucide-react';
+import { PaywallModal } from '@/components/PaywallModal';
+import { Bookmark, XCircle, ChevronLeft, ChevronRight, Loader2, Clock, AlertTriangle, Zap, Shield, Pill, Heart, Brain, Activity, Users, Stethoscope, Sparkles, Lock } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
@@ -42,6 +43,7 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
@@ -152,6 +154,11 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
     if (displayedQuestions.length > 0) {
       setSelectedQuestion(displayedQuestions[0]);
     }
+  };
+
+  const handleSmartReview = () => {
+    // Smart Review is a Pro feature
+    setShowPaywall(true);
   };
 
   // Counts
@@ -297,21 +304,24 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
         </div>
       </div>
 
-      {/* Smart Review Session Card */}
+      {/* Smart Review Session Card - Pro Feature */}
       {totalReviewable > 0 && (
         <button
-          onClick={handleStartReview}
-          className="w-full bg-gradient-to-r from-warning/20 via-accent/20 to-warning/20 border border-warning/30 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group"
+          onClick={handleSmartReview}
+          className="w-full bg-gradient-to-r from-warning/20 via-accent/20 to-warning/20 border border-warning/30 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group relative overflow-hidden"
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-accent flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-accent flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform relative">
               <Zap className="w-6 h-6 text-white" />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center border-2 border-card">
+                <Lock className="w-2.5 h-2.5 text-primary-foreground" />
+              </div>
             </div>
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-foreground">Smart Review Session</p>
-                <span className="px-1.5 py-0.5 bg-warning/20 text-warning text-[10px] font-bold rounded">
-                  {totalReviewable} ready
+                <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[10px] font-bold rounded">
+                  PRO
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -322,6 +332,9 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
           </div>
         </button>
       )}
+
+      {/* Paywall Modal */}
+      <PaywallModal isOpen={showPaywall} onClose={() => setShowPaywall(false)} />
 
       {/* Focus Areas Card */}
       {focusAreas.length > 0 && (

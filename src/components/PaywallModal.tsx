@@ -29,10 +29,10 @@ const plans = [
 
 const features = [
   'Unlimited practice questions',
-  'Detailed explanations & rationales',
+  'Smart Review Sessions',
   'Adaptive learning algorithm',
   'Track progress by category',
-  'Bookmark & review missed questions',
+  'Detailed explanations & rationales',
   'New questions added weekly',
 ];
 
