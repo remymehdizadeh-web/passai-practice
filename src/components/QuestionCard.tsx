@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bookmark, Flag, CheckCircle2, XCircle } from 'lucide-react';
 import type { Question } from '@/types/question';
@@ -29,6 +29,16 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const [localSelected, setLocalSelected] = useState<string | null>(null);
   const currentSelected = isSubmitted ? selectedLabel : localSelected;
+  const submitRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-scroll to submit button when option is selected
+  useEffect(() => {
+    if (localSelected && !isSubmitted && submitRef.current) {
+      setTimeout(() => {
+        submitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [localSelected, isSubmitted]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -142,6 +152,7 @@ export function QuestionCard({
       {/* Submit Button - only show when not using confidence slider */}
       {!isSubmitted && (
         <button
+          ref={submitRef}
           onClick={() => localSelected && onSubmit(localSelected)}
           disabled={!localSelected}
           className={cn(
@@ -151,7 +162,7 @@ export function QuestionCard({
               : "bg-muted text-muted-foreground cursor-not-allowed"
           )}
         >
-          Select Answer
+          Submit Answer
         </button>
       )}
     </div>

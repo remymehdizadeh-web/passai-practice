@@ -98,26 +98,27 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
     const strongestArea = categoriesWithData.sort((a, b) => b.accuracy - a.accuracy)[0];
 
     // READINESS SCORE CALCULATION - Same as stats page
-    // Component 1: Accuracy (45% weight)
-    const accuracyComponent = Math.round(accuracy * 0.45);
+    // This should reflect true exam readiness - accuracy is king
     
-    // Component 2: Consistency (25% weight)
-    const streakScore = Math.min(streakDays * 5, 50);
-    const dailyProgressScore = Math.min((todayCount / dailyGoal) * 50, 50);
-    const consistencyRaw = (streakScore + dailyProgressScore) / 100 * 100;
-    const consistencyComponent = Math.round(consistencyRaw * 0.25);
+    // Component 1: Accuracy (60% weight) - Most important
+    const accuracyComponent = Math.round(accuracy * 0.60);
     
-    // Component 3: Coverage (20% weight)
+    // Component 2: Volume/Experience (20% weight)
+    const volumeRaw = Math.min((answeredCount / 200) * 100, 100);
+    const volumeComponent = Math.round(volumeRaw * 0.20);
+    
+    // Component 3: Consistency (10% weight)
+    const streakScore = Math.min(streakDays * 10, 100);
+    const consistencyComponent = Math.round(streakScore * 0.10);
+    
+    // Component 4: Coverage (10% weight)
     const categoriesPracticed = Object.keys(nclexCategoryStats).length;
     const coverageRaw = Math.min((categoriesPracticed / 8) * 100, 100);
-    const coverageComponent = Math.round(coverageRaw * 0.2);
-    
-    // Component 4: Velocity (10% weight)
-    const velocityComponent = Math.min(10, Math.round((todayCount / dailyGoal) * 10));
+    const coverageComponent = Math.round(coverageRaw * 0.10);
 
     let readinessScore: number | null = null;
-    if (answeredCount >= 10) {
-      readinessScore = Math.min(100, accuracyComponent + consistencyComponent + coverageComponent + velocityComponent);
+    if (answeredCount >= 20) {
+      readinessScore = Math.min(100, accuracyComponent + volumeComponent + consistencyComponent + coverageComponent);
     }
 
     const recentProgress = progress?.slice(-20) || [];

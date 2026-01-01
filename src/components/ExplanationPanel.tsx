@@ -26,6 +26,7 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   const [showSimilar, setShowSimilar] = useState(false);
   const { isLoading: isGenerating, generatedQuestion, generateSimilar, reset: resetSimilar } = useSimilarQuestion();
   const panelRef = useRef<HTMLDivElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
 
   // wrong_option_bullets can be an array or object from JSON
   const wrongBullets = question.wrong_option_bullets;
@@ -33,14 +34,18 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
     ? wrongBullets.find(w => w.label === selectedLabel)
     : null;
 
-  // Auto-scroll to explanation when answer is wrong
+  // Auto-scroll to panel and focus next button
   useEffect(() => {
-    if (!isCorrect && panelRef.current) {
+    if (panelRef.current) {
       setTimeout(() => {
         panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Focus the next button for easy keyboard navigation
+        if (nextButtonRef.current) {
+          nextButtonRef.current.focus();
+        }
       }, 100);
     }
-  }, [isCorrect]);
+  }, []);
 
   const handleGenerateSimilar = async () => {
     setShowSimilar(true);
@@ -53,69 +58,73 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
     onNext();
   };
 
+  // Correct answer - streamlined flow
   if (isCorrect) {
     return (
-      <div ref={panelRef} className="animate-fade-in mt-6 space-y-4">
-        {/* Success Banner */}
+      <div ref={panelRef} className="animate-fade-in mt-4 space-y-3">
+        {/* Compact Success Banner */}
         <div className="p-4 rounded-xl bg-success/10 border border-success/20">
-          <div className="flex items-center gap-3 mb-3">
-            <CheckCircle2 className="w-6 h-6 text-success" />
-            <p className="text-lg font-semibold text-success">Correct!</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-success" />
+              <div>
+                <p className="font-semibold text-success">Correct!</p>
+                <p className="text-xs text-muted-foreground">{truncateWords(question.takeaway, 12)}</p>
+              </div>
+            </div>
+            <Button 
+              ref={nextButtonRef}
+              onClick={onNext} 
+              className="btn-premium"
+              autoFocus
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
           </div>
-          
-          {/* Why correct */}
-          <div className="space-y-2 mb-4">
+        </div>
+
+        {/* Optional: Expand for more details */}
+        <details className="group">
+          <summary className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+            <Lightbulb className="w-3.5 h-3.5" />
+            <span>See explanation</span>
+          </summary>
+          <div className="mt-2 p-3 rounded-lg bg-muted/30 border border-border space-y-2">
             <p className="text-sm font-medium text-foreground">Why {question.correct_label} is correct:</p>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {question.rationale_bullets.slice(0, 2).map((bullet, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
-                  <span>{truncateWords(bullet, 20)}</span>
+                  <span>{truncateWords(bullet, 25)}</span>
                 </li>
               ))}
             </ul>
           </div>
+        </details>
 
-          {/* Key Takeaway */}
-          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
-            <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-            <p className="text-sm text-foreground">{truncateWords(question.takeaway, 25)}</p>
-          </div>
-        </div>
-
-        {/* Actions */}
+        {/* Secondary actions - collapsed */}
         <div className="flex gap-2">
           <button
             onClick={() => setShowTutor(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-xs text-muted-foreground hover:text-foreground"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
             Ask Tutor
           </button>
-          <Button onClick={onNext} className="flex-1 btn-premium">
-            Continue
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
+          <button
+            onClick={handleGenerateSimilar}
+            disabled={isGenerating || showSimilar}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+            Practice Similar
+          </button>
         </div>
-
-        {/* Practice Similar */}
-        <button
-          onClick={handleGenerateSimilar}
-          disabled={isGenerating || showSimilar}
-          className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg bg-accent/10 border border-accent/20 hover:bg-accent/20 transition-colors text-sm text-accent disabled:opacity-50"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4" />
-              Practice Similar
-            </>
-          )}
-        </button>
 
         {showSimilar && generatedQuestion && (
           <SimilarQuestionCard question={generatedQuestion} onComplete={handleSimilarComplete} />
@@ -126,12 +135,25 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
     );
   }
 
+  // Incorrect answer - show more detail to help learn
   return (
-    <div ref={panelRef} className="animate-fade-in space-y-3 mt-6">
-      {/* Incorrect Banner - Simple */}
-      <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center gap-3">
-        <XCircle className="w-5 h-5 text-destructive shrink-0" />
-        <p className="font-semibold text-destructive">Incorrect</p>
+    <div ref={panelRef} className="animate-fade-in space-y-3 mt-4">
+      {/* Incorrect Banner */}
+      <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <XCircle className="w-5 h-5 text-destructive shrink-0" />
+          <p className="font-semibold text-destructive">Incorrect</p>
+        </div>
+        <Button 
+          ref={nextButtonRef}
+          onClick={onNext} 
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+        >
+          Next
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </Button>
       </div>
 
       {/* Why your answer was wrong */}
@@ -165,35 +187,24 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       <div className="flex gap-2">
         <button
           onClick={() => setShowTutor(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-xs text-primary"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-3.5 h-3.5" />
           Ask Tutor
         </button>
-        <Button onClick={onNext} className="flex-1 btn-premium">
-          Next Question
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </Button>
+        <button
+          onClick={handleGenerateSimilar}
+          disabled={isGenerating || showSimilar}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-xs text-amber-600 dark:text-amber-400 disabled:opacity-50"
+        >
+          {isGenerating ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <RefreshCw className="w-3.5 h-3.5" />
+          )}
+          Practice Similar
+        </button>
       </div>
-
-      {/* Practice Similar */}
-      <button
-        onClick={handleGenerateSimilar}
-        disabled={isGenerating || showSimilar}
-        className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-sm text-amber-600 dark:text-amber-400 disabled:opacity-50"
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <RefreshCw className="w-4 h-4" />
-            Practice Similar
-          </>
-        )}
-      </button>
 
       {showSimilar && generatedQuestion && (
         <SimilarQuestionCard question={generatedQuestion} onComplete={handleSimilarComplete} />

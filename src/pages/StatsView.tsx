@@ -149,41 +149,46 @@ export function StatsView() {
       weeklyTrend = Math.round((thisWeekAcc - lastWeekAcc) * 100);
     }
 
-    // READINESS SCORE CALCULATION (matching home page)
-    // Component 1: Accuracy (45% weight)
-    const accuracyComponent = Math.round(accuracy * 0.45);
+    // READINESS SCORE CALCULATION
+    // This should reflect true exam readiness - accuracy is king
+    // 100 = fully prepared, requires high accuracy + volume + consistency
     
-    // Component 2: Consistency (25% weight)
-    const streakScore = Math.min(streakDays * 5, 50);
-    const dailyProgress = Math.min((todayCount / dailyGoal) * 50, 50);
-    const consistencyRaw = (streakScore + dailyProgress) / 100 * 100;
-    const consistencyComponent = Math.round(consistencyRaw * 0.25);
+    // Component 1: Accuracy (60% weight) - This is the most important
+    const accuracyComponent = Math.round(accuracy * 0.60);
     
-    // Component 3: Coverage (20% weight)
+    // Component 2: Volume/Experience (20% weight) - Need to practice enough questions
+    // Require at least 200 questions for full marks, scale linearly
+    const volumeRaw = Math.min((totalAnswered / 200) * 100, 100);
+    const volumeComponent = Math.round(volumeRaw * 0.20);
+    
+    // Component 3: Consistency (10% weight) - Streak matters but less
+    const streakScore = Math.min(streakDays * 10, 100); // 10 day streak = full marks
+    const consistencyComponent = Math.round(streakScore * 0.10);
+    
+    // Component 4: Coverage (10% weight) - Practiced all categories
     const categoriesPracticed = Object.keys(nclexCategoryStats).length;
     const coverageRaw = Math.min((categoriesPracticed / 8) * 100, 100);
-    const coverageComponent = Math.round(coverageRaw * 0.2);
+    const coverageComponent = Math.round(coverageRaw * 0.10);
 
     let readinessScore: number | null = null;
-    let statusText = 'Answer 10+ questions';
+    let statusText = 'Answer 20+ questions';
     let statusColor = 'text-muted-foreground';
     
-    if (totalAnswered >= 10) {
-      // Add velocity component (10%)
-      const velocityComponent = Math.min(10, Math.round((todayCount / dailyGoal) * 10));
-      readinessScore = Math.min(100, accuracyComponent + consistencyComponent + coverageComponent + velocityComponent);
+    // Require at least 20 questions for a score to appear
+    if (totalAnswered >= 20) {
+      readinessScore = Math.min(100, accuracyComponent + volumeComponent + consistencyComponent + coverageComponent);
       
-      if (readinessScore >= 75) {
+      if (readinessScore >= 80) {
         statusText = 'Exam Ready';
         statusColor = 'text-success';
-      } else if (readinessScore >= 60) {
+      } else if (readinessScore >= 65) {
         statusText = 'Almost There';
         statusColor = 'text-primary';
-      } else if (readinessScore >= 40) {
+      } else if (readinessScore >= 45) {
         statusText = 'Building Momentum';
         statusColor = 'text-warning';
       } else {
-        statusText = 'Focus Required';
+        statusText = 'Keep Practicing';
         statusColor = 'text-destructive';
       }
     }
@@ -195,6 +200,7 @@ export function StatsView() {
       statusText,
       statusColor,
       accuracyComponent,
+      volumeComponent,
       consistencyComponent,
       coverageComponent,
       streakDays,
@@ -256,6 +262,7 @@ export function StatsView() {
         todayCount={stats.todayCount}
         dailyGoal={stats.dailyGoal}
         accuracyComponent={stats.accuracyComponent}
+        volumeComponent={stats.volumeComponent}
         consistencyComponent={stats.consistencyComponent}
         coverageComponent={stats.coverageComponent}
       />
