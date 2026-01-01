@@ -105,6 +105,7 @@ export function PracticeView() {
       questionId: currentQuestion.id,
       selectedLabel: selectedLabel,
       isCorrect,
+      confidence,
     });
 
     incrementQuestionsAnswered();

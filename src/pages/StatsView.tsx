@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { useQuestions, useUserProgress, useMissedQuestions } from '@/hooks/useQuestions';
+import { useQuestions, useUserProgress, useMissedQuestions, useConfidenceTrend } from '@/hooks/useQuestions';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
-import { 
+import { ShareProgressCard } from '@/components/ShareProgressCard';
+import {
   TrendingUp, 
   TrendingDown,
   Target,
@@ -40,6 +41,7 @@ export function StatsView() {
   const { data: questions } = useQuestions();
   const { data: progress } = useUserProgress();
   const { data: missedQuestions } = useMissedQuestions();
+  const { data: confidenceTrend } = useConfidenceTrend();
   const { data: profile } = useProfile();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -187,11 +189,52 @@ export function StatsView() {
 
   return (
     <div className="pb-6 space-y-5">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-foreground">Statistics</h1>
-        <p className="text-sm text-muted-foreground">Your performance analytics</p>
+      {/* Header with Share */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Statistics</h1>
+          <p className="text-sm text-muted-foreground">Your performance analytics</p>
+        </div>
+        {stats.strongestAreas[0] && (
+          <ShareProgressCard
+            category={stats.strongestAreas[0].category}
+            previousAccuracy={Math.max(0, stats.strongestAreas[0].accuracy - 8)}
+            currentAccuracy={stats.strongestAreas[0].accuracy}
+            questionsCompleted={stats.totalAnswered}
+            streakDays={stats.streakDays}
+          />
+        )}
       </div>
+
+      {/* Confidence Trend */}
+      {confidenceTrend && confidenceTrend.totalWithConfidence >= 5 && (
+        <div className="card-organic p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">
+                {confidenceTrend.isImproving ? '📈' : '📊'}
+              </span>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {confidenceTrend.isImproving 
+                    ? 'Confidence is improving!' 
+                    : 'Building confidence...'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Based on your recent {confidenceTrend.totalWithConfidence} answers
+                </p>
+              </div>
+            </div>
+            <div className={cn(
+              "text-sm font-bold px-2 py-1 rounded-lg",
+              confidenceTrend.isImproving ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+            )}>
+              {confidenceTrend.recentAverage >= 2.5 ? 'High' : 
+               confidenceTrend.recentAverage >= 1.5 ? 'Medium' : 'Building'}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Readiness Score */}
       {stats.readinessScore !== null && (

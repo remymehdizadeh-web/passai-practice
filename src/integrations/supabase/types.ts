@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_tutor_cache: {
+        Row: {
+          created_at: string
+          id: string
+          query_hash: string
+          question_id: string
+          response: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query_hash: string
+          question_id: string
+          response: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query_hash?: string
+          question_id?: string
+          response?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_tutor_cache_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_tutor_usage: {
+        Row: {
+          created_at: string
+          id: string
+          request_count: number
+          session_id: string
+          usage_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_count?: number
+          session_id: string
+          usage_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_count?: number
+          session_id?: string
+          usage_date?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           created_at: string
@@ -159,8 +215,56 @@ export type Database = {
         }
         Relationships: []
       }
+      review_queue: {
+        Row: {
+          created_at: string
+          due_at: string
+          ease_factor: number
+          id: string
+          interval_days: number
+          question_id: string
+          reason: string
+          review_count: number
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          question_id: string
+          reason: string
+          review_count?: number
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          question_id?: string
+          reason?: string
+          review_count?: number
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_queue_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
+          confidence: string | null
           created_at: string
           id: string
           is_correct: boolean
@@ -169,6 +273,7 @@ export type Database = {
           session_id: string
         }
         Insert: {
+          confidence?: string | null
           created_at?: string
           id?: string
           is_correct: boolean
@@ -177,6 +282,7 @@ export type Database = {
           session_id: string
         }
         Update: {
+          confidence?: string | null
           created_at?: string
           id?: string
           is_correct?: boolean

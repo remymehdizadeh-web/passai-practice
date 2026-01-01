@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const DAILY_LIMIT = 20; // Max tutor requests per day
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,12 +14,67 @@ serve(async (req) => {
   }
 
   try {
-    const { question, selectedLabel, userMessage } = await req.json();
+    const { question, selectedLabel, userMessage, sessionId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+
+    // Check rate limit
+    const today = new Date().toISOString().split('T')[0];
+    const { data: usageData } = await supabase
+      .from('ai_tutor_usage')
+      .select('request_count')
+      .eq('session_id', sessionId)
+      .eq('usage_date', today)
+      .single();
+
+    if (usageData && usageData.request_count >= DAILY_LIMIT) {
+      return new Response(
+        JSON.stringify({ error: "Daily tutor limit reached. Try again tomorrow!" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check cache for common questions
+    const queryHash = `${question.id}-${selectedLabel}-${userMessage.toLowerCase().trim().slice(0, 50)}`;
+    const { data: cachedResponse } = await supabase
+      .from('ai_tutor_cache')
+      .select('response')
+      .eq('question_id', question.id)
+      .eq('query_hash', queryHash)
+      .single();
+
+    if (cachedResponse) {
+      console.log("Returning cached response");
+      // Update usage
+      await updateUsage(supabase, sessionId, today, usageData?.request_count);
+      
+      // Return cached as streaming format
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          const chunk = `data: ${JSON.stringify({
+            choices: [{ delta: { content: cachedResponse.response } }]
+          })}\n\n`;
+          controller.enqueue(encoder.encode(chunk));
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        }
+      });
+
+      return new Response(stream, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    // Update usage counter
+    await updateUsage(supabase, sessionId, today, usageData?.request_count);
 
     const isCorrect = selectedLabel === question.correct_label;
     const selectedOption = question.options.find((o: any) => o.label === selectedLabel);
@@ -84,6 +142,9 @@ RULES:
       });
     }
 
+    // Cache common questions after response (simplified - would need to collect full response)
+    // For now, just stream through
+
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
@@ -98,3 +159,17 @@ RULES:
     );
   }
 });
+
+async function updateUsage(supabase: any, sessionId: string, today: string, currentCount?: number) {
+  if (currentCount) {
+    await supabase
+      .from('ai_tutor_usage')
+      .update({ request_count: currentCount + 1 })
+      .eq('session_id', sessionId)
+      .eq('usage_date', today);
+  } else {
+    await supabase
+      .from('ai_tutor_usage')
+      .insert({ session_id: sessionId, usage_date: today, request_count: 1 });
+  }
+}
