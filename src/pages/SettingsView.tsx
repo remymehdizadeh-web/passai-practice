@@ -93,52 +93,34 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Stats Overview - Enhanced */}
-      <div className="grid grid-cols-3 gap-3">
-        <button 
-          onClick={() => navigate('/', { state: { tab: 'stats' } })}
-          className="bg-sky-50 dark:bg-sky-500/10 border border-sky-200/50 dark:border-sky-500/20 rounded-xl p-3 text-center hover:shadow-md transition-all active:scale-[0.98]"
-        >
-          <div className="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center mx-auto mb-2">
-            <Target className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+      {/* Progress Summary - Links to Stats */}
+      <button
+        onClick={() => navigate('/', { state: { tab: 'stats' } })}
+        className="w-full bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99]"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-foreground">Your Progress</p>
+              <p className="text-xs text-muted-foreground">
+                {totalAnswered} answered · {accuracy}% accuracy
+              </p>
+            </div>
           </div>
-          <p className="text-2xl font-bold text-foreground">{totalAnswered}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">This Week</p>
-        </button>
-        
-        <button 
-          onClick={() => navigate('/', { state: { tab: 'stats' } })}
-          className={cn(
-            "border rounded-xl p-3 text-center hover:shadow-md transition-all active:scale-[0.98]",
-            accuracy >= 70 
-              ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/50 dark:border-emerald-500/20"
-              : "bg-amber-50 dark:bg-amber-500/10 border-amber-200/50 dark:border-amber-500/20"
-          )}
-        >
-          <div className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2",
-            accuracy >= 70 ? "bg-emerald-500/20" : "bg-amber-500/20"
-          )}>
-            <Trophy className={cn(
-              "w-4 h-4",
-              accuracy >= 70 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
-            )} />
+          <div className="flex items-center gap-2">
+            {(profile?.streak_days || 0) > 0 && (
+              <span className="px-2 py-1 bg-accent/10 text-accent text-xs font-bold rounded-lg flex items-center gap-1">
+                <Flame className="w-3 h-3" />
+                {profile?.streak_days}
+              </span>
+            )}
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
-          <p className="text-2xl font-bold text-foreground">{accuracy}%</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Accuracy</p>
-        </button>
-        
-        <button 
-          onClick={() => navigate('/', { state: { tab: 'stats' } })}
-          className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200/50 dark:border-orange-500/20 rounded-xl p-3 text-center hover:shadow-md transition-all active:scale-[0.98]"
-        >
-          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center mx-auto mb-2">
-            <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-          </div>
-          <p className="text-2xl font-bold text-foreground">{profile?.streak_days || 0} 🔥</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Day Streak</p>
-        </button>
-      </div>
+        </div>
+      </button>
 
       {/* Your Progress Section */}
       <div className="space-y-2">
