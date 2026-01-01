@@ -102,11 +102,18 @@ export function useRecordProgress() {
   const sessionId = getSessionId();
 
   return useMutation({
-    mutationFn: async ({ questionId, selectedLabel, isCorrect }: { 
+    mutationFn: async ({ 
+      questionId, 
+      selectedLabel, 
+      isCorrect,
+      confidence 
+    }: { 
       questionId: string; 
       selectedLabel: string; 
-      isCorrect: boolean 
+      isCorrect: boolean;
+      confidence?: 'low' | 'medium' | 'high' | null;
     }) => {
+      // Record progress
       const { error } = await supabase
         .from('user_progress')
         .insert({
@@ -114,11 +121,30 @@ export function useRecordProgress() {
           question_id: questionId,
           selected_label: selectedLabel,
           is_correct: isCorrect,
+          confidence: confidence || null,
         });
       if (error) throw error;
+
+      // Add to review queue if incorrect or low confidence
+      if (!isCorrect || confidence === 'low') {
+        const reason = !isCorrect ? 'incorrect' : 'low_confidence';
+        const { error: queueError } = await supabase
+          .from('review_queue')
+          .upsert({
+            session_id: sessionId,
+            question_id: questionId,
+            reason,
+            due_at: new Date().toISOString(),
+            interval_days: 1,
+            review_count: 0,
+          }, { onConflict: 'session_id,question_id' });
+        
+        if (queueError) console.error('Error adding to review queue:', queueError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['progress', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['review-queue', sessionId] });
     },
   });
 }
@@ -174,6 +200,159 @@ export function useMissedQuestions() {
       
       if (questionsError) throw questionsError;
       return (questions || []).map(parseQuestion);
+    },
+  });
+}
+
+// Review Queue Hooks
+export interface ReviewQueueItem {
+  id: string;
+  session_id: string;
+  question_id: string;
+  due_at: string;
+  reason: 'incorrect' | 'low_confidence' | 'spaced_repetition' | 'bookmarked';
+  interval_days: number;
+  ease_factor: number;
+  review_count: number;
+  question?: Question;
+}
+
+export function useReviewQueue() {
+  const sessionId = getSessionId();
+
+  return useQuery({
+    queryKey: ['review-queue', sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('review_queue')
+        .select('*, questions(*)')
+        .eq('session_id', sessionId)
+        .lte('due_at', new Date().toISOString())
+        .order('due_at', { ascending: true });
+      
+      if (error) throw error;
+      
+      return (data || []).map(item => ({
+        ...item,
+        question: item.questions ? parseQuestion(item.questions) : undefined,
+      })) as ReviewQueueItem[];
+    },
+  });
+}
+
+export function useUpdateReviewQueue() {
+  const queryClient = useQueryClient();
+  const sessionId = getSessionId();
+
+  return useMutation({
+    mutationFn: async ({ 
+      questionId, 
+      isCorrect,
+      confidence 
+    }: { 
+      questionId: string; 
+      isCorrect: boolean;
+      confidence?: 'low' | 'medium' | 'high' | null;
+    }) => {
+      // Get current queue item
+      const { data: queueItem } = await supabase
+        .from('review_queue')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('question_id', questionId)
+        .single();
+
+      if (!queueItem) return;
+
+      // SM-2 algorithm simplified
+      let newEaseFactor = queueItem.ease_factor || 2.5;
+      let newInterval = queueItem.interval_days || 1;
+
+      if (isCorrect && confidence !== 'low') {
+        // Increase interval based on ease factor
+        if (queueItem.review_count === 0) {
+          newInterval = 1;
+        } else if (queueItem.review_count === 1) {
+          newInterval = 6;
+        } else {
+          newInterval = Math.round(queueItem.interval_days * newEaseFactor);
+        }
+
+        // Adjust ease factor based on confidence
+        if (confidence === 'high') {
+          newEaseFactor = Math.min(3.0, newEaseFactor + 0.1);
+        } else if (confidence === 'medium') {
+          // Keep ease factor the same
+        }
+      } else {
+        // Reset on incorrect or low confidence
+        newInterval = 1;
+        newEaseFactor = Math.max(1.3, newEaseFactor - 0.2);
+      }
+
+      const dueAt = new Date();
+      dueAt.setDate(dueAt.getDate() + newInterval);
+
+      const { error } = await supabase
+        .from('review_queue')
+        .update({
+          due_at: dueAt.toISOString(),
+          interval_days: newInterval,
+          ease_factor: newEaseFactor,
+          review_count: queueItem.review_count + 1,
+        })
+        .eq('id', queueItem.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['review-queue', sessionId] });
+    },
+  });
+}
+
+// Confidence trend hook
+export function useConfidenceTrend() {
+  const sessionId = getSessionId();
+
+  return useQuery({
+    queryKey: ['confidence-trend', sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_progress')
+        .select('confidence, created_at, is_correct')
+        .eq('session_id', sessionId)
+        .not('confidence', 'is', null)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Calculate confidence score over time
+      const confidenceMap = { low: 1, medium: 2, high: 3 };
+      const trend = (data || []).map(item => ({
+        date: item.created_at,
+        score: confidenceMap[item.confidence as keyof typeof confidenceMap] || 0,
+        isCorrect: item.is_correct,
+      }));
+      
+      // Calculate average confidence for last 10 vs previous 10
+      const recent = trend.slice(-10);
+      const older = trend.slice(-20, -10);
+      
+      const recentAvg = recent.length > 0 
+        ? recent.reduce((sum, t) => sum + t.score, 0) / recent.length 
+        : 0;
+      const olderAvg = older.length > 0 
+        ? older.reduce((sum, t) => sum + t.score, 0) / older.length 
+        : 0;
+      
+      return {
+        trend,
+        recentAverage: recentAvg,
+        olderAverage: olderAvg,
+        isImproving: recentAvg > olderAvg + 0.1,
+        totalWithConfidence: trend.length,
+      };
     },
   });
 }

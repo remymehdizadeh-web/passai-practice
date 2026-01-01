@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send, Sparkles, MessageCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { getSessionId } from '@/lib/session';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -52,6 +52,7 @@ export function AskTutorModal({ isOpen, onClose, question, selectedLabel }: AskT
     setIsLoading(true);
 
     let assistantContent = '';
+    const sessionId = getSessionId();
 
     try {
       const response = await fetch(
@@ -64,6 +65,7 @@ export function AskTutorModal({ isOpen, onClose, question, selectedLabel }: AskT
           },
           body: JSON.stringify({
             question: {
+              id: question.id,
               stem: question.stem,
               options: question.options,
               correct_label: question.correct_label,
@@ -73,6 +75,7 @@ export function AskTutorModal({ isOpen, onClose, question, selectedLabel }: AskT
             },
             selectedLabel,
             userMessage,
+            sessionId,
           }),
         }
       );
