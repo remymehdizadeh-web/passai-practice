@@ -93,8 +93,8 @@ export function ReadinessScoreHero({
   return (
     <div 
       className={cn(
-        "bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300",
-        isExpanded && "shadow-lg"
+        "bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 border-2 border-primary/20 rounded-2xl overflow-hidden transition-all duration-300 shadow-sm",
+        isExpanded && "shadow-lg border-primary/30"
       )}
     >
       <div 
