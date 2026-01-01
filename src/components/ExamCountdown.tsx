@@ -36,51 +36,19 @@ export function ExamCountdown({ daysUntil, examDate, onPress }: ExamCountdownPro
     <button
       onClick={onPress}
       className={cn(
-        "w-full rounded-2xl border p-4 text-left transition-all hover:opacity-90 active:scale-[0.99]",
+        "flex items-center gap-2 px-3 py-2 rounded-xl border transition-all hover:opacity-90 active:scale-[0.98]",
         getBgColor()
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center",
-          daysUntil !== null && daysUntil <= 7 ? "bg-destructive/10" :
-          daysUntil !== null && daysUntil <= 14 ? "bg-amber-500/10" : "bg-primary/10"
-        )}>
-          <Calendar className={cn("w-6 h-6", getUrgencyColor())} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {daysUntil !== null ? (
-            <>
-              <div className="flex items-baseline gap-1.5">
-                <span className={cn("text-2xl font-bold", getUrgencyColor())}>
-                  {daysUntil}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  days until exam
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {examDate && new Date(examDate).toLocaleDateString('en-US', { 
-                  weekday: 'long',
-                  month: 'long', 
-                  day: 'numeric'
-                })}
-              </p>
-              <p className="text-xs font-medium text-muted-foreground mt-1">
-                {getPhaseMessage()}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-sm font-semibold text-foreground">Set your exam date</p>
-              <p className="text-xs text-muted-foreground">Track your countdown to test day</p>
-            </>
-          )}
-        </div>
-
-        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-      </div>
+      <Calendar className={cn("w-4 h-4", getUrgencyColor())} />
+      {daysUntil !== null ? (
+        <span className="text-sm">
+          <span className={cn("font-bold", getUrgencyColor())}>{daysUntil}</span>
+          <span className="text-muted-foreground"> days</span>
+        </span>
+      ) : (
+        <span className="text-sm text-muted-foreground">Set exam date</span>
+      )}
     </button>
   );
 }

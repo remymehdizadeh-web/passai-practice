@@ -12,8 +12,6 @@ import { CategoryMastery } from '@/components/CategoryMastery';
 import { FullAchievements } from '@/components/FullAchievements';
 import { WeakAreaAlert } from '@/components/WeakAreaAlert';
 import { 
-  Play, 
-  AlertCircle,
   ChevronRight,
   LogIn,
   BarChart3,
@@ -195,11 +193,11 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col gap-3">
-        {/* Sign in prompt OR Exam countdown */}
-        {!user ? (
+        {/* Sign in prompt for non-logged in users */}
+        {!user && (
           <button
             onClick={() => navigate('/auth')}
-            className="card-organic p-4 flex items-center gap-4 hover:shadow-lg transition-all flex-shrink-0"
+            className="card-organic p-4 flex items-center gap-4 hover:shadow-lg transition-all"
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
               <LogIn className="w-6 h-6 text-primary-foreground" />
@@ -210,34 +208,38 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
-        ) : (
-          <>
+        )}
+
+        {/* Logged in user: Compact top row with exam date + readiness */}
+        {user && (
+          <div className="flex items-center gap-2">
             <ExamCountdown
               daysUntil={daysUntilExam}
               examDate={profile?.exam_date}
               onPress={() => setShowExamDate(true)}
             />
-            {/* Daily Goal - only for signed in users */}
-            <DailyGoal
-              target={dailyGoal}
-              completed={todayProgress}
-              onStartPractice={() => onNavigate('practice')}
-            />
-          </>
-        )}
-
-        {/* Readiness Score (signed in only) */}
-        {user && stats.readinessScore !== null && (
-          <div className="flex-shrink-0">
-            <ReadinessGauge 
-              score={stats.readinessScore} 
-              trend={stats.trend}
-            />
+            {stats.readinessScore !== null && (
+              <div className="flex-1">
+                <ReadinessGauge 
+                  score={stats.readinessScore} 
+                  trend={stats.trend}
+                />
+              </div>
+            )}
           </div>
         )}
 
-        {/* Quick stats row */}
-        <div className="grid grid-cols-3 gap-2 flex-shrink-0">
+        {/* Daily Goal - only for signed in users */}
+        {user && (
+          <DailyGoal
+            target={dailyGoal}
+            completed={todayProgress}
+            onStartPractice={() => onNavigate('practice')}
+          />
+        )}
+
+        {/* Quick stats row - clickable to review */}
+        <div className="grid grid-cols-3 gap-2">
           <div className="stat-card text-center py-3">
             <p className="text-lg font-bold text-foreground">{stats.answeredCount}</p>
             <p className="text-[10px] text-muted-foreground">Completed</p>
@@ -251,60 +253,32 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
             )}>{stats.accuracy}%</p>
             <p className="text-[10px] text-muted-foreground">Accuracy</p>
           </div>
-          <div className="stat-card text-center py-3">
+          <button 
+            onClick={() => onNavigate('review', 'missed')}
+            className="stat-card text-center py-3 hover:bg-destructive/5 transition-colors"
+          >
             <p className="text-lg font-bold text-destructive">{stats.missedCount}</p>
-            <p className="text-[10px] text-muted-foreground">To Review</p>
-          </div>
+            <p className="text-[10px] text-muted-foreground">To Review →</p>
+          </button>
         </div>
 
         {/* Weak Area Alert */}
         {user && stats.weakestArea && stats.weakestArea.accuracy < 60 && stats.weakestArea.total >= 3 && (
-          <div className="flex-shrink-0">
-            <WeakAreaAlert 
-              category={stats.weakestArea.category}
-              accuracy={stats.weakestArea.accuracy}
-              onPractice={() => onOpenWeakArea?.()}
-            />
-          </div>
+          <WeakAreaAlert 
+            category={stats.weakestArea.category}
+            accuracy={stats.weakestArea.accuracy}
+            onPractice={() => onOpenWeakArea?.()}
+          />
         )}
 
         {/* Category Mastery - directly on home */}
         {user && stats.answeredCount >= 5 && (
-          <div className="flex-shrink-0">
-            <CategoryMastery 
-              categories={stats.categoryMastery}
-              onCategoryClick={() => {}}
-              compact
-            />
-          </div>
+          <CategoryMastery 
+            categories={stats.categoryMastery}
+            onCategoryClick={() => {}}
+            compact
+          />
         )}
-
-        {/* Action buttons */}
-        <div className="grid grid-cols-2 gap-3 flex-shrink-0">
-          <button
-            onClick={() => onNavigate('practice')}
-            className="btn-premium text-primary-foreground p-4 text-left"
-          >
-            <Play className="w-6 h-6 mb-2" />
-            <p className="font-bold">Practice</p>
-            <p className="text-xs opacity-80">{stats.totalQuestions - stats.answeredCount} left</p>
-          </button>
-          
-          <button
-            onClick={() => onNavigate('review', 'missed')}
-            className={cn(
-              "card-organic p-4 text-left transition-all hover:shadow-lg",
-              stats.missedCount > 0 && "border-2 border-destructive/20"
-            )}
-          >
-            <AlertCircle className={cn(
-              "w-6 h-6 mb-2",
-              stats.missedCount > 0 ? "text-destructive" : "text-muted-foreground"
-            )} />
-            <p className="font-bold text-foreground">Review</p>
-            <p className="text-xs text-muted-foreground">{stats.missedCount} missed</p>
-          </button>
-        </div>
 
         {/* Bookmarks quick access */}
         {stats.bookmarkCount > 0 && (
