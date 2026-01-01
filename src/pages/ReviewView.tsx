@@ -3,7 +3,6 @@ import { useBookmarks, useMissedQuestions, useToggleBookmark, useReviewQueue, us
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
-import { ConfidenceSlider } from '@/components/ConfidenceSlider';
 import { Bookmark, XCircle, ChevronLeft, Loader2, Clock, AlertTriangle, Zap } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
@@ -27,8 +26,6 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
-  const [confidence, setConfidence] = useState<'low' | 'medium' | 'high' | null>(null);
-  const [showConfidence, setShowConfidence] = useState(false);
 
   useEffect(() => {
     if (initialFilter === 'bookmarked') {
@@ -64,31 +61,26 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const isBookmarked = (questionId: string) => 
     bookmarks?.some((b) => b.question_id === questionId) ?? false;
 
-  const handleSelectAnswer = (label: string) => {
+  const handleSelectAnswer = async (label: string) => {
+    if (!selectedQuestion) return;
     setSelectedLabel(label);
-    setShowConfidence(true);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedQuestion || !selectedLabel) return;
-
-    const isCorrect = selectedLabel === selectedQuestion.correct_label;
+    
+    const isCorrect = label === selectedQuestion.correct_label;
     setIsSubmitted(true);
-    setShowConfidence(false);
 
-    // Record progress with confidence
+    // Record progress
     await recordProgress.mutateAsync({
       questionId: selectedQuestion.id,
-      selectedLabel,
+      selectedLabel: label,
       isCorrect,
-      confidence,
+      confidence: null,
     });
 
     // Update spaced repetition
     await updateReviewQueue.mutateAsync({
       questionId: selectedQuestion.id,
       isCorrect,
-      confidence,
+      confidence: null,
     });
   };
 
@@ -96,8 +88,6 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
     setSelectedQuestion(null);
     setIsSubmitted(false);
     setSelectedLabel(null);
-    setConfidence(null);
-    setShowConfidence(false);
   };
 
   const handleBookmark = async (questionId: string) => {
@@ -128,22 +118,6 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
           isSubmitted={isSubmitted}
           selectedLabel={selectedLabel}
         />
-
-        {/* Confidence slider - shown after selection, before submit */}
-        {showConfidence && !isSubmitted && selectedLabel && (
-          <div className="mt-4 card-organic p-4 animate-fade-in">
-            <ConfidenceSlider 
-              value={confidence} 
-              onChange={setConfidence}
-            />
-            <button
-              onClick={handleSubmit}
-              className="w-full mt-4 btn-premium py-3"
-            >
-              Submit Answer
-            </button>
-          </div>
-        )}
 
         {isSubmitted && selectedLabel && (
           <ExplanationPanel
