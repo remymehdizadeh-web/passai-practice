@@ -1,20 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
+
+interface ScheduledReminder {
+  id: string;
+  timeoutId: NodeJS.Timeout;
+}
 
 export function usePushNotifications() {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const scheduledReminders = useRef<ScheduledReminder[]>([]);
 
   useEffect(() => {
-    // Check if push notifications are supported
     const supported = 'Notification' in window && 'serviceWorker' in navigator;
     setIsSupported(supported);
 
     if (supported) {
-      // Check current permission status
       setIsSubscribed(Notification.permission === 'granted');
     }
+    
+    // Cleanup on unmount
+    return () => {
+      scheduledReminders.current.forEach(reminder => {
+        clearTimeout(reminder.timeoutId);
+      });
+    };
   }, []);
 
   const subscribe = useCallback(async () => {
@@ -31,7 +42,6 @@ export function usePushNotifications() {
         setIsSubscribed(true);
         toast.success('Push notifications enabled! You\'ll receive study reminders.');
         
-        // Show a test notification
         new Notification('NCLEX Prep', {
           body: 'Study reminders are now enabled! 📚',
           icon: '/favicon.ico',
@@ -58,7 +68,12 @@ export function usePushNotifications() {
   const unsubscribe = useCallback(async () => {
     setIsLoading(true);
     try {
-      // We can't actually revoke permission via JS, but we can update our state
+      // Clear all scheduled reminders
+      scheduledReminders.current.forEach(reminder => {
+        clearTimeout(reminder.timeoutId);
+      });
+      scheduledReminders.current = [];
+      
       setIsSubscribed(false);
       toast.success('Push notifications disabled');
       return true;
@@ -72,7 +87,7 @@ export function usePushNotifications() {
   }, []);
 
   const sendNotification = useCallback((title: string, options?: NotificationOptions) => {
-    if (!isSubscribed) return;
+    if (!isSubscribed || Notification.permission !== 'granted') return;
     
     try {
       new Notification(title, {
@@ -85,6 +100,106 @@ export function usePushNotifications() {
     }
   }, [isSubscribed]);
 
+  // Schedule a reminder based on daily goal and last study time
+  const scheduleStudyReminder = useCallback((
+    dailyGoal: number,
+    todayCount: number,
+    lastStudyDate: string | null
+  ) => {
+    if (!isSubscribed || Notification.permission !== 'granted') return;
+
+    // Clear existing reminders
+    scheduledReminders.current.forEach(reminder => {
+      clearTimeout(reminder.timeoutId);
+    });
+    scheduledReminders.current = [];
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const questionsRemaining = Math.max(0, dailyGoal - todayCount);
+    
+    // Don't schedule if goal is already met
+    if (questionsRemaining === 0) return;
+
+    // Check if user hasn't studied today and it's past noon
+    const lastStudyDay = lastStudyDate?.split('T')[0];
+    const hasStudiedToday = lastStudyDay === today;
+    const currentHour = now.getHours();
+
+    // Schedule reminder messages
+    const reminders: { delay: number; title: string; body: string }[] = [];
+
+    if (!hasStudiedToday) {
+      // If they haven't studied today
+      if (currentHour >= 12 && currentHour < 18) {
+        // Afternoon reminder - 30 minutes from now
+        reminders.push({
+          delay: 30 * 60 * 1000,
+          title: '📚 Time to Study!',
+          body: `You haven't started today. ${dailyGoal} questions to hit your goal!`
+        });
+      } else if (currentHour >= 18 && currentHour < 21) {
+        // Evening reminder - 15 minutes from now
+        reminders.push({
+          delay: 15 * 60 * 1000,
+          title: '⏰ Don\'t Break Your Streak!',
+          body: `Quick! Complete ${dailyGoal} questions before the day ends.`
+        });
+      }
+    } else if (questionsRemaining > 0) {
+      // They've studied but haven't met goal
+      if (currentHour >= 18 && currentHour < 22) {
+        // Evening reminder to finish goal
+        reminders.push({
+          delay: 60 * 60 * 1000, // 1 hour from now
+          title: '🎯 Almost There!',
+          body: `Just ${questionsRemaining} more questions to hit your daily goal!`
+        });
+      }
+    }
+
+    // Schedule all reminders
+    reminders.forEach((reminder, index) => {
+      const timeoutId = setTimeout(() => {
+        sendNotification(reminder.title, { body: reminder.body });
+      }, reminder.delay);
+
+      scheduledReminders.current.push({
+        id: `reminder-${index}`,
+        timeoutId
+      });
+    });
+
+    console.log(`Scheduled ${reminders.length} study reminder(s)`);
+  }, [isSubscribed, sendNotification]);
+
+  // Immediate motivation notification based on progress
+  const sendMotivationNotification = useCallback((
+    todayCount: number,
+    dailyGoal: number,
+    streakDays: number
+  ) => {
+    if (!isSubscribed || Notification.permission !== 'granted') return;
+
+    if (todayCount === dailyGoal) {
+      sendNotification('🎉 Daily Goal Complete!', {
+        body: `Amazing! You've completed ${dailyGoal} questions today. Keep the streak going!`
+      });
+    } else if (todayCount === Math.floor(dailyGoal / 2)) {
+      sendNotification('🔥 Halfway There!', {
+        body: `${dailyGoal - todayCount} more questions to hit your goal!`
+      });
+    } else if (streakDays === 7) {
+      sendNotification('🏆 1 Week Streak!', {
+        body: 'Incredible consistency! You\'ve studied 7 days in a row.'
+      });
+    } else if (streakDays === 30) {
+      sendNotification('👑 30 Day Streak!', {
+        body: 'You\'re unstoppable! A full month of consistent studying.'
+      });
+    }
+  }, [isSubscribed, sendNotification]);
+
   return {
     isSupported,
     isSubscribed,
@@ -92,5 +207,7 @@ export function usePushNotifications() {
     subscribe,
     unsubscribe,
     sendNotification,
+    scheduleStudyReminder,
+    sendMotivationNotification,
   };
 }
