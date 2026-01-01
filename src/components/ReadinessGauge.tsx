@@ -19,12 +19,6 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
     return 'text-destructive';
   };
 
-  const getBgColor = () => {
-    if (score >= 80) return 'from-success/10 to-success/5';
-    if (score >= 65) return 'from-warning/10 to-warning/5';
-    return 'from-destructive/10 to-destructive/5';
-  };
-
   const getReadinessLabel = () => {
     if (score >= 85) return 'Exam Ready';
     if (score >= 75) return 'Almost There';
@@ -33,24 +27,22 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
     return 'Starting';
   };
 
-  const getMotivation = () => {
-    if (score >= 85) return "You're on track to pass!";
-    if (score >= 75) return "Almost exam ready!";
-    if (score >= 65) return "Good progress, keep going!";
-    if (score >= 50) return "Building momentum!";
-    return "Every question counts!";
-  };
-
   return (
-    <div className={cn("card-organic p-4 bg-gradient-to-br", getBgColor())}>
-      <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
+      <div className={cn(
+        "text-2xl font-bold",
+        getScoreColor()
+      )}>
+        {score}
+      </div>
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold text-foreground">Readiness Score</p>
+          <p className="text-xs text-muted-foreground">Readiness</p>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="w-3.5 h-3.5" />
+                  <Info className="w-3 h-3" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px] text-xs">
@@ -63,45 +55,22 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-        {trend && (
-          <div className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
-            trend === 'up' && "bg-success/20 text-success",
-            trend === 'down' && "bg-destructive/20 text-destructive",
-            trend === 'stable' && "bg-muted text-muted-foreground"
-          )}>
-            {trend === 'up' && <TrendingUp className="w-3 h-3" />}
-            {trend === 'down' && <TrendingDown className="w-3 h-3" />}
-            {trend === 'stable' && <Minus className="w-3 h-3" />}
-            {trend === 'up' ? 'Improving' : trend === 'down' ? 'Declining' : 'Stable'}
-          </div>
-        )}
-      </div>
-      
-      <div className="flex items-end gap-3">
-        <span className={cn("text-4xl font-bold leading-none", getScoreColor())}>
-          {score}
-        </span>
-        <div className="flex-1 pb-1">
-          <p className={cn("text-sm font-medium", getScoreColor())}>
-            {getReadinessLabel()}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {getMotivation()}
-          </p>
-        </div>
-      </div>
-      
-      {/* Progress bar */}
-      <div className="mt-3 h-2 bg-muted/50 rounded-full overflow-hidden">
-        <div 
-          className={cn(
-            "h-full rounded-full transition-all duration-500",
-            score >= 80 ? "bg-success" : score >= 65 ? "bg-warning" : "bg-destructive"
+          {trend && (
+            <div className={cn(
+              "flex items-center gap-0.5 text-[10px] font-medium",
+              trend === 'up' && "text-success",
+              trend === 'down' && "text-destructive",
+              trend === 'stable' && "text-muted-foreground"
+            )}>
+              {trend === 'up' && <TrendingUp className="w-3 h-3" />}
+              {trend === 'down' && <TrendingDown className="w-3 h-3" />}
+              {trend === 'stable' && <Minus className="w-3 h-3" />}
+            </div>
           )}
-          style={{ width: `${Math.min(score, 100)}%` }}
-        />
+        </div>
+        <p className={cn("text-sm font-medium", getScoreColor())}>
+          {getReadinessLabel()}
+        </p>
       </div>
     </div>
   );
