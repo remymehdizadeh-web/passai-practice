@@ -4,7 +4,6 @@ import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
 import { PaywallModal } from '@/components/PaywallModal';
 import { ProgressBar } from '@/components/ProgressBar';
-import { ConfidenceSlider } from '@/components/ConfidenceSlider';
 import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUserProgress } from '@/hooks/useQuestions';
 import { useProfile, useUpdateStreak } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,8 +28,6 @@ export function PracticeView() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [hasUpdatedStreak, setHasUpdatedStreak] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
-  const [confidence, setConfidence] = useState<'low' | 'medium' | 'high' | null>(null);
-  const [showConfidence, setShowConfidence] = useState(false);
 
   // Update streak when user answers first question of the day
   useEffect(() => {
@@ -88,17 +85,12 @@ export function PracticeView() {
     (b) => b.question_id === currentQuestion?.id
   ) ?? false;
 
-  const handleSelectAnswer = (label: string) => {
+  const handleSelectAnswer = async (label: string) => {
+    if (!currentQuestion) return;
+    
     setSelectedLabel(label);
-    setShowConfidence(true);
-  };
-
-  const handleSubmit = async () => {
-    if (!currentQuestion || !selectedLabel) return;
-
-    const isCorrect = selectedLabel === currentQuestion.correct_label;
+    const isCorrect = label === currentQuestion.correct_label;
     setIsSubmitted(true);
-    setShowConfidence(false);
 
     // Track correct streak for session
     if (isCorrect) {
@@ -109,9 +101,9 @@ export function PracticeView() {
 
     await recordProgress.mutateAsync({
       questionId: currentQuestion.id,
-      selectedLabel: selectedLabel,
+      selectedLabel: label,
       isCorrect,
-      confidence,
+      confidence: null,
     });
 
     incrementQuestionsAnswered();
@@ -130,8 +122,6 @@ export function PracticeView() {
     }
     setIsSubmitted(false);
     setSelectedLabel(null);
-    setConfidence(null);
-    setShowConfidence(false);
   };
 
   const handleBookmark = async () => {
@@ -241,23 +231,6 @@ export function PracticeView() {
         isSubmitted={isSubmitted}
         selectedLabel={selectedLabel}
       />
-
-      {/* Confidence slider - shown after selection, before submit */}
-      {showConfidence && !isSubmitted && selectedLabel && (
-        <div className="mt-4 card-organic p-4 animate-fade-in">
-          <ConfidenceSlider 
-            value={confidence} 
-            onChange={setConfidence}
-          />
-          <button
-            onClick={handleSubmit}
-            className="w-full mt-4 btn-premium py-3"
-          >
-            Submit Answer
-          </button>
-        </div>
-      )}
-
       {isSubmitted && selectedLabel && (
         <ExplanationPanel
           question={currentQuestion}
