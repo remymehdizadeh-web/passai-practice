@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Circle, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CategoryData {
   category: string;
@@ -66,6 +67,8 @@ function ConfidenceIcon({ level }: { level: ConfidenceLevel }) {
 }
 
 export function CategoryMastery({ categories, onCategoryClick, compact = false }: CategoryMasteryProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   const sortedCategories = [...categories].sort((a, b) => {
     const levelOrder: Record<ConfidenceLevel, number> = {
       'low': 0, 'building': 1, 'none': 2, 'solid': 3, 'strong': 4
@@ -80,7 +83,8 @@ export function CategoryMastery({ categories, onCategoryClick, compact = false }
     return level === 'low' || level === 'building';
   });
 
-  const displayCategories = compact ? sortedCategories.slice(0, 4) : sortedCategories;
+  const displayCategories = compact && !isExpanded ? sortedCategories.slice(0, 4) : sortedCategories;
+  const hiddenCount = sortedCategories.length - 4;
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -118,7 +122,7 @@ export function CategoryMastery({ categories, onCategoryClick, compact = false }
                     "font-medium text-foreground truncate pr-2",
                     compact ? "text-xs" : "text-sm"
                   )}>
-                    {compact ? category.split(' ').slice(0, 2).join(' ') : category}
+                    {compact && !isExpanded ? category.split(' ').slice(0, 2).join(' ') : category}
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className={cn("text-[10px] font-medium", getConfidenceColor(level))}>
@@ -148,11 +152,19 @@ export function CategoryMastery({ categories, onCategoryClick, compact = false }
       </div>
 
       {compact && sortedCategories.length > 4 && (
-        <div className="p-2 text-center border-t border-border">
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full p-2 text-center border-t border-border hover:bg-muted/30 transition-colors flex items-center justify-center gap-1"
+        >
           <span className="text-[10px] text-muted-foreground">
-            +{sortedCategories.length - 4} more in Review
+            {isExpanded ? 'Show less' : `+${hiddenCount} more`}
           </span>
-        </div>
+          {isExpanded ? (
+            <ChevronUp className="w-3 h-3 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-3 h-3 text-muted-foreground" />
+          )}
+        </button>
       )}
     </div>
   );
