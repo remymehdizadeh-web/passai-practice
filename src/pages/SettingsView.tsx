@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useUserProgress } from '@/hooks/useQuestions';
 import { ExamDateModal } from '@/components/ExamDateModal';
 import { GoalEditModal } from '@/components/GoalEditModal';
 import { PaywallModal } from '@/components/PaywallModal';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import logoIcon from '@/assets/logo-icon.png';
 import { useTheme } from 'next-themes';
 import { 
@@ -40,6 +42,8 @@ export function SettingsView() {
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const updateProfile = useUpdateProfile();
 
   const handleSignOut = async () => {
     if (confirm('Sign out? Your progress is saved in the cloud.')) {
@@ -50,9 +54,29 @@ export function SettingsView() {
 
   const handleResetProgress = async () => {
     if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
-      await clearAllProgress();
-      toast.success('Progress reset successfully');
-      window.location.reload();
+      try {
+        // Clear local storage progress
+        await clearAllProgress();
+        
+        // If user is authenticated, also reset their profile streak
+        if (user?.id) {
+          await supabase
+            .from('profiles')
+            .update({ streak_days: 0, last_study_date: null })
+            .eq('id', user.id);
+        }
+        
+        // Invalidate all relevant queries
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ['user-progress'] });
+        queryClient.invalidateQueries({ queryKey: ['review-queue'] });
+        queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+        
+        toast.success('Progress reset successfully');
+        window.location.reload();
+      } catch (error) {
+        toast.error('Failed to reset progress');
+      }
     }
   };
 
