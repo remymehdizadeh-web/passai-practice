@@ -252,10 +252,10 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Danger Zone Section */}
+      {/* Account Management Section */}
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide font-semibold text-destructive px-1">
-          Danger Zone
+        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
+          Account Management
         </p>
         <div className="space-y-2">
           <button

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Calendar, ChevronRight } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 interface ExamCountdownProps {
   daysUntil: number | null;
@@ -8,16 +8,6 @@ interface ExamCountdownProps {
 }
 
 export function ExamCountdown({ daysUntil, examDate, onPress }: ExamCountdownProps) {
-  const getPhaseMessage = () => {
-    if (daysUntil === null) return null;
-    if (daysUntil <= 0) return "Exam day. You're ready.";
-    if (daysUntil <= 3) return "Final review. Trust your prep.";
-    if (daysUntil <= 7) return "Last week. Light practice, stay calm.";
-    if (daysUntil <= 14) return "Final push. Focus on weak areas.";
-    if (daysUntil <= 30) return "Crunch time. Stay consistent.";
-    return "Build your foundation. You have time.";
-  };
-
   const getUrgencyColor = () => {
     if (daysUntil === null) return 'text-primary';
     if (daysUntil <= 7) return 'text-destructive';
@@ -36,14 +26,14 @@ export function ExamCountdown({ daysUntil, examDate, onPress }: ExamCountdownPro
     <button
       onClick={onPress}
       className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-xl border transition-all hover:opacity-90 active:scale-[0.98]",
+        "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all hover:opacity-90 active:scale-[0.98]",
         getBgColor()
       )}
     >
       <Calendar className={cn("w-4 h-4", getUrgencyColor())} />
       {daysUntil !== null ? (
         <span className="text-sm">
-          <span className={cn("font-bold", getUrgencyColor())}>{daysUntil}</span>
+          <span className={cn("font-bold text-lg", getUrgencyColor())}>{daysUntil}</span>
           <span className="text-muted-foreground"> days</span>
         </span>
       ) : (

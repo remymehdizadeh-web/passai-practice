@@ -28,7 +28,7 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
+    <div className="flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-card border border-border">
       <div className={cn(
         "text-2xl font-bold",
         getScoreColor()
