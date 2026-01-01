@@ -10,7 +10,10 @@ import { StudyStreak } from '@/components/StudyStreak';
 import { PercentileRank } from '@/components/PercentileRank';
 import { WeeklyReport } from '@/components/WeeklyReport';
 import { CategoryMastery } from '@/components/CategoryMastery';
-import { AchievementBadges } from '@/components/AchievementBadges';
+import { FullAchievements } from '@/components/FullAchievements';
+import { FullLeaderboard } from '@/components/FullLeaderboard';
+import { WeakAreaMode } from '@/components/WeakAreaMode';
+import { WeakAreaAlert } from '@/components/WeakAreaAlert';
 import { 
   Play, 
   AlertCircle,
@@ -18,7 +21,8 @@ import {
   LogIn,
   BarChart3,
   Bookmark,
-  Award
+  Award,
+  Trophy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +37,7 @@ type ReviewFilter = 'bookmarked' | 'missed';
 
 interface HomeViewProps {
   onNavigate: (tab: 'practice' | 'review', filter?: ReviewFilter) => void;
+  onOpenWeakArea?: () => void;
 }
 
 // The 8 NCLEX-RN categories
@@ -47,7 +52,7 @@ const NCLEX_CATEGORIES = [
   'Physiological Adaptation',
 ];
 
-export function HomeView({ onNavigate }: HomeViewProps) {
+export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
   const { data: questions } = useQuestions();
   const { data: progress } = useUserProgress();
   const { data: bookmarks } = useBookmarks();
@@ -58,6 +63,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
   const [showExamDate, setShowExamDate] = useState(false);
   const [showWeeklyReport, setShowWeeklyReport] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const daysUntilExam = calculateDaysUntilExam(profile?.exam_date || null);
   const streakDays = profile?.streak_days || 0;
@@ -168,6 +174,14 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           )}
           {user && stats.answeredCount >= 5 && (
             <button
+              onClick={() => setShowLeaderboard(true)}
+              className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+            >
+              <Trophy className="w-4 h-4 text-primary" />
+            </button>
+          )}
+          {user && stats.answeredCount >= 5 && (
+            <button
               onClick={() => setShowAchievements(true)}
               className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center hover:bg-amber-500/20 transition-colors"
             >
@@ -253,6 +267,17 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           </div>
         </div>
 
+        {/* Weak Area Alert */}
+        {user && stats.weakestArea && stats.weakestArea.accuracy < 60 && stats.weakestArea.total >= 3 && (
+          <div className="flex-shrink-0">
+            <WeakAreaAlert 
+              category={stats.weakestArea.category}
+              accuracy={stats.weakestArea.accuracy}
+              onPractice={() => onOpenWeakArea?.()}
+            />
+          </div>
+        )}
+
         {/* Category Mastery - directly on home */}
         {user && stats.answeredCount >= 5 && (
           <div className="flex-shrink-0">
@@ -332,11 +357,17 @@ export function HomeView({ onNavigate }: HomeViewProps) {
           <DialogHeader>
             <DialogTitle>Your Achievements</DialogTitle>
           </DialogHeader>
-          <AchievementBadges 
-            totalAnswered={stats.answeredCount}
-            accuracy={stats.accuracy}
-            streakDays={streakDays}
-          />
+          <FullAchievements />
+        </DialogContent>
+      </Dialog>
+
+      {/* Leaderboard Dialog */}
+      <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Leaderboard</DialogTitle>
+          </DialogHeader>
+          <FullLeaderboard />
         </DialogContent>
       </Dialog>
     </div>
