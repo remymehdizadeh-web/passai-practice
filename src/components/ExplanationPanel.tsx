@@ -13,6 +13,13 @@ interface ExplanationPanelProps {
   onNext: () => void;
 }
 
+// Truncate text to a max word count
+function truncateWords(text: string, maxWords: number): string {
+  const words = text.split(' ');
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(' ') + '...';
+}
+
 export function ExplanationPanel({ question, selectedLabel, onNext }: ExplanationPanelProps) {
   const isCorrect = selectedLabel === question.correct_label;
   const correctOption = question.options.find(o => o.label === question.correct_label);
@@ -27,6 +34,10 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   const wrongExplanation = Array.isArray(wrongBullets) 
     ? wrongBullets.find(w => w.label === selectedLabel)
     : null;
+  
+  // Truncated content
+  const shortTakeaway = truncateWords(question.takeaway, 20);
+  const shortWrongExplanation = wrongExplanation ? truncateWords(wrongExplanation.why_wrong, 15) : null;
 
   // Auto-scroll to explanation when answer is wrong
   useEffect(() => {
@@ -110,14 +121,14 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
               {question.rationale_bullets.slice(0, 2).map((bullet, index) => (
                 <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
                   <span className="w-1 h-1 rounded-full bg-primary/50 mt-1.5 shrink-0" />
-                  <span>{bullet}</span>
+                  <span>{truncateWords(bullet, 18)}</span>
                 </li>
               ))}
             </ul>
 
             <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <p className="text-xs text-foreground">{question.takeaway}</p>
+              <p className="text-xs text-foreground">{shortTakeaway}</p>
             </div>
           </div>
         )}
@@ -139,10 +150,10 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       </div>
 
       {/* Why incorrect - Compact */}
-      {wrongExplanation && (
+      {shortWrongExplanation && (
         <div className="p-2.5 rounded-lg border border-border bg-muted/30">
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium">{selectedLabel}:</span> {wrongExplanation.why_wrong}
+            <span className="font-medium">{selectedLabel}:</span> {shortWrongExplanation}
           </p>
         </div>
       )}
@@ -158,14 +169,14 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
           {question.rationale_bullets.slice(0, 2).map((bullet, index) => (
             <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
               <span className="w-1 h-1 rounded-full bg-primary/50 mt-1.5 shrink-0" />
-              <span>{bullet}</span>
+              <span>{truncateWords(bullet, 18)}</span>
             </li>
           ))}
         </ul>
 
         <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
           <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-xs text-foreground">{question.takeaway}</p>
+          <p className="text-xs text-foreground">{shortTakeaway}</p>
         </div>
       </div>
 
