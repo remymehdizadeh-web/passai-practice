@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import { Bookmark, Flag, CheckCircle2, XCircle } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
@@ -87,7 +87,12 @@ export function QuestionCard({
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-5 animate-fade-in">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-card border border-border rounded-2xl p-5"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <span className={cn(
@@ -97,7 +102,8 @@ export function QuestionCard({
           {question.category}
         </span>
         <div className="flex items-center gap-0.5">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={onBookmark}
             className={cn(
               'p-2 rounded-lg transition-colors duration-150',
@@ -107,13 +113,14 @@ export function QuestionCard({
             )}
           >
             <Bookmark className={cn('w-4 h-4', isBookmarked && 'fill-current')} />
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={onReport}
             className="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-150"
           >
             <Flag className="w-4 h-4" />
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -124,15 +131,19 @@ export function QuestionCard({
 
       {/* Options */}
       <div className="space-y-2.5 mb-6">
-        {question.options.map((option) => (
-          <button
+        {question.options.map((option, index) => (
+          <motion.button
             key={option.label}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.2 }}
+            whileTap={{ scale: isSubmitted ? 1 : 0.98 }}
             onClick={() => !isSubmitted && setLocalSelected(option.label)}
             disabled={isSubmitted}
             className={cn(
               'w-full text-left p-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150',
               getOptionClass(option.label),
-              !isSubmitted && 'hover:border-primary/30 cursor-pointer active:scale-[0.998]'
+              !isSubmitted && 'hover:border-primary/30 cursor-pointer'
             )}
           >
             <span className={cn(
@@ -145,14 +156,15 @@ export function QuestionCard({
             </span>
             <span className="flex-1 pt-0.5 text-sm">{option.text}</span>
             {getOptionIcon(option.label)}
-          </button>
+          </motion.button>
         ))}
       </div>
 
-      {/* Submit Button - only show when not using confidence slider */}
+      {/* Submit Button */}
       {!isSubmitted && (
-        <button
+        <motion.button
           ref={submitRef}
+          whileTap={{ scale: localSelected ? 0.98 : 1 }}
           onClick={() => localSelected && onSubmit(localSelected)}
           disabled={!localSelected}
           className={cn(
@@ -163,8 +175,8 @@ export function QuestionCard({
           )}
         >
           Submit Answer
-        </button>
+        </motion.button>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useBookmarks, useMissedQuestions, useToggleBookmark, useReviewQueue, useUpdateReviewQueue, useRecordProgress, useQuestions, useUserProgress } from '@/hooks/useQuestions';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
 import { PaywallModal } from '@/components/PaywallModal';
-import { Bookmark, XCircle, ChevronLeft, ChevronRight, Loader2, Clock, AlertTriangle, Zap, Shield, Pill, Heart, Brain, Activity, Users, Stethoscope, Sparkles, Lock } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SkeletonReviewList } from '@/components/ui/skeleton-card';
+import { Bookmark, XCircle, ChevronLeft, ChevronRight, Clock, AlertTriangle, Zap, Shield, Pill, Heart, Brain, Activity, Users, Stethoscope, Sparkles, Lock } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
@@ -398,35 +401,25 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
-          </div>
+          <SkeletonReviewList />
         ) : displayedQuestions.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-8 text-center">
-            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
-              {filter === 'bookmarked' ? (
-                <Bookmark className="w-6 h-6 text-muted-foreground" />
-              ) : filter === 'missed' ? (
-                <XCircle className="w-6 h-6 text-muted-foreground" />
-              ) : (
-                <Clock className="w-6 h-6 text-muted-foreground" />
-              )}
-            </div>
-            <p className="text-sm font-medium text-foreground mb-1">
-              {filter === 'bookmarked'
+          <EmptyState 
+            type={filter === 'bookmarked' ? 'bookmarks' : 'review'}
+            title={
+              filter === 'bookmarked'
                 ? 'No saved questions yet'
                 : filter === 'missed'
                 ? 'No questions need review'
-                : 'All caught up!'}
-            </p>
-            <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
-              {filter === 'bookmarked'
-                ? 'Tap the bookmark icon while practicing to save questions'
+                : 'All caught up!'
+            }
+            description={
+              filter === 'bookmarked'
+                ? 'Tap the bookmark icon while practicing to save questions for later'
                 : filter === 'missed'
                 ? 'Questions you miss will appear here for targeted practice'
-                : 'Great job! Check back later for spaced repetition'}
-            </p>
-          </div>
+                : 'Great job! Check back later for spaced repetition'
+            }
+          />
         ) : (
           <div className="space-y-2">
             {displayedQuestions.map((question, index) => {

@@ -1,7 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useQuestions, useUserProgress } from '@/hooks/useQuestions';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SkeletonStats } from '@/components/ui/skeleton-card';
 import {
   Shield,
   Pill,
