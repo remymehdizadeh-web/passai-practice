@@ -144,23 +144,140 @@ export function StatsView() {
   const goalProgress = Math.min(100, Math.round((stats.todayCount / stats.dailyGoal) * 100));
 
   return (
-    <div className="pb-6 space-y-6">
-      {/* Big Score Display */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-accent p-6 text-primary-foreground">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        
-        <div className="relative">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm opacity-80 mb-1">Overall Accuracy</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-black">{stats.accuracy}</span>
-                <span className="text-2xl font-bold">%</span>
-                {stats.trend === 'up' && <TrendingUp className="w-6 h-6 opacity-80" />}
-                {stats.trend === 'down' && <TrendingDown className="w-6 h-6 opacity-80" />}
+    <div className="pb-4 space-y-3">
+      {/* Hero Row: Accuracy + Readiness side by side */}
+      <div className="grid grid-cols-5 gap-3">
+        {/* Main Accuracy */}
+        <div className="col-span-3 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-accent p-4 text-primary-foreground">
+          <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full" />
+          <p className="text-xs opacity-80 mb-0.5">Accuracy</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-4xl font-black">{stats.accuracy}</span>
+            <span className="text-lg font-bold">%</span>
+            {stats.trend === 'up' && <TrendingUp className="w-4 h-4 ml-1 opacity-80" />}
+            {stats.trend === 'down' && <TrendingDown className="w-4 h-4 ml-1 opacity-80" />}
+          </div>
+          <div className="flex gap-3 mt-2 text-xs opacity-90">
+            <span className="flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />{stats.correctAnswers}
+            </span>
+            <span className="flex items-center gap-1">
+              <XCircle className="w-3 h-3" />{stats.incorrectAnswers}
+            </span>
+          </div>
+        </div>
+
+        {/* Readiness Score */}
+        <div className="col-span-2 bg-card border border-border rounded-2xl p-4 flex flex-col items-center justify-center">
+          {stats.readinessScore !== null ? (
+            <>
+              <div className={cn(
+                "text-3xl font-black",
+                stats.readinessScore >= 70 ? "text-success" : 
+                stats.readinessScore >= 50 ? "text-warning" : "text-destructive"
+              )}>
+                {stats.readinessScore}
               </div>
+              <p className="text-xs text-muted-foreground text-center mt-1">Readiness</p>
+            </>
+          ) : (
+            <>
+              <span className="text-2xl font-black text-muted-foreground">--</span>
+              <p className="text-xs text-muted-foreground text-center mt-1">10+ for score</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Stats + Daily Goal Row */}
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+          <p className="text-lg font-black text-foreground">{stats.streakDays}</p>
+          <p className="text-[10px] text-muted-foreground">streak</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <Target className="w-4 h-4 text-primary mx-auto mb-1" />
+          <p className="text-lg font-black text-foreground">{stats.totalAnswered}</p>
+          <p className="text-[10px] text-muted-foreground">total</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <Zap className="w-4 h-4 text-accent mx-auto mb-1" />
+          <p className="text-lg font-black text-foreground">{stats.todayCount}</p>
+          <p className="text-[10px] text-muted-foreground">today</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 text-center relative overflow-hidden">
+          <BookOpen className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+          <p className="text-lg font-black text-foreground">{goalProgress}%</p>
+          <p className="text-[10px] text-muted-foreground">goal</p>
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
+            <div 
+              className={cn(
+                "h-full",
+                goalProgress >= 100 ? "bg-success" : "bg-primary"
+              )}
+              style={{ width: `${goalProgress}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Focus + Strengths in 2 columns */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Focus Areas */}
+        <div className="bg-card border border-border rounded-2xl p-3">
+          <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+            Focus Areas
+          </h3>
+          {stats.weakestAreas.length > 0 ? (
+            <div className="space-y-2">
+              {stats.weakestAreas.slice(0, 3).map((area) => (
+                <div key={area.category} className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-foreground truncate flex-1">{area.shortName}</span>
+                  <span className={cn(
+                    "text-xs font-bold shrink-0",
+                    area.accuracy >= 70 ? "text-success" :
+                    area.accuracy >= 50 ? "text-warning" : "text-destructive"
+                  )}>
+                    {area.accuracy}%
+                  </span>
+                </div>
+              ))}
             </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No data yet</p>
+          )}
+        </div>
+
+        {/* Strengths */}
+        <div className="bg-card border border-border rounded-2xl p-3">
+          <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-success" />
+            Strengths
+          </h3>
+          {stats.strongestAreas.length > 0 && stats.strongestAreas[0].accuracy > 0 ? (
+            <div className="space-y-2">
+              {stats.strongestAreas.slice(0, 3).map((area) => (
+                <div key={area.category} className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-foreground truncate flex-1">{area.shortName}</span>
+                  <span className="text-xs font-bold text-success shrink-0">
+                    {area.accuracy}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Keep practicing</p>
+          )}
+        </div>
+      </div>
+
+      {/* All Categories - Compact Grid */}
+      {stats.categoryMastery.length > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-3">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-semibold text-foreground">All Categories</h3>
             {stats.strongestAreas[0] && (
               <ShareProgressCard
                 category={stats.strongestAreas[0].category}
@@ -171,187 +288,19 @@ export function StatsView() {
               />
             )}
           </div>
-          
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 opacity-70" />
-              <span className="text-sm font-medium">{stats.correctAnswers} correct</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <XCircle className="w-4 h-4 opacity-70" />
-              <span className="text-sm font-medium">{stats.incorrectAnswers} wrong</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Stats Row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-card border border-border rounded-2xl p-4 text-center">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center mx-auto mb-2">
-            <Flame className="w-5 h-5 text-orange-500" />
-          </div>
-          <p className="text-2xl font-black text-foreground">{stats.streakDays}</p>
-          <p className="text-xs text-muted-foreground">day streak</p>
-        </div>
-        
-        <div className="bg-card border border-border rounded-2xl p-4 text-center">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
-            <Target className="w-5 h-5 text-primary" />
-          </div>
-          <p className="text-2xl font-black text-foreground">{stats.totalAnswered}</p>
-          <p className="text-xs text-muted-foreground">questions</p>
-        </div>
-        
-        <div className="bg-card border border-border rounded-2xl p-4 text-center">
-          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-2">
-            <Zap className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-2xl font-black text-foreground">{stats.todayCount}</p>
-          <p className="text-xs text-muted-foreground">today</p>
-        </div>
-      </div>
-
-      {/* Daily Goal Progress */}
-      <div className="bg-card border border-border rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">Daily Goal</span>
-          </div>
-          <span className="text-sm font-bold text-foreground">{stats.todayCount}/{stats.dailyGoal}</span>
-        </div>
-        <div className="h-3 bg-muted rounded-full overflow-hidden">
-          <div 
-            className={cn(
-              "h-full rounded-full transition-all duration-500",
-              goalProgress >= 100 
-                ? "bg-gradient-to-r from-success to-emerald-400" 
-                : "bg-gradient-to-r from-primary to-accent"
-            )}
-            style={{ width: `${goalProgress}%` }}
-          />
-        </div>
-        {goalProgress >= 100 && (
-          <p className="text-xs text-success mt-2 font-medium">Goal reached!</p>
-        )}
-      </div>
-
-      {/* Readiness Score */}
-      {stats.readinessScore !== null && (
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-4">
-            <div className={cn(
-              "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black",
-              stats.readinessScore >= 70 
-                ? "bg-success/10 text-success" 
-                : stats.readinessScore >= 50 
-                ? "bg-warning/10 text-warning" 
-                : "bg-destructive/10 text-destructive"
-            )}>
-              {stats.readinessScore}
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-foreground mb-1">Readiness Score</p>
-              <p className="text-sm text-muted-foreground">
-                {stats.readinessScore >= 70 
-                  ? "You're on track for exam day" 
-                  : stats.readinessScore >= 50 
-                  ? "Keep practicing to improve" 
-                  : "Focus on weak areas"}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Weak Areas - Focus Section */}
-      {stats.weakestAreas.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-warning" />
-            Focus Areas
-          </h2>
-          <div className="space-y-2">
-            {stats.weakestAreas.map((area, index) => (
-              <div 
-                key={area.category} 
-                className="bg-card border border-border rounded-xl p-4 flex items-center gap-4"
-              >
-                <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0",
-                  area.accuracy >= 70 ? "bg-success/10 text-success" :
-                  area.accuracy >= 50 ? "bg-warning/10 text-warning" : 
-                  "bg-destructive/10 text-destructive"
-                )}>
-                  {index + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{area.shortName}</p>
-                  <p className="text-xs text-muted-foreground">{area.correct}/{area.total} correct</p>
-                </div>
-                <div className={cn(
-                  "text-lg font-black",
-                  area.accuracy >= 70 ? "text-success" :
-                  area.accuracy >= 50 ? "text-warning" : "text-destructive"
-                )}>
-                  {area.accuracy}%
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Strong Areas */}
-      {stats.strongestAreas.length > 0 && stats.strongestAreas[0].accuracy > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-success" />
-            Strengths
-          </h2>
-          <div className="space-y-2">
-            {stats.strongestAreas.slice(0, 2).map((area) => (
-              <div 
-                key={area.category} 
-                className="bg-success/5 border border-success/20 rounded-xl p-4 flex items-center gap-4"
-              >
-                <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{area.shortName}</p>
-                  <p className="text-xs text-muted-foreground">{area.correct}/{area.total} correct</p>
-                </div>
-                <div className="text-lg font-black text-success">
-                  {area.accuracy}%
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* All Categories */}
-      {stats.categoryMastery.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3">All Categories</h2>
-          <div className="bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
             {stats.categoryMastery.map((cat) => (
-              <div key={cat.category} className="p-4 flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{cat.shortName}</p>
-                </div>
-                <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full rounded-full",
-                      cat.accuracy >= 70 ? "bg-success" :
-                      cat.accuracy >= 50 ? "bg-warning" : "bg-destructive"
-                    )}
-                    style={{ width: `${cat.accuracy}%` }}
-                  />
+              <div key={cat.category} className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                  <div className={cn(
+                    "w-1.5 h-1.5 rounded-full shrink-0",
+                    cat.accuracy >= 70 ? "bg-success" :
+                    cat.accuracy >= 50 ? "bg-warning" : "bg-destructive"
+                  )} />
+                  <span className="text-xs text-foreground truncate">{cat.shortName}</span>
                 </div>
                 <span className={cn(
-                  "text-sm font-bold w-10 text-right",
+                  "text-xs font-bold shrink-0",
                   cat.accuracy >= 70 ? "text-success" :
                   cat.accuracy >= 50 ? "text-warning" : "text-destructive"
                 )}>
@@ -363,14 +312,12 @@ export function StatsView() {
         </div>
       )}
 
-      {/* Empty state for no data */}
+      {/* Empty state */}
       {stats.totalAnswered === 0 && (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-            <BarChart3 className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="font-medium text-foreground mb-1">No data yet</p>
-          <p className="text-sm text-muted-foreground">Start practicing to see your stats</p>
+        <div className="text-center py-6">
+          <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm font-medium text-foreground">No data yet</p>
+          <p className="text-xs text-muted-foreground">Start practicing to see stats</p>
         </div>
       )}
     </div>
