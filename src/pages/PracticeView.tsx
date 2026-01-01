@@ -185,25 +185,27 @@ export function PracticeView() {
               {correctStreak}
             </span>
           )}
-          <span className={cn(
-            "px-2 py-1 rounded-full text-xs font-bold",
-            accuracy >= 75 ? "bg-success/10 text-success" :
-            accuracy >= 60 ? "bg-warning/10 text-warning" :
-            accuracy > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-          )}>
-            {accuracy}%
-          </span>
+          <div className="flex items-center gap-1">
+            <span className={cn(
+              "px-2 py-1 rounded-full text-xs font-bold",
+              accuracy >= 75 ? "bg-success/10 text-success" :
+              accuracy >= 60 ? "bg-warning/10 text-warning" :
+              accuracy > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+            )}>
+              {accuracy}%
+            </span>
+            <span className="text-[10px] text-muted-foreground">accuracy</span>
+          </div>
         </div>
       </div>
 
-      {/* Minimal progress bar */}
+      {/* Minimal progress bar - no count display */}
       <div className="mb-4">
         <ProgressBar 
           current={answeredCount} 
           total={totalQuestions}
           className="h-1.5 rounded-full"
         />
-        <p className="text-xs text-muted-foreground mt-1">{answeredCount} of {totalQuestions}</p>
       </div>
 
       {/* Free questions remaining */}

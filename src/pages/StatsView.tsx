@@ -4,11 +4,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import {
   TrendingUp,
-  Trophy,
-  Calendar,
-  Target,
-  Lock,
-  Sparkles,
+  TrendingDown,
   Shield,
   Pill,
   Heart,
@@ -19,6 +15,10 @@ import {
   Stethoscope,
   ChevronRight,
   BarChart3,
+  Lightbulb,
+  Target,
+  Flame,
+  CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -53,18 +53,30 @@ export function StatsView() {
         readinessScore: null,
         statusText: 'Start Practicing',
         statusColor: 'text-muted-foreground',
+        // Score breakdown components
+        accuracyComponent: 0,
+        consistencyComponent: 0,
+        coverageComponent: 0,
+        streakDays: profile?.streak_days || 0,
         categoryMastery: [],
         weakestAreas: [],
         strongestAreas: [],
-        questionsToMastery: 0,
-        projectedDate: null as Date | null,
-        globalRank: null as number | null,
+        improvementTips: [] as { icon: React.ElementType; text: string; priority: 'high' | 'medium' | 'low' }[],
+        weeklyTrend: null as number | null,
+        todayCount: 0,
+        dailyGoal: profile?.study_goal_daily || 10,
       };
     }
 
     const totalAnswered = progress.length;
     const correctAnswers = progress.filter(p => p.is_correct).length;
     const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
+
+    // Today's progress
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = progress.filter(p => p.created_at.split('T')[0] === today).length;
+    const dailyGoal = profile?.study_goal_daily || 10;
+    const streakDays = profile?.streak_days || 0;
 
     // Category stats using NCLEX categories
     const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
@@ -95,17 +107,47 @@ export function StatsView() {
     const weakestAreas = sortedByAccuracy.filter(c => c.accuracy < 70).slice(0, 4);
     const strongestAreas = sortedByAccuracy.filter(c => c.accuracy >= 70).slice(-4).reverse();
 
-    // Readiness score calculation
+    // Weekly trend calculation
+    const now = new Date();
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(now.getDate() - 7);
+    const twoWeeksAgo = new Date(now);
+    twoWeeksAgo.setDate(now.getDate() - 14);
+    
+    const thisWeekProgress = progress.filter(p => new Date(p.created_at) >= oneWeekAgo);
+    const lastWeekProgress = progress.filter(p => {
+      const date = new Date(p.created_at);
+      return date >= twoWeeksAgo && date < oneWeekAgo;
+    });
+    
+    let weeklyTrend: number | null = null;
+    if (thisWeekProgress.length >= 5 && lastWeekProgress.length >= 5) {
+      const thisWeekAcc = thisWeekProgress.filter(p => p.is_correct).length / thisWeekProgress.length;
+      const lastWeekAcc = lastWeekProgress.filter(p => p.is_correct).length / lastWeekProgress.length;
+      weeklyTrend = Math.round((thisWeekAcc - lastWeekAcc) * 100);
+    }
+
+    // READINESS SCORE CALCULATION
+    // Component 1: Accuracy (50% weight) - How correct are your answers?
+    const accuracyComponent = Math.round(accuracy * 0.5);
+    
+    // Component 2: Consistency (30% weight) - Based on streak and daily practice
+    const streakScore = Math.min(streakDays * 5, 50); // Max 50 points from 10+ day streak
+    const dailyProgress = Math.min((todayCount / dailyGoal) * 50, 50); // Max 50 points from hitting goal
+    const consistencyRaw = (streakScore + dailyProgress) / 100 * 100;
+    const consistencyComponent = Math.round(consistencyRaw * 0.3);
+    
+    // Component 3: Coverage (20% weight) - How many categories have you practiced?
+    const categoriesPracticed = Object.keys(nclexCategoryStats).length;
+    const coverageRaw = Math.min((categoriesPracticed / 8) * 100, 100);
+    const coverageComponent = Math.round(coverageRaw * 0.2);
+
     let readinessScore: number | null = null;
     let statusText = 'Answer 10+ questions';
     let statusColor = 'text-muted-foreground';
     
     if (totalAnswered >= 10) {
-      const completionRate = Math.min(100, Math.round((totalAnswered / questions.length) * 100));
-      const accuracyWeight = accuracy * 0.75;
-      const completionWeight = completionRate * 0.15;
-      const streakWeight = Math.min((profile?.streak_days || 0) * 2, 10);
-      readinessScore = Math.min(100, Math.round(accuracyWeight + completionWeight + streakWeight));
+      readinessScore = Math.min(100, accuracyComponent + consistencyComponent + coverageComponent);
       
       if (readinessScore >= 75) {
         statusText = 'Likely to Pass';
@@ -119,10 +161,48 @@ export function StatsView() {
       }
     }
 
-    // Simulated metrics
-    const questionsToMastery = Math.max(0, 500 - totalAnswered);
-    const projectedDate = profile?.exam_date ? new Date(profile.exam_date) : null;
-    const globalRank = totalAnswered >= 10 ? Math.floor(Math.random() * 5000) + 1000 : null;
+    // Generate improvement tips based on weak areas
+    const improvementTips: { icon: React.ElementType; text: string; priority: 'high' | 'medium' | 'low' }[] = [];
+    
+    if (accuracy < 70) {
+      improvementTips.push({
+        icon: Target,
+        text: 'Focus on accuracy — review explanations after each question',
+        priority: 'high'
+      });
+    }
+    
+    if (streakDays < 3) {
+      improvementTips.push({
+        icon: Flame,
+        text: 'Build a study streak — practice daily to boost your score',
+        priority: streakDays === 0 ? 'high' : 'medium'
+      });
+    }
+    
+    if (todayCount < dailyGoal) {
+      improvementTips.push({
+        icon: CheckCircle2,
+        text: `Complete ${dailyGoal - todayCount} more questions to hit your daily goal`,
+        priority: 'medium'
+      });
+    }
+    
+    if (categoriesPracticed < 6) {
+      improvementTips.push({
+        icon: BarChart3,
+        text: `Practice more categories — you've covered ${categoriesPracticed}/8 NCLEX areas`,
+        priority: 'medium'
+      });
+    }
+    
+    if (weakestAreas.length > 0) {
+      improvementTips.push({
+        icon: Lightbulb,
+        text: `Strengthen "${weakestAreas[0].shortName}" — your lowest category`,
+        priority: 'high'
+      });
+    }
 
     return {
       totalAnswered,
@@ -130,12 +210,17 @@ export function StatsView() {
       readinessScore,
       statusText,
       statusColor,
+      accuracyComponent,
+      consistencyComponent,
+      coverageComponent,
+      streakDays,
       categoryMastery,
       weakestAreas,
       strongestAreas,
-      questionsToMastery,
-      projectedDate,
-      globalRank,
+      improvementTips: improvementTips.slice(0, 3),
+      weeklyTrend,
+      todayCount,
+      dailyGoal,
     };
   }, [questions, progress, profile]);
 
@@ -198,14 +283,11 @@ export function StatsView() {
     <div className="px-4 pb-6 space-y-5">
       {/* 1. HERO - Circular Gauge */}
       <div className="relative bg-card border border-border rounded-3xl p-6 overflow-hidden">
-        {/* Background gradient glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 via-warning/5 to-success/5" />
         
-        {/* Gauge */}
         <div className="relative flex flex-col items-center">
           <div className="relative">
             <svg width="180" height="100" viewBox="0 0 180 100" className="overflow-visible">
-              {/* Background arc */}
               <path
                 d="M 10 90 A 80 80 0 0 1 170 90"
                 fill="none"
@@ -213,7 +295,6 @@ export function StatsView() {
                 strokeWidth="12"
                 strokeLinecap="round"
               />
-              {/* Progress arc with gradient */}
               <defs>
                 <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="hsl(0, 72%, 51%)" />
@@ -232,7 +313,6 @@ export function StatsView() {
                 className="transition-all duration-1000 ease-out"
                 style={{ filter: 'drop-shadow(0 0 8px hsl(38, 92%, 50%, 0.4))' }}
               />
-              {/* Pulse dot at end */}
               {stats.readinessScore !== null && (
                 <circle
                   cx={90 + 80 * Math.cos(Math.PI - (animatedScore / 100) * Math.PI)}
@@ -246,15 +326,24 @@ export function StatsView() {
               )}
             </svg>
             
-            {/* Score in center */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-              <span className="text-5xl font-black text-foreground tracking-tight">
-                {stats.readinessScore !== null ? animatedScore : '—'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-5xl font-black text-foreground tracking-tight">
+                  {stats.readinessScore !== null ? animatedScore : '—'}
+                </span>
+                {stats.weeklyTrend !== null && stats.weeklyTrend !== 0 && (
+                  <div className={cn(
+                    "flex items-center gap-0.5 text-xs font-semibold",
+                    stats.weeklyTrend > 0 ? "text-success" : "text-destructive"
+                  )}>
+                    {stats.weeklyTrend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {stats.weeklyTrend > 0 ? '+' : ''}{stats.weeklyTrend}%
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
-          {/* Status text */}
           <p className={cn("text-sm font-semibold mt-2", stats.statusColor)}>
             {stats.statusText}
           </p>
@@ -262,46 +351,90 @@ export function StatsView() {
         </div>
       </div>
 
-      {/* 2. GOLD NUGGET ROW - Horizontal scroll */}
-      <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-        {/* Global Rank */}
-        <div className="flex-shrink-0 w-32 bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl p-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
-          <div className="relative">
-            <Trophy className="w-5 h-5 text-amber-500 mb-2" />
-            <p className="text-2xl font-black text-foreground">
-              {stats.globalRank ? `#${stats.globalRank.toLocaleString()}` : '—'}
-            </p>
-            <p className="text-[11px] text-muted-foreground font-medium">Global Rank</p>
+      {/* 2. SCORE BREAKDOWN - How it's calculated */}
+      {stats.readinessScore !== null && (
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">How your score is calculated</h3>
+          
+          <div className="space-y-3">
+            {/* Accuracy */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Accuracy (50%)</span>
+                <span className="text-xs font-semibold text-foreground">{stats.accuracyComponent}/50</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all duration-1000"
+                  style={{ width: showBars ? `${(stats.accuracyComponent / 50) * 100}%` : '0%' }}
+                />
+              </div>
+            </div>
+            
+            {/* Consistency */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Consistency (30%)</span>
+                <span className="text-xs font-semibold text-foreground">{stats.consistencyComponent}/30</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-accent rounded-full transition-all duration-1000"
+                  style={{ width: showBars ? `${(stats.consistencyComponent / 30) * 100}%` : '0%' }}
+                />
+              </div>
+            </div>
+            
+            {/* Coverage */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Category Coverage (20%)</span>
+                <span className="text-xs font-semibold text-foreground">{stats.coverageComponent}/20</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-success rounded-full transition-all duration-1000"
+                  style={{ width: showBars ? `${(stats.coverageComponent / 20) * 100}%` : '0%' }}
+                />
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Projected Exam Date */}
-        <div className="flex-shrink-0 w-32 bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl p-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
-          <div className="relative">
-            <Calendar className="w-5 h-5 text-primary mb-2" />
-            <p className="text-lg font-black text-foreground">
-              {stats.projectedDate 
-                ? stats.projectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                : 'Not set'}
-            </p>
-            <p className="text-[11px] text-muted-foreground font-medium">Exam Date</p>
+      {/* 3. IMPROVEMENT TIPS */}
+      {stats.improvementTips.length > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-warning" />
+            <h3 className="text-sm font-semibold text-foreground">How to improve</h3>
+          </div>
+          
+          <div className="space-y-2">
+            {stats.improvementTips.map((tip, index) => {
+              const Icon = tip.icon;
+              return (
+                <div 
+                  key={index}
+                  className={cn(
+                    "flex items-start gap-3 p-3 rounded-xl",
+                    tip.priority === 'high' ? "bg-warning/10 border border-warning/20" :
+                    "bg-muted/50"
+                  )}
+                >
+                  <Icon className={cn(
+                    "w-4 h-4 mt-0.5 shrink-0",
+                    tip.priority === 'high' ? "text-warning" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm text-foreground">{tip.text}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
+      )}
 
-        {/* Questions to Mastery */}
-        <div className="flex-shrink-0 w-32 bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl p-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent" />
-          <div className="relative">
-            <Target className="w-5 h-5 text-accent mb-2" />
-            <p className="text-2xl font-black text-foreground">{stats.questionsToMastery}</p>
-            <p className="text-[11px] text-muted-foreground font-medium">To Mastery</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. CRITICAL WEAKNESSES */}
+      {/* 4. CRITICAL WEAKNESSES */}
       {stats.weakestAreas.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -340,7 +473,7 @@ export function StatsView() {
         </div>
       )}
 
-      {/* 4. MASTERED AREAS */}
+      {/* 5. MASTERED AREAS */}
       {stats.strongestAreas.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -378,30 +511,6 @@ export function StatsView() {
           </div>
         </div>
       )}
-
-      {/* 5. PREDICTIVE ANALYSIS - Monetization Hook */}
-      <div className="relative bg-card border border-border rounded-2xl p-5 overflow-hidden">
-        {/* Blur overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 backdrop-blur-[2px]" />
-        
-        <div className="relative flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-sm font-semibold text-foreground">Predictive Analysis</h3>
-              <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground">AI-powered exam prediction & personalized study plan</p>
-          </div>
-        </div>
-        
-        <button className="mt-4 w-full btn-premium py-2.5 text-sm text-primary-foreground flex items-center justify-center gap-2">
-          <Sparkles className="w-4 h-4" />
-          Unlock AI Prediction
-        </button>
-      </div>
 
       {/* Empty state */}
       {stats.totalAnswered === 0 && (
