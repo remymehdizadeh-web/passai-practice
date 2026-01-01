@@ -1,5 +1,11 @@
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ReadinessGaugeProps {
   score: number;
@@ -13,6 +19,12 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
     return 'text-destructive';
   };
 
+  const getBgColor = () => {
+    if (score >= 80) return 'from-success/10 to-success/5';
+    if (score >= 65) return 'from-warning/10 to-warning/5';
+    return 'from-destructive/10 to-destructive/5';
+  };
+
   const getReadinessLabel = () => {
     if (score >= 85) return 'Exam Ready';
     if (score >= 75) return 'Almost There';
@@ -21,68 +33,75 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
     return 'Starting';
   };
 
-  // Calculate circumference for the ring
-  const radius = 32;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const getMotivation = () => {
+    if (score >= 85) return "You're on track to pass!";
+    if (score >= 75) return "Almost exam ready!";
+    if (score >= 65) return "Good progress, keep going!";
+    if (score >= 50) return "Building momentum!";
+    return "Every question counts!";
+  };
 
   return (
-    <div className="card-organic p-4 flex items-center gap-4">
-      {/* Circular progress */}
-      <div className="relative w-20 h-20 flex-shrink-0">
-        <svg className="w-full h-full progress-ring" viewBox="0 0 80 80">
-          {/* Background circle */}
-          <circle
-            cx="40"
-            cy="40"
-            r={radius}
-            fill="none"
-            stroke="hsl(var(--muted))"
-            strokeWidth="6"
-          />
-          {/* Progress circle */}
-          <circle
-            cx="40"
-            cy="40"
-            r={radius}
-            fill="none"
-            stroke={score >= 80 ? 'hsl(var(--success))' : score >= 65 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))'}
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            className="progress-ring-circle"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn("text-xl font-bold", getScoreColor())}>
-            {score}
-          </span>
+    <div className={cn("card-organic p-4 bg-gradient-to-br", getBgColor())}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">Readiness Score</p>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Info className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+                <p className="font-medium mb-1">How it's calculated:</p>
+                <ul className="space-y-0.5 text-muted-foreground">
+                  <li>• 75% from your accuracy</li>
+                  <li>• 15% from questions completed</li>
+                  <li>• 10% from study streak</li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        {trend && (
+          <div className={cn(
+            "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+            trend === 'up' && "bg-success/20 text-success",
+            trend === 'down' && "bg-destructive/20 text-destructive",
+            trend === 'stable' && "bg-muted text-muted-foreground"
+          )}>
+            {trend === 'up' && <TrendingUp className="w-3 h-3" />}
+            {trend === 'down' && <TrendingDown className="w-3 h-3" />}
+            {trend === 'stable' && <Minus className="w-3 h-3" />}
+            {trend === 'up' ? 'Improving' : trend === 'down' ? 'Declining' : 'Stable'}
+          </div>
+        )}
+      </div>
+      
+      <div className="flex items-end gap-3">
+        <span className={cn("text-4xl font-bold leading-none", getScoreColor())}>
+          {score}
+        </span>
+        <div className="flex-1 pb-1">
+          <p className={cn("text-sm font-medium", getScoreColor())}>
+            {getReadinessLabel()}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {getMotivation()}
+          </p>
         </div>
       </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Readiness
-          </p>
-          {trend && (
-            <div className={cn(
-              "flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium",
-              trend === 'up' && "bg-success/10 text-success",
-              trend === 'down' && "bg-destructive/10 text-destructive",
-              trend === 'stable' && "bg-muted text-muted-foreground"
-            )}>
-              {trend === 'up' && <TrendingUp className="w-2.5 h-2.5" />}
-              {trend === 'down' && <TrendingDown className="w-2.5 h-2.5" />}
-              {trend === 'stable' && <Minus className="w-2.5 h-2.5" />}
-            </div>
+      
+      {/* Progress bar */}
+      <div className="mt-3 h-2 bg-muted/50 rounded-full overflow-hidden">
+        <div 
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            score >= 80 ? "bg-success" : score >= 65 ? "bg-warning" : "bg-destructive"
           )}
-        </div>
-        <p className={cn("text-sm font-semibold", getScoreColor())}>
-          {getReadinessLabel()}
-        </p>
+          style={{ width: `${Math.min(score, 100)}%` }}
+        />
       </div>
     </div>
   );
