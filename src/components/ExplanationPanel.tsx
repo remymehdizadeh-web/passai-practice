@@ -66,7 +66,7 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         <div className="p-3 rounded-xl bg-success/10 border border-success/20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-success" />
-            <p className="font-semibold text-success">Correct!</p>
+            <p className="font-semibold text-success text-base">Correct!</p>
           </div>
           <Button onClick={onNext} size="sm" className="btn-premium">
             Continue
@@ -78,16 +78,16 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         <div className="flex gap-2">
           <button
             onClick={() => setShowExplanation(!showExplanation)}
-            className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg bg-card border border-border hover:bg-muted/30 transition-colors text-xs"
+            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg bg-card border border-border hover:bg-muted/30 transition-colors text-sm"
           >
             <span className="text-muted-foreground">Explanation</span>
-            <ChevronDown className={cn("w-3 h-3 text-muted-foreground transition-transform", showExplanation && "rotate-180")} />
+            <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", showExplanation && "rotate-180")} />
           </button>
           <button
             onClick={() => setShowTutor(true)}
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-xs text-primary"
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary"
           >
-            <Sparkles className="w-3 h-3" />
+            <Sparkles className="w-4 h-4" />
             Ask Tutor
           </button>
         </div>
@@ -96,16 +96,16 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         <button
           onClick={handleGenerateSimilar}
           disabled={isGenerating || showSimilar}
-          className="w-full flex items-center justify-center gap-1.5 p-2.5 rounded-lg bg-accent/10 border border-accent/20 hover:bg-accent/20 transition-colors text-xs text-accent disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20 hover:bg-accent/20 transition-colors text-sm text-accent disabled:opacity-50"
         >
           {isGenerating ? (
             <>
-              <Loader2 className="w-3 h-3 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               Generating...
             </>
           ) : (
             <>
-              <RefreshCw className="w-3 h-3" />
+              <RefreshCw className="w-4 h-4" />
               Practice Similar
             </>
           )}
@@ -116,19 +116,19 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         )}
             
         {showExplanation && (
-          <div className="p-3 rounded-xl bg-card border border-border animate-fade-in">
-            <ul className="space-y-1.5 mb-3">
+          <div className="p-4 rounded-xl bg-card border border-border animate-fade-in">
+            <ul className="space-y-2 mb-3">
               {question.rationale_bullets.slice(0, 2).map((bullet, index) => (
-                <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <span className="w-1 h-1 rounded-full bg-primary/50 mt-1.5 shrink-0" />
+                <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/50 mt-2 shrink-0" />
                   <span>{truncateWords(bullet, 18)}</span>
                 </li>
               ))}
             </ul>
 
-            <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
-              <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <p className="text-xs text-foreground">{shortTakeaway}</p>
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
+              <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground">{shortTakeaway}</p>
             </div>
           </div>
         )}
@@ -144,39 +144,39 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center gap-2.5">
         <XCircle className="w-5 h-5 text-destructive shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-destructive text-sm">Incorrect</p>
-          <p className="text-xs text-muted-foreground">Answer: {question.correct_label}</p>
+          <p className="font-semibold text-destructive text-base">Incorrect</p>
+          <p className="text-sm text-muted-foreground">Answer: {question.correct_label}</p>
         </div>
       </div>
 
       {/* Why incorrect - Compact */}
       {shortWrongExplanation && (
-        <div className="p-2.5 rounded-lg border border-border bg-muted/30">
-          <p className="text-xs text-muted-foreground">
+        <div className="p-3 rounded-lg border border-border bg-muted/30">
+          <p className="text-sm text-muted-foreground">
             <span className="font-medium">{selectedLabel}:</span> {shortWrongExplanation}
           </p>
         </div>
       )}
 
       {/* Correct Answer - Compact */}
-      <div className="p-3 rounded-xl bg-card border border-border">
-        <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+      <div className="p-4 rounded-xl bg-card border border-border">
+        <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-success" />
           {question.correct_label}. {correctOption?.text}
         </p>
         
-        <ul className="space-y-1 mb-2.5">
+        <ul className="space-y-2 mb-3">
           {question.rationale_bullets.slice(0, 2).map((bullet, index) => (
-            <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
-              <span className="w-1 h-1 rounded-full bg-primary/50 mt-1.5 shrink-0" />
+            <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary/50 mt-2 shrink-0" />
               <span>{truncateWords(bullet, 18)}</span>
             </li>
           ))}
         </ul>
 
-        <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
-          <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          <p className="text-xs text-foreground">{shortTakeaway}</p>
+        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-2">
+          <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <p className="text-sm text-foreground">{shortTakeaway}</p>
         </div>
       </div>
 
@@ -184,9 +184,9 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       <div className="flex gap-2">
         <button
           onClick={() => setShowTutor(true)}
-          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-xs text-primary"
+          className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary"
         >
-          <Sparkles className="w-3 h-3" />
+          <Sparkles className="w-4 h-4" />
           Ask Tutor
         </button>
         <Button onClick={onNext} size="sm" className="flex-1 btn-premium text-primary-foreground">
@@ -199,16 +199,16 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       <button
         onClick={handleGenerateSimilar}
         disabled={isGenerating || showSimilar}
-        className="w-full flex items-center justify-center gap-1.5 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-xs text-amber-600 dark:text-amber-400 disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-sm text-amber-600 dark:text-amber-400 disabled:opacity-50"
       >
         {isGenerating ? (
           <>
-            <Loader2 className="w-3 h-3 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
             Generating...
           </>
         ) : (
           <>
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className="w-4 h-4" />
             Practice Similar
           </>
         )}
