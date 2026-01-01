@@ -19,9 +19,10 @@ export function SmartInsightsBox({
   todayCount,
   dailyGoal,
 }: SmartInsightsBoxProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Start collapsed by default
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Only show if score is below 60 or user needs guidance
+  // Only show if score is below 70 or user needs guidance
   if (readinessScore !== null && readinessScore >= 70) return null;
 
   // Generate personalized insights
@@ -69,16 +70,19 @@ export function SmartInsightsBox({
   if (insights.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 border border-primary/20 rounded-2xl overflow-hidden">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 hover:bg-primary/5 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-primary" />
           </div>
-          <span className="text-sm font-semibold text-foreground">AI Coach</span>
+          <div className="text-left">
+            <span className="text-sm font-semibold text-foreground">AI Coach</span>
+            <span className="text-xs text-muted-foreground ml-2">{insights.length} tips</span>
+          </div>
         </div>
         {isExpanded ? (
           <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -91,7 +95,7 @@ export function SmartInsightsBox({
         "overflow-hidden transition-all duration-300",
         isExpanded ? "max-h-96" : "max-h-0"
       )}>
-        <div className="px-4 pb-4 space-y-3">
+        <div className="px-4 pb-4 space-y-2">
           {insights.slice(0, 3).map((insight, index) => {
             const Icon = insight.icon;
             return (
@@ -99,9 +103,9 @@ export function SmartInsightsBox({
                 key={index}
                 className={cn(
                   "flex items-start gap-3 p-3 rounded-xl",
-                  insight.type === 'action' && "bg-primary/10 border border-primary/20",
-                  insight.type === 'tip' && "bg-warning/10 border border-warning/20",
-                  insight.type === 'encourage' && "bg-success/10 border border-success/20"
+                  insight.type === 'action' && "bg-primary/5 border border-primary/10",
+                  insight.type === 'tip' && "bg-warning/5 border border-warning/10",
+                  insight.type === 'encourage' && "bg-success/5 border border-success/10"
                 )}
               >
                 <Icon className={cn(

@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useBookmarks, useMissedQuestions, useToggleBookmark, useReviewQueue, useUpdateReviewQueue, useRecordProgress } from '@/hooks/useQuestions';
+import { useState, useEffect, useMemo } from 'react';
+import { useBookmarks, useMissedQuestions, useToggleBookmark, useReviewQueue, useUpdateReviewQueue, useRecordProgress, useQuestions, useUserProgress } from '@/hooks/useQuestions';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
-import { Bookmark, XCircle, ChevronLeft, Loader2, Clock, AlertTriangle, Zap } from 'lucide-react';
+import { Bookmark, XCircle, ChevronLeft, ChevronRight, Loader2, Clock, AlertTriangle, Zap, Shield, Pill, Heart, Brain, Activity, Users, Stethoscope } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
+import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
+import { useNavigate } from 'react-router-dom';
 
 type FilterType = 'due' | 'bookmarked' | 'missed';
 
@@ -13,13 +15,28 @@ interface ReviewViewProps {
   initialFilter?: 'bookmarked' | 'missed';
 }
 
+// Icon mapping for NCLEX categories
+const CATEGORY_ICONS: Record<NclexCategory, React.ElementType> = {
+  'Management of Care': Users,
+  'Safety and Infection Control': Shield,
+  'Health Promotion and Maintenance': Heart,
+  'Psychosocial Integrity': Brain,
+  'Basic Care and Comfort': Stethoscope,
+  'Pharmacological and Parenteral Therapies': Pill,
+  'Reduction of Risk Potential': AlertTriangle,
+  'Physiological Adaptation': Activity,
+};
+
 export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const { data: bookmarks, isLoading: loadingBookmarks } = useBookmarks();
   const { data: missedQuestions, isLoading: loadingMissed } = useMissedQuestions();
   const { data: reviewQueue, isLoading: loadingQueue } = useReviewQueue();
+  const { data: questions } = useQuestions();
+  const { data: progress } = useUserProgress();
   const toggleBookmark = useToggleBookmark();
   const updateReviewQueue = useUpdateReviewQueue();
   const recordProgress = useRecordProgress();
+  const navigate = useNavigate();
 
   const [filter, setFilter] = useState<FilterType>(initialFilter === 'missed' ? 'missed' : 'due');
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
@@ -58,6 +75,40 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
     ? (missedQuestions || [])
     : dueQuestions;
 
+  // Calculate focus areas (weak categories)
+  const focusAreas = useMemo(() => {
+    if (!progress || !questions) return [];
+
+    const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
+    progress.forEach((p) => {
+      const q = questions.find((q) => q.id === p.question_id);
+      if (q) {
+        const nclexCat = q.nclex_category || q.category;
+        if (!nclexCategoryStats[nclexCat]) {
+          nclexCategoryStats[nclexCat] = { correct: 0, total: 0 };
+        }
+        nclexCategoryStats[nclexCat].total++;
+        if (p.is_correct) nclexCategoryStats[nclexCat].correct++;
+      }
+    });
+
+    const categoryMastery = NCLEX_CATEGORIES.map(category => {
+      const stats = nclexCategoryStats[category];
+      return {
+        category,
+        shortName: NCLEX_SHORT_NAMES[category as NclexCategory] || category,
+        accuracy: stats ? Math.round((stats.correct / stats.total) * 100) : 0,
+        total: stats?.total || 0,
+        icon: CATEGORY_ICONS[category as NclexCategory],
+      };
+    }).filter(c => c.total >= 3);
+
+    return categoryMastery
+      .filter(c => c.accuracy < 70)
+      .sort((a, b) => a.accuracy - b.accuracy)
+      .slice(0, 4);
+  }, [questions, progress]);
+
   const isBookmarked = (questionId: string) => 
     bookmarks?.some((b) => b.question_id === questionId) ?? false;
 
@@ -93,6 +144,10 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const handleBookmark = async (questionId: string) => {
     const bookmarked = isBookmarked(questionId);
     await toggleBookmark.mutateAsync({ questionId, isBookmarked: bookmarked });
+  };
+
+  const handleCategoryTap = (category: string) => {
+    navigate('/', { state: { tab: 'practice', category } });
   };
 
   // Detail view for a selected question
@@ -139,15 +194,65 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   const dueCount = dueQuestions.length;
 
   return (
-    <div className="pb-6">
+    <div className="pb-6 space-y-4">
       {/* Header */}
-      <div className="mb-4">
+      <div>
         <h1 className="text-lg font-semibold text-foreground">Review</h1>
         <p className="text-sm text-muted-foreground">Strengthen your weak areas</p>
       </div>
 
+      {/* Focus Areas Section */}
+      {focusAreas.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+            <h2 className="text-sm font-semibold text-foreground">Focus Areas</h2>
+            <span className="text-xs text-muted-foreground">• Below 70% accuracy</span>
+          </div>
+          
+          <div className="bg-destructive/5 border border-destructive/20 rounded-2xl overflow-hidden">
+            <div className="divide-y divide-destructive/10">
+              {focusAreas.map((area) => {
+                const Icon = area.icon;
+                return (
+                  <button
+                    key={area.category}
+                    onClick={() => handleCategoryTap(area.category)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-destructive/5 active:bg-destructive/10 transition-all duration-200 group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-destructive" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {area.shortName}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-24">
+                          <div 
+                            className="h-full bg-gradient-to-r from-destructive to-warning rounded-full"
+                            style={{ width: `${area.accuracy}%` }}
+                          />
+                        </div>
+                        <span className={cn(
+                          "text-xs font-semibold",
+                          area.accuracy < 50 ? "text-destructive" : "text-warning"
+                        )}>
+                          {area.accuracy}%
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-destructive transition-colors" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter Tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setFilter('due')}
           className={cn(
@@ -210,7 +315,7 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
       {filter !== 'due' && dueCount > 0 && (
         <button
           onClick={() => setFilter('due')}
-          className="w-full mb-4 p-3 rounded-xl bg-warning/10 border border-warning/20 flex items-center gap-3 hover:bg-warning/20 transition-colors"
+          className="w-full p-3 rounded-xl bg-warning/10 border border-warning/20 flex items-center gap-3 hover:bg-warning/20 transition-colors"
         >
           <AlertTriangle className="w-5 h-5 text-warning" />
           <div className="flex-1 text-left">

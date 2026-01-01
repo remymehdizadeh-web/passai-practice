@@ -12,21 +12,19 @@ import {
   Users,
   Stethoscope,
   BarChart3,
+  Info,
+  Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
 import { QuickWinsBar } from '@/components/stats/QuickWinsBar';
 import { ReadinessScoreHero } from '@/components/stats/ReadinessScoreHero';
-import { FocusAreasSection } from '@/components/stats/FocusAreasSection';
 import { MasteredSection } from '@/components/stats/MasteredSection';
 import { SmartInsightsBox } from '@/components/stats/SmartInsightsBox';
 import { StudyStreakCalendar } from '@/components/stats/StudyStreakCalendar';
-import { PremiumTeasers } from '@/components/stats/PremiumTeasers';
 import { TimeInvestedCard } from '@/components/stats/TimeInvestedCard';
-import { DailyGoalProgress } from '@/components/stats/DailyGoalProgress';
-import { ContinuePracticeCTA } from '@/components/stats/ContinuePracticeCTA';
-import { PaywallModal } from '@/components/PaywallModal';
-import { GoalEditModal } from '@/components/GoalEditModal';
+import { cn } from '@/lib/utils';
 
 // Icon mapping for NCLEX categories
 const CATEGORY_ICONS: Record<NclexCategory, React.ElementType> = {
@@ -47,8 +45,6 @@ export function StatsView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showBars, setShowBars] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [showGoalEdit, setShowGoalEdit] = useState(false);
 
   // Trigger bar animations
   useEffect(() => {
@@ -69,8 +65,8 @@ export function StatsView() {
         coverageComponent: 0,
         streakDays: profile?.streak_days || 0,
         categoryMastery: [],
+        masteredAreas: [],
         weakestAreas: [],
-        strongestAreas: [],
         weeklyTrend: null as number | null,
         todayCount: 0,
         weekCount: 0,
@@ -131,7 +127,8 @@ export function StatsView() {
 
     const sortedByAccuracy = [...categoryMastery].sort((a, b) => a.accuracy - b.accuracy);
     const weakestAreas = sortedByAccuracy.filter(c => c.accuracy < 70).slice(0, 4);
-    const strongestAreas = sortedByAccuracy.filter(c => c.accuracy >= 70).slice(-4).reverse();
+    // Only show 100% mastered categories (with at least 5 questions answered)
+    const masteredAreas = sortedByAccuracy.filter(c => c.accuracy === 100 && c.total >= 5);
 
     // Weekly trend calculation
     const oneWeekAgo = new Date(now);
@@ -152,7 +149,7 @@ export function StatsView() {
       weeklyTrend = Math.round((thisWeekAcc - lastWeekAcc) * 100);
     }
 
-    // READINESS SCORE CALCULATION
+    // READINESS SCORE CALCULATION (matching home page)
     // Component 1: Accuracy (45% weight)
     const accuracyComponent = Math.round(accuracy * 0.45);
     
@@ -202,8 +199,8 @@ export function StatsView() {
       coverageComponent,
       streakDays,
       categoryMastery,
+      masteredAreas,
       weakestAreas,
-      strongestAreas,
       weeklyTrend,
       todayCount,
       weekCount,
@@ -235,8 +232,8 @@ export function StatsView() {
   }
 
   return (
-    <div className="px-4 pb-24 space-y-5">
-      {/* 1. QUICK WINS BAR */}
+    <div className="px-4 pb-6 space-y-4">
+      {/* 1. QUICK WINS BAR - Refined */}
       <QuickWinsBar
         streakDays={stats.streakDays}
         todayCount={stats.todayCount}
@@ -257,14 +254,7 @@ export function StatsView() {
         coverageComponent={stats.coverageComponent}
       />
 
-      {/* 3. DAILY GOAL PROGRESS */}
-      <DailyGoalProgress
-        todayCount={stats.todayCount}
-        dailyGoal={stats.dailyGoal}
-        onEditGoal={() => setShowGoalEdit(true)}
-      />
-
-      {/* 4. AI COACH / SMART INSIGHTS */}
+      {/* 3. AI COACH / SMART INSIGHTS - Starts collapsed */}
       <SmartInsightsBox
         readinessScore={stats.readinessScore}
         accuracy={stats.accuracy}
@@ -274,38 +264,47 @@ export function StatsView() {
         dailyGoal={stats.dailyGoal}
       />
 
-      {/* 5. FOCUS AREAS (Weaknesses) */}
-      <FocusAreasSection
-        areas={stats.weakestAreas}
-        onCategoryTap={handleCategoryTap}
-        showBars={showBars}
-      />
+      {/* 4. MASTERED AREAS - Only 100% mastered with explanation */}
+      {stats.masteredAreas.length > 0 ? (
+        <MasteredSection
+          areas={stats.masteredAreas}
+          onCategoryTap={handleCategoryTap}
+        />
+      ) : (
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Mastered Areas</h3>
+          </div>
+          <div className="bg-muted/30 rounded-xl p-4 text-center">
+            <Sparkles className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground mb-2">No categories mastered yet</p>
+            <div className="bg-background/50 rounded-lg p-3 text-left">
+              <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-primary" />
+                How to master a category:
+              </p>
+              <ul className="text-xs text-muted-foreground space-y-1 ml-5">
+                <li>• Answer at least 5 questions in a category</li>
+                <li>• Achieve 100% accuracy in that category</li>
+                <li>• Keep practicing to maintain mastery!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* 6. MASTERED AREAS */}
-      <MasteredSection
-        areas={stats.strongestAreas}
-        onCategoryTap={handleCategoryTap}
-      />
-
-      {/* 7. STUDY STREAK CALENDAR */}
+      {/* 5. STUDY STREAK CALENDAR */}
       <StudyStreakCalendar
         streakDays={stats.streakDays}
         activityData={stats.activityData}
       />
 
-      {/* 8. TIME INVESTED */}
+      {/* 6. TIME INVESTED */}
       <TimeInvestedCard
         totalQuestions={stats.totalAnswered}
         weekQuestions={stats.weekCount}
       />
-
-      {/* 9. PREMIUM TEASERS */}
-      <PremiumTeasers onUpgradeClick={() => setShowPaywall(true)} />
-
-      {/* 10. CONTINUE PRACTICE CTA */}
-      <div className="fixed bottom-20 left-4 right-4 z-10">
-        <ContinuePracticeCTA weakestCategory={stats.weakestAreas[0]?.category} />
-      </div>
 
       {/* Empty state */}
       {stats.totalAnswered === 0 && (
@@ -314,18 +313,6 @@ export function StatsView() {
           <p className="text-xs text-muted-foreground">Complete your first question to unlock insights</p>
         </div>
       )}
-
-      {/* Modals */}
-      <PaywallModal
-        isOpen={showPaywall}
-        onClose={() => setShowPaywall(false)}
-      />
-      
-      <GoalEditModal
-        isOpen={showGoalEdit}
-        onClose={() => setShowGoalEdit(false)}
-        currentGoal={stats.dailyGoal}
-      />
     </div>
   );
 }
