@@ -18,7 +18,7 @@ const navItems = [
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]">
       <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto safe-bottom">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
@@ -27,14 +27,35 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={cn(
-                'flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-150',
+                'relative flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-200',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <item.icon className={cn("w-5 h-5", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 2} />
-              <span className={cn("text-[10px]", isActive ? "font-semibold" : "font-medium")}>{item.label}</span>
+              {/* Active glow effect */}
+              {isActive && (
+                <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+              )}
+              <div className="relative">
+                <item.icon 
+                  className={cn(
+                    "w-5 h-5 transition-transform duration-200", 
+                    isActive && "scale-110"
+                  )} 
+                  strokeWidth={isActive ? 2.5 : 2} 
+                />
+                {/* Glow dot */}
+                {isActive && (
+                  <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_2px_hsl(var(--primary)/0.5)]" />
+                )}
+              </div>
+              <span className={cn(
+                "relative text-[10px] transition-all duration-200", 
+                isActive ? "font-semibold" : "font-medium"
+              )}>
+                {item.label}
+              </span>
             </button>
           );
         })}
