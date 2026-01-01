@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { X, Check, Sparkles, Crown, Loader2 } from 'lucide-react';
+import { X, Check, Sparkles, Crown, Loader2, Zap, Brain, BarChart3, Clock, Shield, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
@@ -31,12 +31,12 @@ const plans = [
 ];
 
 const features = [
-  'Unlimited practice questions',
-  'Smart Review Sessions',
-  'Adaptive learning algorithm',
-  'Track progress by category',
-  'Detailed explanations & rationales',
-  'New questions added weekly',
+  { icon: Zap, text: 'Unlimited practice questions', highlight: true },
+  { icon: Brain, text: 'AI-powered Smart Review Sessions', highlight: true },
+  { icon: BarChart3, text: 'Adaptive learning algorithm', highlight: false },
+  { icon: Clock, text: 'Spaced repetition scheduling', highlight: false },
+  { icon: Shield, text: 'Detailed explanations & rationales', highlight: false },
+  { icon: Star, text: 'New questions added weekly', highlight: false },
 ];
 
 export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
@@ -88,141 +88,187 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
       />
       
       {/* Modal Content */}
-      <div className="relative z-10 w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-2xl p-6 animate-slide-up safe-bottom">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground"
-        >
-          <X className="w-5 h-5" />
-        </button>
+      <div className="relative z-10 w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-2xl overflow-hidden animate-slide-up safe-bottom">
+        {/* Hero Header with Gradient */}
+        <div className="relative bg-gradient-to-br from-primary via-primary/90 to-accent p-6 pb-8">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 mb-4 shadow-premium">
-            <Crown className="w-7 h-7 text-primary-foreground" />
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold mb-4">
+            <Sparkles className="w-3.5 h-3.5" />
+            3-Day Free Trial
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            {subscribed ? 'Manage Your Subscription' : 'Unlock Unlimited Practice'}
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            {subscribed 
-              ? 'You have an active Pro subscription.'
-              : "You've completed your free questions. Subscribe to continue your NCLEX prep."
-            }
-          </p>
+
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center shadow-lg">
+              <Crown className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-1">
+                {subscribed ? 'Manage Subscription' : 'Upgrade to Pro'}
+              </h2>
+              <p className="text-white/80 text-sm">
+                {subscribed 
+                  ? 'You have an active Pro subscription.'
+                  : 'Unlock your full NCLEX prep potential'
+                }
+              </p>
+            </div>
+          </div>
         </div>
 
-        {subscribed ? (
-          <>
-            {/* Subscribed State */}
-            <div className="mb-6 p-4 rounded-xl bg-success/10 border border-success/20">
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-success" />
-                <span className="font-semibold text-success">Pro Subscription Active</span>
+        <div className="p-6 space-y-5">
+          {subscribed ? (
+            <>
+              {/* Subscribed State */}
+              <div className="p-4 rounded-xl bg-success/10 border border-success/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+                    <Check className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-success block">Pro Subscription Active</span>
+                    <span className="text-xs text-muted-foreground">All premium features unlocked</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <Button 
-              onClick={handleManageSubscription}
-              disabled={isLoading}
-              className="w-full mb-3"
-              size="lg"
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Manage Subscription'
-              )}
-            </Button>
-          </>
-        ) : (
-          <>
-            {/* Plans */}
-            <div className="space-y-3 mb-6">
-              {plans.map((plan) => (
-                <button
-                  key={plan.id}
-                  onClick={() => setSelectedPlan(plan.id)}
-                  className={cn(
-                    'w-full p-4 rounded-xl border flex items-center justify-between transition-all',
-                    selectedPlan === plan.id
-                      ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                      : 'border-border bg-secondary/50 hover:border-muted-foreground/50'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'w-5 h-5 rounded-full border-2 flex items-center justify-center',
+              <Button 
+                onClick={handleManageSubscription}
+                disabled={isLoading}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  'Manage Subscription'
+                )}
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Plans */}
+              <div className="space-y-2">
+                {plans.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => setSelectedPlan(plan.id)}
+                    className={cn(
+                      'w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all',
                       selectedPlan === plan.id
-                        ? 'border-primary bg-primary'
-                        : 'border-muted-foreground/50'
-                    )}>
-                      {selectedPlan === plan.id && (
-                        <Check className="w-3 h-3 text-primary-foreground" />
-                      )}
-                    </div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-foreground">{plan.name}</span>
-                        {plan.popular && (
-                          <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">
-                            Popular
-                          </span>
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border bg-card hover:border-muted-foreground/30'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
+                        selectedPlan === plan.id
+                          ? 'border-primary bg-primary'
+                          : 'border-muted-foreground/50'
+                      )}>
+                        {selectedPlan === plan.id && (
+                          <Check className="w-3 h-3 text-primary-foreground" />
                         )}
+                      </div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground">{plan.name}</span>
+                          {plan.popular && (
+                            <span className="text-[10px] bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-bold uppercase">
+                              Best Value
+                            </span>
+                          )}
+                        </div>
                         {plan.save && (
-                          <span className="text-xs text-success font-medium">
+                          <span className="text-xs text-success font-semibold">
                             Save {plan.save}
                           </span>
                         )}
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-foreground">{plan.price}</span>
-                    <span className="text-sm text-muted-foreground">{plan.period}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Features */}
-            <div className="mb-6">
-              <div className="grid grid-cols-1 gap-2">
-                {features.slice(0, 4).map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                    <span>{feature}</span>
-                  </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-foreground">{plan.price}</span>
+                      <span className="text-sm text-muted-foreground">{plan.period}</span>
+                    </div>
+                  </button>
                 ))}
               </div>
-            </div>
 
-            {/* CTA */}
-            <Button 
-              variant="hero" 
-              size="xl" 
-              className="w-full mb-3"
-              onClick={handleSubscribe}
-              disabled={isLoading || !user}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  {user ? `Continue with ${plans.find(p => p.id === selectedPlan)?.name}` : 'Sign in to Subscribe'}
-                </>
+              {/* Features Grid */}
+              <div className="bg-muted/30 rounded-xl p-4 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">Everything you get with Pro:</h3>
+                <div className="grid grid-cols-1 gap-2.5">
+                  {features.map((feature, index) => {
+                    const Icon = feature.icon;
+                    return (
+                      <div 
+                        key={index} 
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-lg transition-colors",
+                          feature.highlight && "bg-primary/5"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          feature.highlight ? "bg-primary/20" : "bg-muted"
+                        )}>
+                          <Icon className={cn(
+                            "w-4 h-4",
+                            feature.highlight ? "text-primary" : "text-muted-foreground"
+                          )} />
+                        </div>
+                        <span className={cn(
+                          "text-sm",
+                          feature.highlight ? "font-medium text-foreground" : "text-muted-foreground"
+                        )}>
+                          {feature.text}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* CTA */}
+              <Button 
+                variant="hero" 
+                size="xl" 
+                className="w-full"
+                onClick={handleSubscribe}
+                disabled={isLoading || !user}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    {user ? 'Start 3-Day Free Trial' : 'Sign in to Subscribe'}
+                  </>
+                )}
+              </Button>
+
+              {user && (
+                <p className="text-[11px] text-center text-muted-foreground">
+                  Cancel anytime during your trial. No charges until day 4.
+                </p>
               )}
-            </Button>
 
-            {!user && (
-              <p className="text-xs text-center text-muted-foreground">
-                You need to sign in before subscribing
-              </p>
-            )}
-          </>
-        )}
+              {!user && (
+                <p className="text-xs text-center text-muted-foreground">
+                  You need to sign in before subscribing
+                </p>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
