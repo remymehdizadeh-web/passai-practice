@@ -11,8 +11,6 @@ import { PercentileRank } from '@/components/PercentileRank';
 import { WeeklyReport } from '@/components/WeeklyReport';
 import { CategoryMastery } from '@/components/CategoryMastery';
 import { FullAchievements } from '@/components/FullAchievements';
-import { FullLeaderboard } from '@/components/FullLeaderboard';
-import { WeakAreaMode } from '@/components/WeakAreaMode';
 import { WeakAreaAlert } from '@/components/WeakAreaAlert';
 import { 
   Play, 
@@ -21,8 +19,7 @@ import {
   LogIn,
   BarChart3,
   Bookmark,
-  Award,
-  Trophy
+  Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -53,7 +50,6 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
   const [showExamDate, setShowExamDate] = useState(false);
   const [showWeeklyReport, setShowWeeklyReport] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const daysUntilExam = calculateDaysUntilExam(profile?.exam_date || null);
   const streakDays = profile?.streak_days || 0;
@@ -163,14 +159,6 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
         <div className="flex items-center gap-2">
           {user && streakDays > 0 && (
             <StudyStreak days={streakDays} compact />
-          )}
-          {user && stats.answeredCount >= 5 && (
-            <button
-              onClick={() => setShowLeaderboard(true)}
-              className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
-            >
-              <Trophy className="w-4 h-4 text-primary" />
-            </button>
           )}
           {user && stats.answeredCount >= 5 && (
             <button
@@ -350,16 +338,6 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
             <DialogTitle>Your Achievements</DialogTitle>
           </DialogHeader>
           <FullAchievements />
-        </DialogContent>
-      </Dialog>
-
-      {/* Leaderboard Dialog */}
-      <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Leaderboard</DialogTitle>
-          </DialogHeader>
-          <FullLeaderboard />
         </DialogContent>
       </Dialog>
     </div>

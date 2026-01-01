@@ -67,7 +67,7 @@ const Index = () => {
     return (
       <>
         <Helmet>
-          <title>NCLEX RN Pro - Master Your NCLEX-RN Exam</title>
+          <title>NCLEX RN Go - Master Your NCLEX-RN Exam</title>
           <meta name="description" content="Comprehensive NCLEX-RN practice for nursing students. Study with confidence using expert-crafted questions." />
         </Helmet>
         <SplashScreen onStart={handleStart} />
@@ -79,7 +79,7 @@ const Index = () => {
     return (
       <>
         <Helmet>
-          <title>Welcome - NCLEX RN Pro</title>
+          <title>Welcome - NCLEX RN Go</title>
           <meta name="description" content="Set up your NCLEX study plan" />
         </Helmet>
         <OnboardingFlow onComplete={handleOnboardingComplete} />
@@ -90,7 +90,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>NCLEX RN Pro - Practice</title>
+        <title>NCLEX RN Go - Practice</title>
         <meta name="description" content="Practice NCLEX-RN questions with detailed explanations. Master your nursing exam with expert-crafted content." />
       </Helmet>
       
