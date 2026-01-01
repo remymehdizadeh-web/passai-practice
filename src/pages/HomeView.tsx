@@ -148,8 +148,27 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
       {/* Header row */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-xs text-muted-foreground">Your NCLEX journey</p>
+          {user ? (
+            <>
+              <h1 className="text-xl font-bold text-foreground">
+                Welcome back, {profile?.display_name || user.email?.split('@')[0] || 'there'}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {stats.accuracy >= 80 
+                  ? "You're doing amazing! Keep up the great work."
+                  : stats.accuracy >= 60 
+                  ? "Every question brings you closer to success."
+                  : stats.answeredCount > 0
+                  ? "Keep practicing — progress takes time."
+                  : "Ready to start your NCLEX journey today?"}
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-xs text-muted-foreground">Your NCLEX journey</p>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {user && streakDays > 0 && (
