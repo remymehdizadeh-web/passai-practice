@@ -65,6 +65,10 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
     const completionRate = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
     
+    // Today's progress for velocity
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = progress?.filter(p => p.created_at.split('T')[0] === today).length || 0;
+    
     // Use NCLEX categories for analytics and readiness scoring
     const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
     progress?.forEach((p) => {
@@ -93,12 +97,27 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
     const weakestArea = categoriesWithData.sort((a, b) => a.accuracy - b.accuracy)[0];
     const strongestArea = categoriesWithData.sort((a, b) => b.accuracy - a.accuracy)[0];
 
+    // READINESS SCORE CALCULATION - Same as stats page
+    // Component 1: Accuracy (45% weight)
+    const accuracyComponent = Math.round(accuracy * 0.45);
+    
+    // Component 2: Consistency (25% weight)
+    const streakScore = Math.min(streakDays * 5, 50);
+    const dailyProgressScore = Math.min((todayCount / dailyGoal) * 50, 50);
+    const consistencyRaw = (streakScore + dailyProgressScore) / 100 * 100;
+    const consistencyComponent = Math.round(consistencyRaw * 0.25);
+    
+    // Component 3: Coverage (20% weight)
+    const categoriesPracticed = Object.keys(nclexCategoryStats).length;
+    const coverageRaw = Math.min((categoriesPracticed / 8) * 100, 100);
+    const coverageComponent = Math.round(coverageRaw * 0.2);
+    
+    // Component 4: Velocity (10% weight)
+    const velocityComponent = Math.min(10, Math.round((todayCount / dailyGoal) * 10));
+
     let readinessScore: number | null = null;
     if (answeredCount >= 10) {
-      const accuracyWeight = accuracy * 0.75;
-      const completionWeight = Math.min(completionRate, 100) * 0.15;
-      const streakWeight = Math.min(streakDays * 2, 10);
-      readinessScore = Math.round(accuracyWeight + completionWeight + streakWeight);
+      readinessScore = Math.min(100, accuracyComponent + consistencyComponent + coverageComponent + velocityComponent);
     }
 
     const recentProgress = progress?.slice(-20) || [];

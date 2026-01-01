@@ -48,9 +48,10 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
               <TooltipContent side="bottom" className="max-w-[200px] text-xs">
                 <p className="font-medium mb-1">How it's calculated:</p>
                 <ul className="space-y-0.5 text-muted-foreground">
-                  <li>• 75% from your accuracy</li>
-                  <li>• 15% from questions completed</li>
-                  <li>• 10% from study streak</li>
+                  <li>• 45% from accuracy</li>
+                  <li>• 25% from consistency</li>
+                  <li>• 20% from category coverage</li>
+                  <li>• 10% from daily velocity</li>
                 </ul>
               </TooltipContent>
             </Tooltip>
