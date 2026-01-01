@@ -5,13 +5,17 @@ interface QuickWinsBarProps {
   streakDays: number;
   todayCount: number;
   weekCount: number;
+  onStreakClick?: () => void;
 }
 
-export function QuickWinsBar({ streakDays, todayCount, weekCount }: QuickWinsBarProps) {
+export function QuickWinsBar({ streakDays, todayCount, weekCount, onStreakClick }: QuickWinsBarProps) {
   return (
     <div className="grid grid-cols-3 gap-2">
-      {/* Streak */}
-      <div className="bg-card border border-border rounded-xl p-3 text-center hover:shadow-sm transition-shadow">
+      {/* Streak - Clickable */}
+      <button
+        onClick={onStreakClick}
+        className="bg-card border border-border rounded-xl p-3 text-center hover:shadow-md hover:border-accent/50 transition-all active:scale-[0.98]"
+      >
         <div className="flex items-center justify-center gap-1 mb-1">
           <Flame className="w-4 h-4 text-accent" />
         </div>
@@ -19,7 +23,7 @@ export function QuickWinsBar({ streakDays, todayCount, weekCount }: QuickWinsBar
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
           {streakDays === 1 ? 'Day' : 'Days'} 🔥
         </p>
-      </div>
+      </button>
 
       {/* Today */}
       <div className="bg-card border border-border rounded-xl p-3 text-center hover:shadow-sm transition-shadow">

@@ -30,12 +30,15 @@ import {
   Sun,
   Monitor,
   Pencil,
-  CreditCard
+  CreditCard,
+  Bell,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { clearAllProgress } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface SettingsViewProps {
   onNavigateToStats?: () => void;
@@ -53,6 +56,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
+  const { isSupported, isSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
 
   const handleSignOut = async () => {
     if (confirm('Sign out? Your progress is saved in the cloud.')) {
@@ -86,6 +90,28 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       } catch (error) {
         toast.error('Failed to reset progress');
       }
+    }
+  };
+
+  const handleHelpCenter = () => {
+    window.open('https://help.example.com', '_blank');
+    toast.success('Opening Help Center...');
+  };
+
+  const handleContactSupport = () => {
+    window.location.href = 'mailto:support@example.com?subject=NCLEX Prep Support Request';
+    toast.success('Opening email client...');
+  };
+
+  const handlePrivacyPolicy = () => {
+    window.open('https://example.com/privacy', '_blank');
+  };
+
+  const handlePushToggle = async () => {
+    if (isSubscribed) {
+      await unsubscribe();
+    } else {
+      await subscribe();
     }
   };
 
@@ -269,7 +295,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-amber-900">Upgrade to Pro</p>
                 <span className="px-1.5 py-0.5 bg-amber-900/20 text-amber-900 text-[10px] font-bold rounded">
-                  POPULAR
+                  3-DAY FREE TRIAL
                 </span>
               </div>
               <div className="flex items-center gap-3 mt-1">
@@ -288,6 +314,42 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
           </button>
         )}
       </div>
+
+      {/* Notifications Section */}
+      {isSupported && (
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
+            Notifications
+          </p>
+          <button
+            onClick={handlePushToggle}
+            disabled={pushLoading}
+            className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+          >
+            <div className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center",
+              isSubscribed ? "bg-success/10" : "bg-muted"
+            )}>
+              <Bell className={cn("w-5 h-5", isSubscribed ? "text-success" : "text-muted-foreground")} />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-foreground">Push Notifications</p>
+              <p className="text-xs text-muted-foreground">
+                {isSubscribed ? 'Enabled - Get study reminders' : 'Enable to get study reminders'}
+              </p>
+            </div>
+            <div className={cn(
+              "w-12 h-7 rounded-full transition-colors flex items-center p-1",
+              isSubscribed ? "bg-success" : "bg-muted"
+            )}>
+              <div className={cn(
+                "w-5 h-5 rounded-full bg-white shadow-sm transition-transform",
+                isSubscribed ? "translate-x-5" : "translate-x-0"
+              )} />
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* Appearance Section */}
       <div className="space-y-2">
@@ -309,7 +371,8 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             description="FAQs and guides"
             iconBg="bg-blue-500/10"
             iconColor="text-blue-500"
-            onClick={() => toast.info('Coming soon!')}
+            onClick={handleHelpCenter}
+            hasExternalLink
           />
           <SettingsItem 
             icon={MessageSquare} 
@@ -317,7 +380,8 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             description="Get help from our team"
             iconBg="bg-purple-500/10"
             iconColor="text-purple-500"
-            onClick={() => toast.info('Coming soon!')}
+            onClick={handleContactSupport}
+            hasExternalLink
           />
           <SettingsItem 
             icon={Shield} 
@@ -325,7 +389,8 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             description="How we protect your data"
             iconBg="bg-gray-500/10"
             iconColor="text-gray-500"
-            onClick={() => toast.info('Coming soon!')}
+            onClick={handlePrivacyPolicy}
+            hasExternalLink
           />
         </div>
       </div>
@@ -386,6 +451,7 @@ interface SettingsItemProps {
   iconBg?: string;
   iconColor?: string;
   onClick?: () => void;
+  hasExternalLink?: boolean;
 }
 
 function SettingsItem({ 
@@ -394,7 +460,8 @@ function SettingsItem({
   description, 
   iconBg = 'bg-muted', 
   iconColor = 'text-muted-foreground',
-  onClick 
+  onClick,
+  hasExternalLink 
 }: SettingsItemProps) {
   return (
     <button
@@ -408,7 +475,11 @@ function SettingsItem({
         <p className="text-sm font-semibold text-foreground">{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
+      {hasExternalLink ? (
+        <ExternalLink className="w-4 h-4 text-muted-foreground/50" />
+      ) : (
+        <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
+      )}
     </button>
   );
 }
@@ -451,8 +522,8 @@ function ThemeToggle() {
               className={cn(
                 "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
                 isActive 
-                  ? "bg-primary/10 border-primary text-primary" 
-                  : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50"
+                  ? "border-primary bg-primary/10 text-primary" 
+                  : "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
               <Icon className="w-5 h-5" />

@@ -18,6 +18,7 @@ import {
   Info,
   Sparkles,
   CheckCircle2,
+  Flame,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
@@ -28,6 +29,12 @@ import { SmartInsightsBox } from '@/components/stats/SmartInsightsBox';
 import { StudyStreakCalendar } from '@/components/stats/StudyStreakCalendar';
 import { TimeInvestedCard } from '@/components/stats/TimeInvestedCard';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // Icon mapping for NCLEX categories
 const CATEGORY_ICONS: Record<NclexCategory, React.ElementType> = {
@@ -48,6 +55,7 @@ export function StatsView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showBars, setShowBars] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
 
   // Trigger bar animations
   useEffect(() => {
@@ -242,20 +250,21 @@ export function StatsView() {
 
   return (
     <div className="px-4 pb-6 space-y-4">
-      {/* 1. QUICK WINS BAR */}
+      {/* Header - Same style as Review page */}
+      <div>
+        <h1 className="text-xl font-bold text-foreground">Stats</h1>
+        <p className="text-sm text-muted-foreground">Track your exam readiness</p>
+      </div>
+
+      {/* 1. QUICK WINS BAR - Streak is now clickable */}
       <QuickWinsBar
         streakDays={stats.streakDays}
         todayCount={stats.todayCount}
         weekCount={stats.weekCount}
+        onStreakClick={() => setShowCalendarModal(true)}
       />
 
-      {/* 2. STUDY STREAK CALENDAR - Above readiness */}
-      <StudyStreakCalendar
-        streakDays={stats.streakDays}
-        activityData={stats.activityData}
-      />
-
-      {/* 3. HERO READINESS SCORE */}
+      {/* 2. HERO READINESS SCORE */}
       <ReadinessScoreHero
         readinessScore={stats.readinessScore}
         statusText={stats.statusText}
@@ -270,13 +279,13 @@ export function StatsView() {
         coverageComponent={stats.coverageComponent}
       />
 
-      {/* 4. TIME INVESTED - Above AI Coach */}
+      {/* 3. TIME INVESTED - Above AI Coach */}
       <TimeInvestedCard
         totalQuestions={stats.totalAnswered}
         weekQuestions={stats.weekCount}
       />
 
-      {/* 5. AI COACH / SMART INSIGHTS - Starts collapsed */}
+      {/* 4. AI COACH / SMART INSIGHTS - Starts collapsed */}
       <SmartInsightsBox
         readinessScore={stats.readinessScore}
         accuracy={stats.accuracy}
@@ -286,7 +295,7 @@ export function StatsView() {
         dailyGoal={stats.dailyGoal}
       />
 
-      {/* 6. MASTERED AREAS - 90%+ with 10+ questions */}
+      {/* 5. MASTERED AREAS - 90%+ with 10+ questions */}
       {stats.masteredAreas.length > 0 ? (
         <MasteredSection
           areas={stats.masteredAreas}
@@ -323,6 +332,22 @@ export function StatsView() {
           <p className="text-xs text-muted-foreground">Complete your first question to unlock insights</p>
         </div>
       )}
+
+      {/* Study Activity Calendar Modal */}
+      <Dialog open={showCalendarModal} onOpenChange={setShowCalendarModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flame className="w-5 h-5 text-accent" />
+              Study Activity
+            </DialogTitle>
+          </DialogHeader>
+          <StudyStreakCalendar
+            streakDays={stats.streakDays}
+            activityData={stats.activityData}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
