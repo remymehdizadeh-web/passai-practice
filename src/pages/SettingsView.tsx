@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useUserProgress } from '@/hooks/useQuestions';
+import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
 import { ExamDateModal } from '@/components/ExamDateModal';
 import { GoalEditModal } from '@/components/GoalEditModal';
 import { PaywallModal } from '@/components/PaywallModal';
@@ -28,7 +29,8 @@ import {
   Moon,
   Sun,
   Monitor,
-  Pencil
+  Pencil,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -43,6 +45,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: progress } = useUserProgress();
+  const { subscribed, tier, subscriptionEnd, openCustomerPortal } = useSubscription();
   const [showExamDate, setShowExamDate] = useState(false);
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -122,9 +125,15 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
               <p className="font-semibold text-lg text-foreground truncate">
                 {displayName}
               </p>
-              <span className="px-2 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium rounded-full">
-                Free
-              </span>
+              {subscribed ? (
+                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 text-[10px] font-bold rounded-full">
+                  PRO
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium rounded-full">
+                  Free
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground truncate">
               {user?.email || 'Not signed in'}
@@ -213,41 +222,81 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       {/* Account Section */}
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
-          Account
+          Subscription
         </p>
         
-        {/* Premium Upgrade Card */}
-        <button
-          onClick={() => setShowPaywall(true)}
-          className="w-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 rounded-xl p-4 flex items-center gap-4 hover:shadow-lg transition-all active:scale-[0.99] relative overflow-hidden group"
-        >
-          {/* Shimmer effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-          
-          <div className="w-10 h-10 rounded-xl bg-white/30 flex items-center justify-center relative z-10">
-            <Crown className="w-5 h-5 text-amber-900" />
-          </div>
-          <div className="flex-1 text-left relative z-10">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-bold text-amber-900">Upgrade to Pro</p>
-              <span className="px-1.5 py-0.5 bg-amber-900/20 text-amber-900 text-[10px] font-bold rounded">
-                POPULAR
-              </span>
+        {subscribed ? (
+          /* Subscribed State */
+          <div className="space-y-2">
+            <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/30 rounded-xl p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-foreground">Pro {tier === 'weekly' ? 'Weekly' : 'Monthly'}</p>
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 text-[10px] font-bold rounded-full">
+                      ACTIVE
+                    </span>
+                  </div>
+                  {subscriptionEnd && (
+                    <p className="text-xs text-muted-foreground">
+                      Renews {new Date(subscriptionEnd).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-[10px] text-amber-800 flex items-center gap-1">
-                <Check className="w-3 h-3" /> Unlimited
-              </span>
-              <span className="text-[10px] text-amber-800 flex items-center gap-1">
-                <Check className="w-3 h-3" /> AI Coach
-              </span>
-              <span className="text-[10px] text-amber-800 flex items-center gap-1">
-                <Check className="w-3 h-3" /> Smart Review
-              </span>
-            </div>
+            
+            <button
+              onClick={() => openCustomerPortal()}
+              className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+            >
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-foreground">Manage Subscription</p>
+                <p className="text-xs text-muted-foreground">Update payment, cancel, or change plan</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
+            </button>
           </div>
-          <ChevronRight className="w-5 h-5 text-amber-900 relative z-10" />
-        </button>
+        ) : (
+          /* Premium Upgrade Card */
+          <button
+            onClick={() => setShowPaywall(true)}
+            className="w-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 rounded-xl p-4 flex items-center gap-4 hover:shadow-lg transition-all active:scale-[0.99] relative overflow-hidden group"
+          >
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            
+            <div className="w-10 h-10 rounded-xl bg-white/30 flex items-center justify-center relative z-10">
+              <Crown className="w-5 h-5 text-amber-900" />
+            </div>
+            <div className="flex-1 text-left relative z-10">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold text-amber-900">Upgrade to Pro</p>
+                <span className="px-1.5 py-0.5 bg-amber-900/20 text-amber-900 text-[10px] font-bold rounded">
+                  POPULAR
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-[10px] text-amber-800 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Unlimited
+                </span>
+                <span className="text-[10px] text-amber-800 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> AI Coach
+                </span>
+                <span className="text-[10px] text-amber-800 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Smart Review
+                </span>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-amber-900 relative z-10" />
+          </button>
+        )}
       </div>
 
       {/* Appearance Section */}
