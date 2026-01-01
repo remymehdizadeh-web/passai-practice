@@ -40,17 +40,7 @@ interface HomeViewProps {
   onOpenWeakArea?: () => void;
 }
 
-// The 8 NCLEX-RN categories
-const NCLEX_CATEGORIES = [
-  'Management of Care',
-  'Safety and Infection Control',
-  'Health Promotion and Maintenance',
-  'Psychosocial Integrity',
-  'Basic Care and Comfort',
-  'Pharmacological and Parenteral Therapies',
-  'Reduction of Risk Potential',
-  'Physiological Adaptation',
-];
+import { NCLEX_CATEGORIES } from '@/lib/categories';
 
 export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
   const { data: questions } = useQuestions();
@@ -82,20 +72,22 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
     const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
     const completionRate = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
     
-    const categoryStats: Record<string, { correct: number; total: number }> = {};
+    // Use NCLEX categories for analytics and readiness scoring
+    const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
     progress?.forEach((p) => {
       const q = questions?.find((q) => q.id === p.question_id);
       if (q) {
-        if (!categoryStats[q.category]) {
-          categoryStats[q.category] = { correct: 0, total: 0 };
+        const nclexCat = q.nclex_category || q.category;
+        if (!nclexCategoryStats[nclexCat]) {
+          nclexCategoryStats[nclexCat] = { correct: 0, total: 0 };
         }
-        categoryStats[q.category].total++;
-        if (p.is_correct) categoryStats[q.category].correct++;
+        nclexCategoryStats[nclexCat].total++;
+        if (p.is_correct) nclexCategoryStats[nclexCat].correct++;
       }
     });
 
     const categoryMastery = NCLEX_CATEGORIES.map(category => {
-      const catStats = categoryStats[category];
+      const catStats = nclexCategoryStats[category];
       return {
         category,
         accuracy: catStats ? Math.round((catStats.correct / catStats.total) * 100) : 0,

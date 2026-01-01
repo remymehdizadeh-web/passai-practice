@@ -12,16 +12,7 @@ interface WeakAreaModeProps {
   onClose: () => void;
 }
 
-const NCLEX_CATEGORIES = [
-  'Management of Care',
-  'Safety and Infection Control',
-  'Health Promotion and Maintenance',
-  'Psychosocial Integrity',
-  'Basic Care and Comfort',
-  'Pharmacological and Parenteral Therapies',
-  'Reduction of Risk Potential',
-  'Physiological Adaptation',
-];
+import { NCLEX_CATEGORIES } from '@/lib/categories';
 
 export function WeakAreaMode({ onClose }: WeakAreaModeProps) {
   const { data: questions, isLoading } = useQuestions();
@@ -38,25 +29,26 @@ export function WeakAreaMode({ onClose }: WeakAreaModeProps) {
   const [confidence, setConfidence] = useState<'low' | 'medium' | 'high' | null>(null);
   const [showConfidence, setShowConfidence] = useState(false);
 
-  // Calculate weak areas
+  // Calculate weak areas using NCLEX categories for analytics
   const weakAreas = useMemo(() => {
     if (!questions || !progress || progress.length < 3) return [];
     
-    const categoryStats: Record<string, { correct: number; total: number }> = {};
+    const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
     progress.forEach((p) => {
       const q = questions.find((q) => q.id === p.question_id);
       if (q) {
-        if (!categoryStats[q.category]) {
-          categoryStats[q.category] = { correct: 0, total: 0 };
+        const nclexCat = q.nclex_category || q.category;
+        if (!nclexCategoryStats[nclexCat]) {
+          nclexCategoryStats[nclexCat] = { correct: 0, total: 0 };
         }
-        categoryStats[q.category].total++;
-        if (p.is_correct) categoryStats[q.category].correct++;
+        nclexCategoryStats[nclexCat].total++;
+        if (p.is_correct) nclexCategoryStats[nclexCat].correct++;
       }
     });
 
     return NCLEX_CATEGORIES
       .map(category => {
-        const stats = categoryStats[category];
+        const stats = nclexCategoryStats[category];
         const accuracy = stats && stats.total >= 3 
           ? Math.round((stats.correct / stats.total) * 100) 
           : null;
@@ -71,13 +63,13 @@ export function WeakAreaMode({ onClose }: WeakAreaModeProps) {
       .sort((a, b) => (a.accuracy || 0) - (b.accuracy || 0));
   }, [questions, progress]);
 
-  // Get questions for selected category
+  // Get questions for selected NCLEX category
   const categoryQuestions = useMemo(() => {
     if (!questions || !selectedCategory) return [];
     
     const answeredIds = new Set(progress?.map(p => p.question_id) || []);
     return questions
-      .filter(q => q.category === selectedCategory)
+      .filter(q => (q.nclex_category || q.category) === selectedCategory)
       .sort((a, b) => {
         // Prioritize unanswered
         const aAnswered = answeredIds.has(a.id);

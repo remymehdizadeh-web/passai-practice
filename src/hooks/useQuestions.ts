@@ -14,6 +14,8 @@ function parseQuestion(raw: any): Question {
     wrong_option_bullets: raw.wrong_option_bullets as WrongOptionBullet[] | null,
     takeaway: raw.takeaway,
     category: raw.category,
+    nclex_category: raw.nclex_category || raw.category,
+    study_tags: raw.study_tags || [],
     difficulty: raw.difficulty,
     is_active: raw.is_active,
     created_at: raw.created_at,

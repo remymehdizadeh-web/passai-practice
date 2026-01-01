@@ -179,9 +179,11 @@ export type Database = {
           exam_type: string
           id: string
           is_active: boolean
+          nclex_category: string
           options: Json
           rationale_bullets: string[]
           stem: string
+          study_tags: string[] | null
           takeaway: string
           wrong_option_bullets: Json | null
         }
@@ -193,9 +195,11 @@ export type Database = {
           exam_type?: string
           id?: string
           is_active?: boolean
+          nclex_category: string
           options: Json
           rationale_bullets?: string[]
           stem: string
+          study_tags?: string[] | null
           takeaway: string
           wrong_option_bullets?: Json | null
         }
@@ -207,9 +211,11 @@ export type Database = {
           exam_type?: string
           id?: string
           is_active?: boolean
+          nclex_category?: string
           options?: Json
           rationale_bullets?: string[]
           stem?: string
+          study_tags?: string[] | null
           takeaway?: string
           wrong_option_bullets?: Json | null
         }
