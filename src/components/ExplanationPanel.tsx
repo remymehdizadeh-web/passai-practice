@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown, Sparkles, RefreshCw, Loader2 } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 import { AskTutorModal } from '@/components/AskTutorModal';
+import { SimilarQuestionCard } from '@/components/SimilarQuestionCard';
+import { useSimilarQuestion } from '@/hooks/useSimilarQuestion';
 
 interface ExplanationPanelProps {
   question: Question;
@@ -16,6 +18,8 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   const correctOption = question.options.find(o => o.label === question.correct_label);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
+  const [showSimilar, setShowSimilar] = useState(false);
+  const { isLoading: isGenerating, generatedQuestion, generateSimilar, reset: resetSimilar } = useSimilarQuestion();
   const panelRef = useRef<HTMLDivElement>(null);
 
   const wrongExplanation = question.wrong_option_bullets?.find(
@@ -30,6 +34,17 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       }, 100);
     }
   }, [isCorrect]);
+
+  const handleGenerateSimilar = async () => {
+    setShowSimilar(true);
+    await generateSimilar(question);
+  };
+
+  const handleSimilarComplete = () => {
+    setShowSimilar(false);
+    resetSimilar();
+    onNext();
+  };
 
   if (isCorrect) {
     return (
@@ -72,6 +87,33 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
           </button>
         </div>
 
+        {/* Practice Similar Button */}
+        <button
+          onClick={handleGenerateSimilar}
+          disabled={isGenerating || showSimilar}
+          className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-accent/10 border border-accent/20 hover:bg-accent/20 transition-colors text-sm text-accent disabled:opacity-50"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Generating similar question...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-4 h-4" />
+              Practice Similar Question
+            </>
+          )}
+        </button>
+
+        {/* Similar Question */}
+        {showSimilar && generatedQuestion && (
+          <SimilarQuestionCard 
+            question={generatedQuestion}
+            onComplete={handleSimilarComplete}
+          />
+        )}
+            
         {showExplanation && (
           <div className="card-organic p-5 animate-fade-in">
             <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -174,6 +216,33 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
           <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
+
+      {/* Practice Similar - for wrong answers */}
+      <button
+        onClick={handleGenerateSimilar}
+        disabled={isGenerating || showSimilar}
+        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-sm text-amber-600 dark:text-amber-400 disabled:opacity-50"
+      >
+        {isGenerating ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Generating practice question...
+          </>
+        ) : (
+          <>
+            <RefreshCw className="w-4 h-4" />
+            Reinforce with Similar Question
+          </>
+        )}
+      </button>
+
+      {/* Similar Question */}
+      {showSimilar && generatedQuestion && (
+        <SimilarQuestionCard 
+          question={generatedQuestion}
+          onComplete={handleSimilarComplete}
+        />
+      )}
 
       <AskTutorModal 
         isOpen={showTutor} 

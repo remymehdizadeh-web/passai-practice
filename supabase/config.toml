@@ -1,7 +1,10 @@
 project_id = "jkvstepnrgpjjwiwghho"
 
 [functions.smart-reminders]
-verify_jwt = true
+verify_jwt = false
 
 [functions.ask-tutor]
+verify_jwt = false
+
+[functions.generate-similar]
 verify_jwt = false
