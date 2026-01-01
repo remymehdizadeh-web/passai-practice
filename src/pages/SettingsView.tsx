@@ -6,6 +6,7 @@ import { ExamDateModal } from '@/components/ExamDateModal';
 import { GoalEditModal } from '@/components/GoalEditModal';
 import { PaywallModal } from '@/components/PaywallModal';
 import logoIcon from '@/assets/logo-icon.png';
+import { useTheme } from 'next-themes';
 import { 
   User, 
   Calendar, 
@@ -21,7 +22,10 @@ import {
   RotateCcw,
   Crown,
   Check,
-  Flame
+  Flame,
+  Moon,
+  Sun,
+  Monitor
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -219,6 +223,14 @@ export function SettingsView() {
         </button>
       </div>
 
+      {/* Appearance Section */}
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
+          Appearance
+        </p>
+        <ThemeToggle />
+      </div>
+
       {/* Support Section */}
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
@@ -341,5 +353,57 @@ function SettingsItem({
       </div>
       <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
     </button>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  
+  const options = [
+    { value: 'light', icon: Sun, label: 'Light' },
+    { value: 'dark', icon: Moon, label: 'Dark' },
+    { value: 'system', icon: Monitor, label: 'System' },
+  ];
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-4">
+      <div className="flex items-center gap-4 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+          {theme === 'dark' ? (
+            <Moon className="w-5 h-5 text-violet-500" />
+          ) : theme === 'light' ? (
+            <Sun className="w-5 h-5 text-violet-500" />
+          ) : (
+            <Monitor className="w-5 h-5 text-violet-500" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground">Theme</p>
+          <p className="text-xs text-muted-foreground">Choose your preferred appearance</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-2">
+        {options.map((option) => {
+          const Icon = option.icon;
+          const isActive = theme === option.value;
+          return (
+            <button
+              key={option.value}
+              onClick={() => setTheme(option.value)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
+                isActive 
+                  ? "bg-primary/10 border-primary text-primary" 
+                  : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50"
+              )}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-xs font-medium">{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
