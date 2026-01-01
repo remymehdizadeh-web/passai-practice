@@ -26,16 +26,7 @@ import {
   Tooltip,
 } from 'recharts';
 
-const NCLEX_CATEGORIES = [
-  'Management of Care',
-  'Safety and Infection Control',
-  'Health Promotion and Maintenance',
-  'Psychosocial Integrity',
-  'Basic Care and Comfort',
-  'Pharmacological and Parenteral Therapies',
-  'Reduction of Risk Potential',
-  'Physiological Adaptation',
-];
+import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
 
 export function StatsView() {
   const { data: questions } = useQuestions();
@@ -68,24 +59,25 @@ export function StatsView() {
     const correctAnswers = progress.filter(p => p.is_correct).length;
     const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
 
-    // Category stats
-    const categoryStats: Record<string, { correct: number; total: number }> = {};
+    // Category stats using NCLEX categories for analytics
+    const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
     progress.forEach((p) => {
       const q = questions.find((q) => q.id === p.question_id);
       if (q) {
-        if (!categoryStats[q.category]) {
-          categoryStats[q.category] = { correct: 0, total: 0 };
+        const nclexCat = q.nclex_category || q.category;
+        if (!nclexCategoryStats[nclexCat]) {
+          nclexCategoryStats[nclexCat] = { correct: 0, total: 0 };
         }
-        categoryStats[q.category].total++;
-        if (p.is_correct) categoryStats[q.category].correct++;
+        nclexCategoryStats[nclexCat].total++;
+        if (p.is_correct) nclexCategoryStats[nclexCat].correct++;
       }
     });
 
     const categoryMastery = NCLEX_CATEGORIES.map(category => {
-      const stats = categoryStats[category];
+      const stats = nclexCategoryStats[category];
       return {
         category,
-        shortName: category.split(' ').slice(0, 2).join(' '),
+        shortName: NCLEX_SHORT_NAMES[category as NclexCategory] || category.split(' ').slice(0, 2).join(' '),
         accuracy: stats ? Math.round((stats.correct / stats.total) * 100) : 0,
         total: stats?.total || 0,
         correct: stats?.correct || 0,

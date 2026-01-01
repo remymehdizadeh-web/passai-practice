@@ -26,6 +26,8 @@ const sampleQuestion = {
   },
   takeaway: "Prioritize patients with acute changes in condition.",
   category: "Management of Care",
+  nclex_category: "Management of Care", // Required: official NCLEX category
+  study_tags: ["Leadership & Prioritization"], // User-facing study sections
   difficulty: "medium",
   exam_type: "Both" // Options: 'RN', 'PN', or 'Both'
 };
@@ -54,6 +56,8 @@ export default function AdminQuestionsPage() {
         wrong_option_bullets: q.wrong_option_bullets || null,
         takeaway: q.takeaway,
         category: q.category,
+        nclex_category: q.nclex_category || q.category, // Fall back to category if not provided
+        study_tags: q.study_tags || [],
         difficulty: q.difficulty || "medium",
         exam_type: q.exam_type || "Both",
         is_active: true

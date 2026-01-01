@@ -17,6 +17,9 @@ export interface Question {
   wrong_option_bullets: WrongOptionBullet[] | null;
   takeaway: string;
   category: string;
+  // New category system
+  nclex_category: string;
+  study_tags: string[];
   difficulty: 'easy' | 'medium' | 'hard';
   is_active: boolean;
   created_at: string;

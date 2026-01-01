@@ -40,24 +40,27 @@ export function PracticeView() {
     }
   }, [user, isSubmitted, hasUpdatedStreak, updateStreak]);
 
-  // Get prioritized questions based on weak categories
+  // Get prioritized questions based on weak NCLEX categories (internal adaptive logic)
   const prioritizedQuestions = useMemo(() => {
     if (!questions || !progress) return questions || [];
     
-    const categoryStats: Record<string, { correct: number; total: number }> = {};
+    // Track performance by NCLEX category for adaptive selection
+    const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
     progress.forEach((p) => {
       const q = questions.find((q) => q.id === p.question_id);
       if (q) {
-        if (!categoryStats[q.category]) {
-          categoryStats[q.category] = { correct: 0, total: 0 };
+        const nclexCat = q.nclex_category || q.category;
+        if (!nclexCategoryStats[nclexCat]) {
+          nclexCategoryStats[nclexCat] = { correct: 0, total: 0 };
         }
-        categoryStats[q.category].total++;
-        if (p.is_correct) categoryStats[q.category].correct++;
+        nclexCategoryStats[nclexCat].total++;
+        if (p.is_correct) nclexCategoryStats[nclexCat].correct++;
       }
     });
 
+    // Calculate weakness scores based on NCLEX categories
     const weaknessScores: Record<string, number> = {};
-    Object.entries(categoryStats).forEach(([category, stats]) => {
+    Object.entries(nclexCategoryStats).forEach(([category, stats]) => {
       weaknessScores[category] = stats.total > 0 ? stats.correct / stats.total : 0.5;
     });
 
@@ -70,8 +73,11 @@ export function PracticeView() {
       if (!aAnswered && bAnswered) return -1;
       if (aAnswered && !bAnswered) return 1;
       
-      const aScore = weaknessScores[a.category] ?? 0.5;
-      const bScore = weaknessScores[b.category] ?? 0.5;
+      // Use NCLEX category for adaptive prioritization
+      const aNclexCat = a.nclex_category || a.category;
+      const bNclexCat = b.nclex_category || b.category;
+      const aScore = weaknessScores[aNclexCat] ?? 0.5;
+      const bScore = weaknessScores[bNclexCat] ?? 0.5;
       return aScore - bScore;
     });
   }, [questions, progress]);
