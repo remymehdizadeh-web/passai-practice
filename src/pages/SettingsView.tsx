@@ -34,7 +34,11 @@ import { toast } from 'sonner';
 import { clearAllProgress } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 
-export function SettingsView() {
+interface SettingsViewProps {
+  onNavigateToStats?: () => void;
+}
+
+export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: progress } = useUserProgress();
@@ -119,8 +123,8 @@ export function SettingsView() {
 
       {/* Progress Summary - Links to Stats */}
       <button
-        onClick={() => navigate('/', { state: { tab: 'stats' } })}
-        className="w-full bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99]"
+        onClick={onNavigateToStats}
+        className="w-full bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99] cursor-pointer"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
