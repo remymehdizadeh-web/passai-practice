@@ -22,9 +22,11 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   const { isLoading: isGenerating, generatedQuestion, generateSimilar, reset: resetSimilar } = useSimilarQuestion();
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const wrongExplanation = question.wrong_option_bullets?.find(
-    w => w.label === selectedLabel
-  );
+  // wrong_option_bullets can be an array or object from JSON
+  const wrongBullets = question.wrong_option_bullets;
+  const wrongExplanation = Array.isArray(wrongBullets) 
+    ? wrongBullets.find(w => w.label === selectedLabel)
+    : null;
 
   // Auto-scroll to explanation when answer is wrong
   useEffect(() => {
