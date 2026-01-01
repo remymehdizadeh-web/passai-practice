@@ -12,7 +12,7 @@ const plans = [
   {
     id: 'weekly',
     name: 'Weekly',
-    price: '$9.99',
+    price: '$4.88',
     period: '/week',
     popular: false,
     save: null,
@@ -20,10 +20,10 @@ const plans = [
   {
     id: 'monthly',
     name: 'Monthly',
-    price: '$24.99',
+    price: '$9.99',
     period: '/month',
     popular: true,
-    save: '40%',
+    save: '50%',
   },
 ];
 
