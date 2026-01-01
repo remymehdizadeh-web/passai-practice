@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { SplashScreen } from '@/components/SplashScreen';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
-import { BottomNav } from '@/components/BottomNav';
-import { HomeView } from '@/pages/HomeView';
+import { BottomNav, type Tab } from '@/components/BottomNav';
 import { PracticeView } from '@/pages/PracticeView';
 import { ReviewView } from '@/pages/ReviewView';
+import { PlanView } from '@/pages/PlanView';
+import { StatsView } from '@/pages/StatsView';
 import { SettingsView } from '@/pages/SettingsView';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Helmet } from 'react-helmet';
 
-type Tab = 'home' | 'practice' | 'review' | 'settings';
 type ReviewFilter = 'bookmarked' | 'missed';
 
 const Index = () => {
@@ -49,6 +49,10 @@ const Index = () => {
     }
   };
 
+  const handlePlanNavigate = (tab: 'practice') => {
+    setActiveTab(tab);
+  };
+
   if (showSplash) {
     return (
       <>
@@ -82,10 +86,11 @@ const Index = () => {
       
       <div className="min-h-screen bg-background">
         <main className="max-w-lg mx-auto px-4 pt-6 pb-20">
-          {activeTab === 'home' && <HomeView onNavigate={handleNavigate} />}
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}
-          {activeTab === 'settings' && <SettingsView />}
+          {activeTab === 'plan' && <PlanView onNavigate={handlePlanNavigate} />}
+          {activeTab === 'stats' && <StatsView />}
+          {activeTab === 'account' && <SettingsView />}
         </main>
 
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />

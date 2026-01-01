@@ -2,3 +2,6 @@ project_id = "jkvstepnrgpjjwiwghho"
 
 [functions.smart-reminders]
 verify_jwt = true
+
+[functions.ask-tutor]
+verify_jwt = false

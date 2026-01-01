@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown } from 'lucide-react';
+import { CheckCircle2, XCircle, Lightbulb, ChevronRight, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
 import type { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
+import { AskTutorModal } from '@/components/AskTutorModal';
 
 interface ExplanationPanelProps {
   question: Question;
@@ -14,6 +15,7 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   const isCorrect = selectedLabel === question.correct_label;
   const correctOption = question.options.find(o => o.label === question.correct_label);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showTutor, setShowTutor] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const wrongExplanation = question.wrong_option_bullets?.find(
@@ -52,14 +54,23 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
           </div>
         </div>
 
-        {/* Collapsible Explanation */}
-        <button
-          onClick={() => setShowExplanation(!showExplanation)}
-          className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:bg-muted/30 transition-colors text-sm"
-        >
-          <span className="text-muted-foreground">View explanation</span>
-          <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", showExplanation && "rotate-180")} />
-        </button>
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowExplanation(!showExplanation)}
+            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-card border border-border hover:bg-muted/30 transition-colors text-sm"
+          >
+            <span className="text-muted-foreground">View explanation</span>
+            <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", showExplanation && "rotate-180")} />
+          </button>
+          <button
+            onClick={() => setShowTutor(true)}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary"
+          >
+            <Sparkles className="w-4 h-4" />
+            Ask Tutor
+          </button>
+        </div>
 
         {showExplanation && (
           <div className="card-organic p-5 animate-fade-in">
@@ -86,6 +97,13 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
             </div>
           </div>
         )}
+
+        <AskTutorModal 
+          isOpen={showTutor} 
+          onClose={() => setShowTutor(false)} 
+          question={question}
+          selectedLabel={selectedLabel}
+        />
       </div>
     );
   }
@@ -142,10 +160,27 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         </div>
       </div>
 
-      <Button onClick={onNext} size="lg" className="w-full btn-premium text-primary-foreground">
-        Next Question
-        <ChevronRight className="w-4 h-4 ml-1" />
-      </Button>
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowTutor(true)}
+          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary"
+        >
+          <Sparkles className="w-4 h-4" />
+          Ask Tutor
+        </button>
+        <Button onClick={onNext} size="lg" className="flex-1 btn-premium text-primary-foreground">
+          Next Question
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </Button>
+      </div>
+
+      <AskTutorModal 
+        isOpen={showTutor} 
+        onClose={() => setShowTutor(false)} 
+        question={question}
+        selectedLabel={selectedLabel}
+      />
     </div>
   );
 }

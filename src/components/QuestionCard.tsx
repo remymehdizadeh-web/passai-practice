@@ -139,17 +139,20 @@ export function QuestionCard({
         ))}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit Button - only show when not using confidence slider */}
       {!isSubmitted && (
-        <Button
-          variant="default"
-          size="lg"
+        <button
           onClick={() => localSelected && onSubmit(localSelected)}
           disabled={!localSelected}
-          className="w-full"
+          className={cn(
+            "w-full py-3.5 rounded-xl font-semibold transition-all",
+            localSelected 
+              ? "btn-premium" 
+              : "bg-muted text-muted-foreground cursor-not-allowed"
+          )}
         >
-          Submit
-        </Button>
+          Select Answer
+        </button>
       )}
     </div>
   );
