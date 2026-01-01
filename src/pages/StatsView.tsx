@@ -1,59 +1,52 @@
-import { useMemo } from 'react';
-import { useQuestions, useUserProgress, useConfidenceTrend } from '@/hooks/useQuestions';
+import { useMemo, useState } from 'react';
+import { useQuestions, useUserProgress } from '@/hooks/useQuestions';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
-import { ShareProgressCard } from '@/components/ShareProgressCard';
 import {
-  TrendingUp, 
-  TrendingDown,
-  Target,
+  TrendingUp,
   Flame,
+  ChevronDown,
+  ChevronUp,
   BarChart3,
-  Zap,
-  BookOpen,
-  CheckCircle2,
-  XCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-
 import { NCLEX_CATEGORIES, NCLEX_SHORT_NAMES, type NclexCategory } from '@/lib/categories';
 
 export function StatsView() {
   const { data: questions } = useQuestions();
   const { data: progress } = useUserProgress();
-  const { data: confidenceTrend } = useConfidenceTrend();
   const { data: profile } = useProfile();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   const stats = useMemo(() => {
     if (!progress || !questions) {
       return {
         totalAnswered: 0,
-        correctAnswers: 0,
-        incorrectAnswers: 0,
         accuracy: 0,
         readinessScore: null,
-        trend: 'stable' as const,
+        readinessLabel: 'Not enough data',
+        trend: null as number | null,
         categoryMastery: [],
         weakestAreas: [],
         strongestAreas: [],
-        accuracyTrend: [],
         streakDays: profile?.streak_days || 0,
-        todayCount: 0,
-        dailyGoal: profile?.study_goal_daily || 15,
+        weekCount: 0,
       };
     }
 
     const totalAnswered = progress.length;
     const correctAnswers = progress.filter(p => p.is_correct).length;
-    const incorrectAnswers = totalAnswered - correctAnswers;
     const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
 
-    // Today's progress
-    const today = new Date().toISOString().split('T')[0];
-    const todayCount = progress.filter(p => p.created_at.split('T')[0] === today).length;
+    // This week's count
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const weekCount = progress.filter(p => new Date(p.created_at) >= weekStart).length;
 
     // Category stats using NCLEX categories
     const nclexCategoryStats: Record<string, { correct: number; total: number }> = {};
@@ -76,64 +69,82 @@ export function StatsView() {
         shortName: NCLEX_SHORT_NAMES[category as NclexCategory] || category.split(' ').slice(0, 2).join(' '),
         accuracy: stats ? Math.round((stats.correct / stats.total) * 100) : 0,
         total: stats?.total || 0,
-        correct: stats?.correct || 0,
       };
     }).filter(c => c.total > 0);
 
     const sortedByAccuracy = [...categoryMastery].sort((a, b) => a.accuracy - b.accuracy);
-    const weakestAreas = sortedByAccuracy.slice(0, 3);
-    const strongestAreas = sortedByAccuracy.slice(-3).reverse();
+    const weakestAreas = sortedByAccuracy.slice(0, 2);
+    const strongestAreas = sortedByAccuracy.slice(-2).reverse();
 
-    // Trend calculation
-    const recentProgress = progress.slice(-20);
-    const olderProgress = progress.slice(-40, -20);
-    let trend: 'up' | 'down' | 'stable' = 'stable';
+    // Trend calculation (compare last 2 weeks)
+    const twoWeeksAgo = new Date(now);
+    twoWeeksAgo.setDate(now.getDate() - 14);
+    const lastWeekStart = new Date(now);
+    lastWeekStart.setDate(now.getDate() - 7);
     
-    if (recentProgress.length >= 10 && olderProgress.length >= 10) {
-      const recentAccuracy = recentProgress.filter(p => p.is_correct).length / recentProgress.length;
-      const olderAccuracy = olderProgress.filter(p => p.is_correct).length / olderProgress.length;
-      const diff = recentAccuracy - olderAccuracy;
-      if (diff > 0.05) trend = 'up';
-      else if (diff < -0.05) trend = 'down';
+    const thisWeekProgress = progress.filter(p => new Date(p.created_at) >= lastWeekStart);
+    const lastWeekProgress = progress.filter(p => {
+      const date = new Date(p.created_at);
+      return date >= twoWeeksAgo && date < lastWeekStart;
+    });
+    
+    let trend: number | null = null;
+    if (thisWeekProgress.length >= 5 && lastWeekProgress.length >= 5) {
+      const thisWeekAcc = thisWeekProgress.filter(p => p.is_correct).length / thisWeekProgress.length;
+      const lastWeekAcc = lastWeekProgress.filter(p => p.is_correct).length / lastWeekProgress.length;
+      trend = Math.round((thisWeekAcc - lastWeekAcc) * 100);
     }
 
     // Readiness score
     let readinessScore: number | null = null;
+    let readinessLabel = 'Answer 10+ questions';
+    
     if (totalAnswered >= 10) {
       const completionRate = Math.min(100, Math.round((totalAnswered / questions.length) * 100));
       const accuracyWeight = accuracy * 0.75;
       const completionWeight = completionRate * 0.15;
       const streakWeight = Math.min((profile?.streak_days || 0) * 2, 10);
       readinessScore = Math.round(accuracyWeight + completionWeight + streakWeight);
+      
+      if (readinessScore >= 70) {
+        readinessLabel = 'On track';
+      } else if (readinessScore >= 50) {
+        readinessLabel = 'Borderline';
+      } else {
+        readinessLabel = 'Needs work';
+      }
     }
 
     return {
       totalAnswered,
-      correctAnswers,
-      incorrectAnswers,
       accuracy,
       readinessScore,
+      readinessLabel,
       trend,
       categoryMastery,
       weakestAreas,
       strongestAreas,
       streakDays: profile?.streak_days || 0,
-      todayCount,
-      dailyGoal: profile?.study_goal_daily || 15,
+      weekCount,
     };
   }, [questions, progress, profile]);
 
+  const handleCategoryTap = (category: string) => {
+    // Navigate to practice with category filter
+    navigate('/', { state: { tab: 'practice', category } });
+  };
+
   if (!user) {
     return (
-      <div className="pb-6 flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-6">
-          <BarChart3 className="w-10 h-10 text-primary" />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+          <BarChart3 className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">Track Your Progress</h2>
-        <p className="text-sm text-muted-foreground mb-6 max-w-xs">Sign in to see detailed analytics and track your NCLEX prep journey</p>
+        <h2 className="text-lg font-bold text-foreground mb-1">Track Your Progress</h2>
+        <p className="text-sm text-muted-foreground mb-4">Sign in to see your stats</p>
         <button 
           onClick={() => navigate('/auth')}
-          className="btn-premium px-8 py-3"
+          className="btn-premium px-6 py-2.5 text-sm text-primary-foreground"
         >
           Get Started
         </button>
@@ -141,130 +152,124 @@ export function StatsView() {
     );
   }
 
-  const goalProgress = Math.min(100, Math.round((stats.todayCount / stats.dailyGoal) * 100));
-
   return (
-    <div className="pb-4 space-y-3">
-      {/* Hero Row: Accuracy + Readiness side by side */}
-      <div className="grid grid-cols-5 gap-3">
-        {/* Main Accuracy */}
-        <div className="col-span-3 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-accent p-4 text-primary-foreground">
-          <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full" />
-          <p className="text-xs opacity-80 mb-0.5">Accuracy</p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black">{stats.accuracy}</span>
-            <span className="text-lg font-bold">%</span>
-            {stats.trend === 'up' && <TrendingUp className="w-4 h-4 ml-1 opacity-80" />}
-            {stats.trend === 'down' && <TrendingDown className="w-4 h-4 ml-1 opacity-80" />}
-          </div>
-          <div className="flex gap-3 mt-2 text-xs opacity-90">
-            <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />{stats.correctAnswers}
-            </span>
-            <span className="flex items-center gap-1">
-              <XCircle className="w-3 h-3" />{stats.incorrectAnswers}
-            </span>
-          </div>
-        </div>
-
-        {/* Readiness Score */}
-        <div className="col-span-2 bg-card border border-border rounded-2xl p-4 flex flex-col items-center justify-center">
+    <div className="px-4 pb-4 space-y-4">
+      {/* 1. HERO - Readiness Score */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-6 text-center">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(0,0,0,0.1),transparent_50%)]" />
+        
+        <div className="relative">
           {stats.readinessScore !== null ? (
             <>
-              <div className={cn(
-                "text-3xl font-black",
-                stats.readinessScore >= 70 ? "text-success" : 
-                stats.readinessScore >= 50 ? "text-warning" : "text-destructive"
-              )}>
-                {stats.readinessScore}
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-6xl font-black text-primary-foreground tracking-tight">
+                  {stats.readinessScore}
+                </span>
+                {stats.trend !== null && stats.trend !== 0 && (
+                  <div className={cn(
+                    "flex items-center gap-0.5 px-2 py-1 rounded-full text-xs font-semibold",
+                    stats.trend > 0 
+                      ? "bg-white/20 text-white" 
+                      : "bg-black/20 text-white/80"
+                  )}>
+                    <TrendingUp className={cn("w-3 h-3", stats.trend < 0 && "rotate-180")} />
+                    {stats.trend > 0 ? '+' : ''}{stats.trend}%
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground text-center mt-1">Readiness</p>
+              <p className="text-primary-foreground/80 text-sm font-medium mt-1">
+                {stats.readinessLabel}
+              </p>
             </>
           ) : (
             <>
-              <span className="text-2xl font-black text-muted-foreground">--</span>
-              <p className="text-xs text-muted-foreground text-center mt-1">10+ for score</p>
+              <span className="text-5xl font-black text-primary-foreground/60">—</span>
+              <p className="text-primary-foreground/60 text-sm mt-1">{stats.readinessLabel}</p>
             </>
           )}
         </div>
       </div>
 
-      {/* Quick Stats + Daily Goal Row */}
-      <div className="grid grid-cols-4 gap-2">
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
-          <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
-          <p className="text-lg font-black text-foreground">{stats.streakDays}</p>
-          <p className="text-[10px] text-muted-foreground">streak</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
-          <Target className="w-4 h-4 text-primary mx-auto mb-1" />
-          <p className="text-lg font-black text-foreground">{stats.totalAnswered}</p>
-          <p className="text-[10px] text-muted-foreground">total</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
-          <Zap className="w-4 h-4 text-accent mx-auto mb-1" />
-          <p className="text-lg font-black text-foreground">{stats.todayCount}</p>
-          <p className="text-[10px] text-muted-foreground">today</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center relative overflow-hidden">
-          <BookOpen className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
-          <p className="text-lg font-black text-foreground">{goalProgress}%</p>
-          <p className="text-[10px] text-muted-foreground">goal</p>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
-            <div 
-              className={cn(
-                "h-full",
-                goalProgress >= 100 ? "bg-success" : "bg-primary"
-              )}
-              style={{ width: `${goalProgress}%` }}
-            />
+      {/* 2. QUICK STATS - Single row, 3 items */}
+      <div className="grid grid-cols-3 gap-3">
+        <button className="bg-card border border-border rounded-xl p-3 text-center active:scale-95 transition-transform">
+          <div className="flex items-center justify-center gap-1.5 mb-1">
+            <Flame className="w-4 h-4 text-orange-500" />
+            <span className="text-xl font-black text-foreground">{stats.streakDays}</span>
           </div>
-        </div>
+          <p className="text-[11px] text-muted-foreground font-medium">Streak</p>
+        </button>
+        
+        <button className="bg-card border border-border rounded-xl p-3 text-center active:scale-95 transition-transform">
+          <span className="text-xl font-black text-foreground block mb-1">{stats.weekCount}</span>
+          <p className="text-[11px] text-muted-foreground font-medium">This week</p>
+        </button>
+        
+        <button className="bg-card border border-border rounded-xl p-3 text-center active:scale-95 transition-transform">
+          <span className="text-xl font-black text-foreground block mb-1">{stats.accuracy}%</span>
+          <p className="text-[11px] text-muted-foreground font-medium">Accuracy</p>
+        </button>
       </div>
 
-      {/* Focus + Strengths in 2 columns */}
+      {/* 3. FOCUS vs STRENGTHS */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Focus Areas */}
-        <div className="bg-card border border-border rounded-2xl p-3">
-          <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-            Focus Areas
-          </h3>
+        {/* Focus Next */}
+        <div className="bg-card border border-border rounded-xl p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-warning" />
+            <h3 className="text-xs font-semibold text-foreground">Focus next</h3>
+          </div>
           {stats.weakestAreas.length > 0 ? (
             <div className="space-y-2">
-              {stats.weakestAreas.slice(0, 3).map((area) => (
-                <div key={area.category} className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-foreground truncate flex-1">{area.shortName}</span>
-                  <span className={cn(
-                    "text-xs font-bold shrink-0",
-                    area.accuracy >= 70 ? "text-success" :
-                    area.accuracy >= 50 ? "text-warning" : "text-destructive"
-                  )}>
-                    {area.accuracy}%
-                  </span>
-                </div>
+              {stats.weakestAreas.map((area) => (
+                <button
+                  key={area.category}
+                  onClick={() => handleCategoryTap(area.category)}
+                  className="w-full text-left group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground group-active:text-primary transition-colors truncate pr-2">
+                      {area.shortName}
+                    </span>
+                    <span className={cn(
+                      "text-xs font-bold shrink-0",
+                      area.accuracy >= 50 ? "text-warning" : "text-destructive"
+                    )}>
+                      {area.accuracy}%
+                    </span>
+                  </div>
+                </button>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">No data yet</p>
+            <p className="text-xs text-muted-foreground">Start practicing</p>
           )}
         </div>
 
-        {/* Strengths */}
-        <div className="bg-card border border-border rounded-2xl p-3">
-          <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-success" />
-            Strengths
-          </h3>
+        {/* Strong Areas */}
+        <div className="bg-card border border-border rounded-xl p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-success" />
+            <h3 className="text-xs font-semibold text-foreground">Strong areas</h3>
+          </div>
           {stats.strongestAreas.length > 0 && stats.strongestAreas[0].accuracy > 0 ? (
             <div className="space-y-2">
-              {stats.strongestAreas.slice(0, 3).map((area) => (
-                <div key={area.category} className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-foreground truncate flex-1">{area.shortName}</span>
-                  <span className="text-xs font-bold text-success shrink-0">
-                    {area.accuracy}%
-                  </span>
-                </div>
+              {stats.strongestAreas.map((area) => (
+                <button
+                  key={area.category}
+                  onClick={() => handleCategoryTap(area.category)}
+                  className="w-full text-left group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground group-active:text-primary transition-colors truncate pr-2">
+                      {area.shortName}
+                    </span>
+                    <span className="text-xs font-bold text-success shrink-0">
+                      {area.accuracy}%
+                    </span>
+                  </div>
+                </button>
               ))}
             </div>
           ) : (
@@ -273,51 +278,57 @@ export function StatsView() {
         </div>
       </div>
 
-      {/* All Categories - Compact Grid */}
+      {/* 4. ALL CATEGORIES - Collapsed by default */}
       {stats.categoryMastery.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-3">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-semibold text-foreground">All Categories</h3>
-            {stats.strongestAreas[0] && (
-              <ShareProgressCard
-                category={stats.strongestAreas[0].category}
-                previousAccuracy={Math.max(0, stats.strongestAreas[0].accuracy - 8)}
-                currentAccuracy={stats.strongestAreas[0].accuracy}
-                questionsCompleted={stats.totalAnswered}
-                streakDays={stats.streakDays}
-              />
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <button 
+            onClick={() => setShowAllCategories(!showAllCategories)}
+            className="w-full flex items-center justify-between p-3 active:bg-muted/50 transition-colors"
+          >
+            <span className="text-sm font-medium text-foreground">View all NCLEX categories</span>
+            {showAllCategories ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             )}
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-            {stats.categoryMastery.map((cat) => (
-              <div key={cat.category} className="flex items-center gap-2">
-                <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full shrink-0",
-                    cat.accuracy >= 70 ? "bg-success" :
-                    cat.accuracy >= 50 ? "bg-warning" : "bg-destructive"
-                  )} />
-                  <span className="text-xs text-foreground truncate">{cat.shortName}</span>
-                </div>
-                <span className={cn(
-                  "text-xs font-bold shrink-0",
-                  cat.accuracy >= 70 ? "text-success" :
-                  cat.accuracy >= 50 ? "text-warning" : "text-destructive"
-                )}>
-                  {cat.accuracy}%
-                </span>
-              </div>
-            ))}
-          </div>
+          </button>
+          
+          {showAllCategories && (
+            <div className="px-3 pb-3 space-y-2 border-t border-border pt-3">
+              {stats.categoryMastery.map((cat) => (
+                <button
+                  key={cat.category}
+                  onClick={() => handleCategoryTap(cat.category)}
+                  className="w-full flex items-center justify-between py-1.5 group"
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full shrink-0",
+                      cat.accuracy >= 70 ? "bg-success" :
+                      cat.accuracy >= 50 ? "bg-warning" : "bg-destructive"
+                    )} />
+                    <span className="text-sm text-foreground truncate group-active:text-primary transition-colors">
+                      {cat.shortName}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    "text-xs font-bold shrink-0 ml-2",
+                    cat.accuracy >= 70 ? "text-success" :
+                    cat.accuracy >= 50 ? "text-warning" : "text-destructive"
+                  )}>
+                    {cat.accuracy}%
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Empty state */}
       {stats.totalAnswered === 0 && (
-        <div className="text-center py-6">
-          <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm font-medium text-foreground">No data yet</p>
-          <p className="text-xs text-muted-foreground">Start practicing to see stats</p>
+        <div className="text-center py-8">
+          <p className="text-sm text-muted-foreground">Start practicing to see your stats</p>
         </div>
       )}
     </div>
