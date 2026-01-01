@@ -280,20 +280,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
           Account Management
         </p>
         <div className="space-y-2">
-          <button
-            onClick={handleResetProgress}
-            className="w-full bg-card border border-border border-l-4 border-l-destructive rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
-          >
-            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
-              <RotateCcw className="w-5 h-5 text-destructive" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-foreground">Reset Progress</p>
-              <p className="text-xs text-muted-foreground">Clear all your study data</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-          </button>
-
           {user && (
             <button
               onClick={handleSignOut}
