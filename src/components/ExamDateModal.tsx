@@ -11,7 +11,15 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { useUpdateProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { format, addDays, addWeeks, addMonths } from 'date-fns';
+import { format, addWeeks, addMonths } from 'date-fns';
+
+// Haptic feedback utility
+const triggerHaptic = (style: 'light' | 'medium' | 'heavy' = 'light') => {
+  if ('vibrate' in navigator) {
+    const patterns = { light: 10, medium: 20, heavy: 30 };
+    navigator.vibrate(patterns[style]);
+  }
+};
 
 interface ExamDateModalProps {
   isOpen: boolean;
@@ -67,6 +75,7 @@ export function ExamDateModal({ isOpen, onClose, currentDate }: ExamDateModalPro
   };
 
   const handleQuickSelect = (date: Date) => {
+    triggerHaptic('medium');
     setSelectedDate(date);
     setShowCalendar(false);
   };
@@ -101,10 +110,10 @@ export function ExamDateModal({ isOpen, onClose, currentDate }: ExamDateModalPro
                   key={option.label}
                   onClick={() => handleQuickSelect(option.date)}
                   className={cn(
-                    "p-3 rounded-xl border text-center transition-all active:scale-95",
+                    "p-3 rounded-xl border text-center transition-all duration-200 active:scale-95",
                     isQuickOptionSelected(option.date)
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-background hover:border-primary/50"
+                      ? "border-primary bg-primary/10 text-primary animate-scale-in"
+                      : "border-border bg-background hover:border-primary/50 hover:bg-primary/5"
                   )}
                 >
                   <p className="text-sm font-semibold">{option.label}</p>
@@ -114,12 +123,15 @@ export function ExamDateModal({ isOpen, onClose, currentDate }: ExamDateModalPro
                 </button>
               ))}
               <button
-                onClick={() => setShowCalendar(!showCalendar)}
+                onClick={() => {
+                  triggerHaptic('light');
+                  setShowCalendar(!showCalendar);
+                }}
                 className={cn(
-                  "p-3 rounded-xl border text-center transition-all active:scale-95",
+                  "p-3 rounded-xl border text-center transition-all duration-200 active:scale-95",
                   showCalendar
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-background hover:border-primary/50"
+                    : "border-border bg-background hover:border-primary/50 hover:bg-primary/5"
                 )}
               >
                 <Calendar className="w-4 h-4 mx-auto mb-0.5" />
@@ -130,13 +142,16 @@ export function ExamDateModal({ isOpen, onClose, currentDate }: ExamDateModalPro
 
           {/* Calendar picker */}
           {showCalendar && (
-            <div className="border border-border rounded-xl p-2 bg-background">
+            <div className="border border-border rounded-xl p-2 bg-background animate-fade-in">
               <CalendarComponent
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => {
-                  setSelectedDate(date);
-                  if (date) setShowCalendar(false);
+                  if (date) {
+                    triggerHaptic('medium');
+                    setSelectedDate(date);
+                    setShowCalendar(false);
+                  }
                 }}
                 disabled={(date) => date < new Date()}
                 initialFocus
@@ -147,7 +162,7 @@ export function ExamDateModal({ isOpen, onClose, currentDate }: ExamDateModalPro
 
           {/* Selected date display */}
           {selectedDate && (
-            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 animate-scale-in">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground">Selected date</p>
@@ -155,7 +170,9 @@ export function ExamDateModal({ isOpen, onClose, currentDate }: ExamDateModalPro
                     {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                   </p>
                 </div>
-                <Check className="w-5 h-5 text-primary" />
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-primary" />
+                </div>
               </div>
             </div>
           )}
