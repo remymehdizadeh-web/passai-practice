@@ -5,13 +5,14 @@ import { BottomNav, type Tab } from '@/components/BottomNav';
 import { HomeView } from '@/pages/HomeView';
 import { PracticeView } from '@/pages/PracticeView';
 import { ReviewView } from '@/pages/ReviewView';
-import { PlanView } from '@/pages/PlanView';
 import { StatsView } from '@/pages/StatsView';
 import { SettingsView } from '@/pages/SettingsView';
 import { WeakAreaMode } from '@/components/WeakAreaMode';
+import { SmartReminderBanner } from '@/components/SmartReminderBanner';
 import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useSmartReminders } from '@/hooks/useSmartReminders';
 import { Helmet } from 'react-helmet';
 
 type ReviewFilter = 'bookmarked' | 'missed';
@@ -25,6 +26,7 @@ const Index = () => {
   
   const { user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const { reminder, dismissReminder } = useSmartReminders();
 
   // Check if new user needs onboarding (signed in but no exam_date or goal set)
   useEffect(() => {
@@ -52,12 +54,13 @@ const Index = () => {
     }
   };
 
-  const handlePlanNavigate = (tab: 'practice') => {
-    setActiveTab(tab);
-  };
-
   const handleOpenWeakArea = () => {
     setShowWeakAreaMode(true);
+  };
+
+  const handleReminderPractice = () => {
+    dismissReminder();
+    setActiveTab('practice');
   };
 
   if (showSplash) {
@@ -90,6 +93,15 @@ const Index = () => {
         <title>NCLEX RN Pro - Practice</title>
         <meta name="description" content="Practice NCLEX-RN questions with detailed explanations. Master your nursing exam with expert-crafted content." />
       </Helmet>
+      
+      {/* Smart Reminder Banner */}
+      {reminder?.shouldRemind && reminder.message && (
+        <SmartReminderBanner
+          message={reminder.message}
+          onDismiss={dismissReminder}
+          onStartPractice={handleReminderPractice}
+        />
+      )}
       
       <div className="min-h-screen bg-background">
         <main className="max-w-lg mx-auto px-4 pt-6 pb-20">
