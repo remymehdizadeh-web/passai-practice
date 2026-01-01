@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +14,8 @@ interface ReadinessGaugeProps {
 }
 
 export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
+  const navigate = useNavigate();
+  
   const getScoreColor = () => {
     if (score >= 80) return 'text-success';
     if (score >= 65) return 'text-warning';
@@ -27,23 +30,30 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
     return 'Starting';
   };
 
+  const handleClick = () => {
+    navigate('/', { state: { tab: 'stats' } });
+  };
+
   return (
-    <div className="flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-card border border-border">
+    <button
+      onClick={handleClick}
+      className="flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-card border border-border hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.98]"
+    >
       <div className={cn(
         "text-2xl font-bold",
         getScoreColor()
       )}>
         {score}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center gap-2">
           <p className="text-xs text-muted-foreground">Readiness</p>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button className="text-muted-foreground hover:text-foreground transition-colors">
+                <span className="text-muted-foreground hover:text-foreground transition-colors">
                   <Info className="w-3 h-3" />
-                </button>
+                </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px] text-xs">
                 <p className="font-medium mb-1">How it's calculated:</p>
@@ -73,6 +83,6 @@ export function ReadinessGauge({ score, trend }: ReadinessGaugeProps) {
           {getReadinessLabel()}
         </p>
       </div>
-    </div>
+    </button>
   );
 }

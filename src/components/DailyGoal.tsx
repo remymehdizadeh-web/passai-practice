@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import { Target, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Target, CheckCircle2, ChevronRight, PartyPopper } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
 
 interface DailyGoalProps {
   target: number;
@@ -7,13 +8,54 @@ interface DailyGoalProps {
   onStartPractice: () => void;
 }
 
+// Confetti particle component
+function ConfettiParticle({ delay, left }: { delay: number; left: number }) {
+  const colors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  
+  return (
+    <div
+      className="absolute w-2 h-2 rounded-full animate-confetti"
+      style={{
+        left: `${left}%`,
+        backgroundColor: color,
+        animationDelay: `${delay}ms`,
+      }}
+    />
+  );
+}
+
 export function DailyGoal({ target, completed, onStartPractice }: DailyGoalProps) {
   const progress = Math.min((completed / target) * 100, 100);
   const remaining = Math.max(target - completed, 0);
   const isComplete = completed >= target;
+  const [showCelebration, setShowCelebration] = useState(false);
+  const prevCompleted = useRef(completed);
+  const hasShownCelebration = useRef(false);
+
+  // Detect when goal is just completed (transition from incomplete to complete)
+  useEffect(() => {
+    const wasComplete = prevCompleted.current >= target;
+    const nowComplete = completed >= target;
+    
+    // Only show celebration on the transition to complete, and only once per session
+    if (!wasComplete && nowComplete && !hasShownCelebration.current) {
+      setShowCelebration(true);
+      hasShownCelebration.current = true;
+      
+      // Hide celebration after animation
+      const timer = setTimeout(() => {
+        setShowCelebration(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+    
+    prevCompleted.current = completed;
+  }, [completed, target]);
 
   const getMessage = () => {
-    if (isComplete) return "Great work today. Come back tomorrow.";
+    if (isComplete) return "Great work today! 🎉";
     if (remaining <= 3) return "Almost there. Quick finish.";
     if (completed === 0) return "Ready when you are.";
     return `${remaining} more to hit your goal.`;
@@ -24,19 +66,37 @@ export function DailyGoal({ target, completed, onStartPractice }: DailyGoalProps
       onClick={onStartPractice}
       disabled={isComplete}
       className={cn(
-        "w-full rounded-2xl p-4 text-left transition-all",
+        "w-full rounded-2xl p-4 text-left transition-all relative overflow-hidden",
         isComplete 
           ? "bg-emerald-500/10 border border-emerald-500/20" 
           : "bg-card border border-border hover:bg-muted/30 active:scale-[0.99]"
       )}
     >
-      <div className="flex items-center gap-3">
+      {/* Confetti celebration */}
+      {showCelebration && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <ConfettiParticle 
+              key={i} 
+              delay={i * 50} 
+              left={Math.random() * 100} 
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 relative z-10">
         <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center",
-          isComplete ? "bg-emerald-500/20" : "bg-primary/10"
+          "w-12 h-12 rounded-xl flex items-center justify-center transition-transform",
+          isComplete ? "bg-emerald-500/20" : "bg-primary/10",
+          showCelebration && "animate-bounce"
         )}>
           {isComplete ? (
-            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            showCelebration ? (
+              <PartyPopper className="w-6 h-6 text-emerald-500" />
+            ) : (
+              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            )
           ) : (
             <Target className="w-6 h-6 text-primary" />
           )}
@@ -65,7 +125,10 @@ export function DailyGoal({ target, completed, onStartPractice }: DailyGoalProps
             />
           </div>
           
-          <p className="text-xs text-muted-foreground">
+          <p className={cn(
+            "text-xs",
+            isComplete ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-muted-foreground"
+          )}>
             {getMessage()}
           </p>
         </div>
