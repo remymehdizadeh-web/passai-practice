@@ -114,7 +114,7 @@ const Index = () => {
           {activeTab === 'practice' && <PracticeView />}
           {activeTab === 'review' && <ReviewView initialFilter={reviewFilter} />}
           {activeTab === 'stats' && <StatsView />}
-          {activeTab === 'account' && <SettingsView />}
+          {activeTab === 'account' && <SettingsView onNavigateToStats={() => setActiveTab('stats')} />}
         </main>
 
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
