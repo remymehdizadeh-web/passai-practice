@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { LogIn, Sparkles, Target, Zap, Trophy, BookOpen, TrendingUp } from 'lucide-react';
+import { LogIn, Sparkles, Target, Zap, BookOpen, TrendingUp, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import logoIcon from '@/assets/logo-icon.png';
@@ -38,7 +38,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         </div>
         <div className="absolute bottom-[35%] right-[15%] animate-float opacity-15" style={{ animationDelay: '0.8s' }}>
           <div className="w-11 h-11 rounded-xl bg-warning/10 flex items-center justify-center">
-            <Trophy className="w-5 h-5 text-warning" />
+            <BarChart3 className="w-5 h-5 text-warning" />
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         <div className="relative mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-2xl scale-150" />
           <div className="relative w-24 h-24 rounded-3xl overflow-hidden shadow-xl border-2 border-primary/20">
-            <img src={logoIcon} alt="NCLEX RN Pro" className="w-full h-full object-cover" />
+            <img src={logoIcon} alt="NCLEX RN Go" className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-lg">
             <Sparkles className="w-4 h-4 text-accent-foreground" />
@@ -59,7 +59,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         {/* Brand text */}
         <div className="text-center mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
-            NCLEX RN Pro
+            NCLEX RN Go
           </h1>
           <p className="text-lg text-muted-foreground font-medium">
             Your path to passing the NCLEX-RN
@@ -87,10 +87,10 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
             
             <div className="card-organic p-4 text-center">
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-success" />
+                <BarChart3 className="w-6 h-6 text-success" />
               </div>
-              <p className="text-xs font-semibold text-foreground">Compete</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Leaderboards</p>
+              <p className="text-xs font-semibold text-foreground">Analytics</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Personal stats</p>
             </div>
           </div>
         </div>

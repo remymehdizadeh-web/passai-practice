@@ -54,9 +54,9 @@ export function SettingsView() {
     <div className="pb-6 space-y-6">
       {/* App Branding */}
       <div className="flex items-center gap-3">
-        <img src={logoIcon} alt="NCLEX RN Pro" className="w-12 h-12 rounded-xl shadow-lg" />
+        <img src={logoIcon} alt="NCLEX RN Go" className="w-12 h-12 rounded-xl shadow-lg" />
         <div>
-          <h1 className="text-xl font-bold text-foreground">NCLEX RN Pro</h1>
+          <h1 className="text-xl font-bold text-foreground">NCLEX RN Go</h1>
           <p className="text-sm text-muted-foreground">Settings & Account</p>
         </div>
       </div>
