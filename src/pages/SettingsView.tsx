@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { clearProgress } from '@/lib/session';
+import { clearAllProgress } from '@/lib/session';
 
 export function SettingsView() {
   const { user, signOut } = useAuth();
@@ -35,9 +35,10 @@ export function SettingsView() {
     toast.success('Signed out successfully');
   };
 
-  const handleResetProgress = () => {
+  const handleResetProgress = async () => {
     if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
-      clearProgress();
+      await clearAllProgress();
+      toast.success('Progress reset successfully');
       window.location.reload();
     }
   };

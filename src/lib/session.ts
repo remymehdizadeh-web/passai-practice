@@ -1,4 +1,5 @@
 // Session management for anonymous users
+import { supabase } from '@/integrations/supabase/client';
 
 const SESSION_KEY = 'nclexgo_session_id';
 const QUESTIONS_ANSWERED_KEY = 'nclexgo_questions_answered';
@@ -42,7 +43,18 @@ export function markOnboardingSeen(): void {
   localStorage.setItem('nclexgo_onboarding_seen', 'true');
 }
 
-export function clearProgress(): void {
+export async function clearAllProgress(): Promise<void> {
+  const sessionId = getSessionId();
+  
+  // Clear database tables
+  await Promise.all([
+    supabase.from('user_progress').delete().eq('session_id', sessionId),
+    supabase.from('review_queue').delete().eq('session_id', sessionId),
+    supabase.from('bookmarks').delete().eq('session_id', sessionId),
+    supabase.from('ai_tutor_usage').delete().eq('session_id', sessionId),
+  ]);
+  
+  // Clear localStorage
   localStorage.removeItem(QUESTIONS_ANSWERED_KEY);
   localStorage.removeItem('nclexgo_points');
 }
