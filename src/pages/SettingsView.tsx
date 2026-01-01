@@ -147,34 +147,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
         </div>
       </button>
 
-      {/* Progress Summary - Links to Stats */}
-      <button
-        onClick={onNavigateToStats}
-        className="w-full bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99] cursor-pointer"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-primary" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-foreground">Your Progress</p>
-              <p className="text-xs text-muted-foreground">
-                {totalAnswered} answered · {accuracy}% accuracy
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {(profile?.streak_days || 0) > 0 && (
-              <span className="px-2 py-1 bg-accent/10 text-accent text-xs font-bold rounded-lg flex items-center gap-1">
-                <Flame className="w-3 h-3" />
-                {profile?.streak_days}
-              </span>
-            )}
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </div>
-        </div>
-      </button>
 
       {/* Your Progress Section */}
       <div className="space-y-2">
