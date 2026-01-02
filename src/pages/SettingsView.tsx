@@ -10,7 +10,6 @@ import { ProfileEditModal } from '@/components/ProfileEditModal';
 import { HelpCenterModal } from '@/components/HelpCenterModal';
 import { ContactSupportModal } from '@/components/ContactSupportModal';
 import { PrivacyPolicyModal } from '@/components/PrivacyPolicyModal';
-import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
 import { Switch } from '@/components/ui/switch';
@@ -22,7 +21,6 @@ import {
   Star,
   LogOut,
   ChevronRight,
-  Sparkles,
   Shield,
   Crown,
   Moon,
@@ -35,15 +33,10 @@ import {
   Mail,
   Lock,
   Download,
-  Trash2,
-  Shuffle,
-  Lightbulb,
-  Volume2,
-  AlarmClock
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { clearAllProgress } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
@@ -79,11 +72,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const queryClient = useQueryClient();
   const { isSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
 
-  // Study preferences state (stored locally for now)
-  const [randomizeQuestions, setRandomizeQuestions] = useState(false);
-  const [autoShowExplanations, setAutoShowExplanations] = useState(true);
-  const [timedMode, setTimedMode] = useState(false);
-  const [soundEffects, setSoundEffects] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
 
   const handleSignOut = async () => {
@@ -93,7 +81,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   };
 
   const handleDeleteAccount = async () => {
-    // This would need backend implementation
     toast.error('Account deletion requires contacting support');
     setShowDeleteDialog(false);
   };
@@ -121,7 +108,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   };
 
   const handleRateApp = () => {
-    // Open App Store rating page (placeholder)
     toast.info('Thank you for your feedback!');
   };
 
@@ -137,7 +123,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
     ? Math.max(0, Math.ceil((new Date(profile.exam_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
 
-  // Get initials for avatar
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Student';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -212,51 +197,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             subtitle={`${profile?.study_goal_daily || 15} questions per day`}
             hint="Tap to adjust"
             onClick={() => setShowGoalEdit(true)}
-          />
-        </div>
-      </div>
-
-      {/* Study Preferences Section */}
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
-          Study Preferences
-        </p>
-        <div className="space-y-2">
-          <SettingsToggle
-            icon={Shuffle}
-            iconBg="bg-purple-500/10"
-            iconColor="text-purple-500"
-            title="Randomize Questions"
-            subtitle="Mix up question order each session"
-            checked={randomizeQuestions}
-            onCheckedChange={setRandomizeQuestions}
-          />
-          <SettingsToggle
-            icon={Lightbulb}
-            iconBg="bg-yellow-500/10"
-            iconColor="text-yellow-500"
-            title="Auto-Show Explanations"
-            subtitle="Show explanations after each answer"
-            checked={autoShowExplanations}
-            onCheckedChange={setAutoShowExplanations}
-          />
-          <SettingsToggle
-            icon={AlarmClock}
-            iconBg="bg-blue-500/10"
-            iconColor="text-blue-500"
-            title="Timed Practice Mode"
-            subtitle="Practice with time pressure"
-            checked={timedMode}
-            onCheckedChange={setTimedMode}
-          />
-          <SettingsToggle
-            icon={Volume2}
-            iconBg="bg-green-500/10"
-            iconColor="text-green-500"
-            title="Sound Effects"
-            subtitle="Play sounds for correct/incorrect answers"
-            checked={soundEffects}
-            onCheckedChange={setSoundEffects}
           />
         </div>
       </div>
