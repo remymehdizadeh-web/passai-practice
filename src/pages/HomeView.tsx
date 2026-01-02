@@ -162,7 +162,7 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
   }, [questions, progress, bookmarks, missedQuestions, streakDays]);
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-120px)] overflow-y-auto pb-4">
+    <div className="flex flex-col pb-4">
       {/* Header row */}
       <div className="flex items-center justify-between mb-6 pt-2 flex-shrink-0">
         <div className="space-y-1">
