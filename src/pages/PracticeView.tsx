@@ -115,6 +115,9 @@ export function PracticeView() {
       return;
     }
 
+    // Scroll to top before changing question
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (currentIndex < (prioritizedQuestions?.length || 0) - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
