@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useProfile';
 import { useUserProgress } from '@/hooks/useQuestions';
-import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
+import { useSubscription } from '@/hooks/useSubscription';
 import { ExamDateModal } from '@/components/ExamDateModal';
 import { GoalEditModal } from '@/components/GoalEditModal';
 import { PaywallModal } from '@/components/PaywallModal';
@@ -12,13 +12,11 @@ import { ContactSupportModal } from '@/components/ContactSupportModal';
 import { PrivacyPolicyModal } from '@/components/PrivacyPolicyModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import logoIcon from '@/assets/logo-icon.png';
 import { useTheme } from 'next-themes';
+import { Switch } from '@/components/ui/switch';
 import { 
-  User, 
   Calendar, 
   Target, 
-  Trophy, 
   HelpCircle, 
   MessageSquare, 
   Star,
@@ -27,21 +25,37 @@ import {
   Sparkles,
   Shield,
   Crown,
-  Check,
-  Flame,
   Moon,
   Sun,
   Monitor,
   Pencil,
   CreditCard,
   Bell,
-  ExternalLink
+  Clock,
+  Mail,
+  Lock,
+  Download,
+  Trash2,
+  Shuffle,
+  Lightbulb,
+  Volume2,
+  AlarmClock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { clearAllProgress } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SettingsViewProps {
   onNavigateToStats?: () => void;
@@ -59,69 +73,65 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const [showHelpCenter, setShowHelpCenter] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const updateProfile = useUpdateProfile();
-  const { isSupported, isSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
+  const { isSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
+
+  // Study preferences state (stored locally for now)
+  const [randomizeQuestions, setRandomizeQuestions] = useState(false);
+  const [autoShowExplanations, setAutoShowExplanations] = useState(true);
+  const [timedMode, setTimedMode] = useState(false);
+  const [soundEffects, setSoundEffects] = useState(true);
+  const [emailNotifications, setEmailNotifications] = useState(false);
 
   const handleSignOut = async () => {
-    if (confirm('Sign out? Your progress is saved in the cloud.')) {
-      await signOut();
-      toast.success('Signed out successfully');
+    await signOut();
+    toast.success('Signed out successfully');
+    setShowSignOutDialog(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    // This would need backend implementation
+    toast.error('Account deletion requires contacting support');
+    setShowDeleteDialog(false);
+  };
+
+  const handleExportData = async () => {
+    if (!progress) {
+      toast.error('No data to export');
+      return;
     }
+    
+    const data = {
+      exportDate: new Date().toISOString(),
+      totalQuestions: progress.length,
+      progress: progress
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nclex-progress-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Data exported successfully');
   };
 
-  const handleResetProgress = async () => {
-    if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
-      try {
-        // Clear local storage progress
-        await clearAllProgress();
-        
-        // If user is authenticated, also reset their profile streak
-        if (user?.id) {
-          await supabase
-            .from('profiles')
-            .update({ streak_days: 0, last_study_date: null })
-            .eq('id', user.id);
-        }
-        
-        // Invalidate all relevant queries
-        queryClient.invalidateQueries({ queryKey: ['profile'] });
-        queryClient.invalidateQueries({ queryKey: ['user-progress'] });
-        queryClient.invalidateQueries({ queryKey: ['review-queue'] });
-        queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-        
-        toast.success('Progress reset successfully');
-        window.location.reload();
-      } catch (error) {
-        toast.error('Failed to reset progress');
-      }
-    }
-  };
-
-  const handleHelpCenter = () => {
-    setShowHelpCenter(true);
-  };
-
-  const handleContactSupport = () => {
-    setShowContactSupport(true);
-  };
-
-  const handlePrivacyPolicy = () => {
-    setShowPrivacyPolicy(true);
+  const handleRateApp = () => {
+    // Open App Store rating page (placeholder)
+    toast.info('Thank you for your feedback!');
   };
 
   const handlePushToggle = async () => {
-    if (isSubscribed) {
+    if (pushSubscribed) {
       await unsubscribe();
     } else {
       await subscribe();
     }
   };
-
-  const totalAnswered = progress?.length || 0;
-  const correctAnswers = progress?.filter(p => p.is_correct).length || 0;
-  const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
 
   const daysUntilExam = profile?.exam_date 
     ? Math.max(0, Math.ceil((new Date(profile.exam_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -133,26 +143,26 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
 
   return (
     <div className="pb-6 space-y-6">
-      {/* Profile Section */}
+      {/* Profile Header */}
       <button
         onClick={() => user && setShowProfileEdit(true)}
-        className="w-full bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-border rounded-2xl p-5 hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99] text-left"
+        className="w-full bg-card border border-border rounded-2xl p-4 hover:shadow-md transition-all active:scale-[0.99] text-left"
       >
         <div className="flex items-center gap-4">
           {profile?.avatar_url ? (
             <img 
               src={profile.avatar_url} 
               alt="Avatar" 
-              className="w-16 h-16 rounded-2xl object-cover shadow-lg"
+              className="w-14 h-14 rounded-full object-cover shadow-md"
             />
           ) : (
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold text-white">{initials}</span>
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
+              <span className="text-lg font-bold text-white">{initials}</span>
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-lg text-foreground truncate">
+              <p className="font-semibold text-foreground truncate">
                 {displayName}
               </p>
               {subscribed ? (
@@ -170,65 +180,94 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             </p>
           </div>
           {user && (
-            <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
               <Pencil className="w-4 h-4 text-muted-foreground" />
             </div>
           )}
         </div>
       </button>
 
-
-      {/* Your Progress Section */}
+      {/* Exam Preparation Section */}
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
-          Your Progress
+        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
+          Exam Preparation
         </p>
         <div className="space-y-2">
-          <button
+          <SettingsCard
+            icon={Calendar}
+            iconBg="bg-teal-500/10"
+            iconColor="text-teal-500"
+            title="Exam Date"
+            subtitle={profile?.exam_date 
+              ? `${new Date(profile.exam_date).toLocaleDateString()} (${daysUntilExam} days)`
+              : 'Set your exam date'
+            }
             onClick={() => setShowExamDate(true)}
-            className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
-          >
-            <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-teal-500" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-foreground">Exam Date</p>
-              <p className="text-xs text-muted-foreground">
-                {profile?.exam_date 
-                  ? `${new Date(profile.exam_date).toLocaleDateString()} (${daysUntilExam} days)`
-                  : 'Set your exam date'
-                }
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-          </button>
-
-          <button
+          />
+          <SettingsCard
+            icon={Target}
+            iconBg="bg-orange-500/10"
+            iconColor="text-orange-500"
+            title="Daily Goal"
+            subtitle={`${profile?.study_goal_daily || 15} questions per day`}
+            hint="Tap to adjust"
             onClick={() => setShowGoalEdit(true)}
-            className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
-          >
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-              <Target className="w-5 h-5 text-orange-500" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-foreground">Daily Goal</p>
-              <p className="text-xs text-muted-foreground">
-                {profile?.study_goal_daily || 15} questions per day
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-          </button>
+          />
         </div>
       </div>
 
-      {/* Account Section */}
+      {/* Study Preferences Section */}
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
+        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
+          Study Preferences
+        </p>
+        <div className="space-y-2">
+          <SettingsToggle
+            icon={Shuffle}
+            iconBg="bg-purple-500/10"
+            iconColor="text-purple-500"
+            title="Randomize Questions"
+            subtitle="Mix up question order each session"
+            checked={randomizeQuestions}
+            onCheckedChange={setRandomizeQuestions}
+          />
+          <SettingsToggle
+            icon={Lightbulb}
+            iconBg="bg-yellow-500/10"
+            iconColor="text-yellow-500"
+            title="Auto-Show Explanations"
+            subtitle="Show explanations after each answer"
+            checked={autoShowExplanations}
+            onCheckedChange={setAutoShowExplanations}
+          />
+          <SettingsToggle
+            icon={AlarmClock}
+            iconBg="bg-blue-500/10"
+            iconColor="text-blue-500"
+            title="Timed Practice Mode"
+            subtitle="Practice with time pressure"
+            checked={timedMode}
+            onCheckedChange={setTimedMode}
+          />
+          <SettingsToggle
+            icon={Volume2}
+            iconBg="bg-green-500/10"
+            iconColor="text-green-500"
+            title="Sound Effects"
+            subtitle="Play sounds for correct/incorrect answers"
+            checked={soundEffects}
+            onCheckedChange={setSoundEffects}
+          />
+        </div>
+      </div>
+
+      {/* Subscription Section */}
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
           Subscription
         </p>
         
         {subscribed ? (
-          /* Subscribed State */
           <div className="space-y-2">
             <div className={cn(
               "border rounded-xl p-4",
@@ -269,61 +308,48 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
               </div>
             </div>
             
-            <button
+            <SettingsCard
+              icon={CreditCard}
+              iconBg="bg-muted"
+              iconColor="text-muted-foreground"
+              title="Manage Subscription"
+              subtitle="Update payment, cancel, or change plan"
               onClick={() => openCustomerPortal()}
-              className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
-            >
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <CreditCard className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-sm font-semibold text-foreground">Manage Subscription</p>
-                <p className="text-xs text-muted-foreground">Update payment, cancel, or change plan</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-            </button>
+            />
           </div>
         ) : (
-          /* Premium Upgrade Card */
           <button
             onClick={() => setShowPaywall(true)}
             className="w-full bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 rounded-xl p-5 hover:shadow-xl transition-all active:scale-[0.99] relative overflow-hidden group"
           >
-            {/* Shimmer effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <div className="absolute top-2 right-2 px-2 py-0.5 bg-amber-900/20 text-amber-900 text-[9px] font-bold rounded-full">
+              3-DAY FREE TRIAL
+            </div>
             
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-amber-900" />
+                <div className="w-10 h-10 rounded-xl bg-white/30 flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-amber-900" />
                 </div>
                 <div className="text-left">
-                  <div className="flex items-center gap-2">
-                    <p className="text-base font-bold text-amber-900">Upgrade to Pro</p>
-                    <span className="px-2 py-0.5 bg-amber-900/20 text-amber-900 text-[10px] font-bold rounded-full">
-                      3-DAY FREE TRIAL
-                    </span>
-                  </div>
+                  <p className="text-sm font-bold text-amber-900">Upgrade to Pro</p>
                   <p className="text-xs text-amber-800">Unlock your full potential</p>
                 </div>
               </div>
               
-              {/* Feature highlights */}
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="bg-white/20 rounded-lg p-2 text-center">
-                  <Sparkles className="w-4 h-4 text-amber-900 mx-auto mb-1" />
-                  <p className="text-[10px] font-semibold text-amber-900">Unlimited</p>
-                  <p className="text-[9px] text-amber-800">Questions</p>
+              <div className="space-y-1.5 mb-3">
+                <div className="flex items-center gap-2">
+                  <Star className="w-3.5 h-3.5 text-amber-900" />
+                  <span className="text-xs font-medium text-amber-900">Unlimited Questions</span>
                 </div>
-                <div className="bg-white/20 rounded-lg p-2 text-center">
-                  <Sparkles className="w-4 h-4 text-amber-900 mx-auto mb-1" />
-                  <p className="text-[10px] font-semibold text-amber-900">AI Tutor</p>
-                  <p className="text-[9px] text-amber-800">24/7 Help</p>
+                <div className="flex items-center gap-2">
+                  <Star className="w-3.5 h-3.5 text-amber-900" />
+                  <span className="text-xs font-medium text-amber-900">AI Tutor 24/7 Help</span>
                 </div>
-                <div className="bg-white/20 rounded-lg p-2 text-center">
-                  <Sparkles className="w-4 h-4 text-amber-900 mx-auto mb-1" />
-                  <p className="text-[10px] font-semibold text-amber-900">Smart</p>
-                  <p className="text-[9px] text-amber-800">Review</p>
+                <div className="flex items-center gap-2">
+                  <Star className="w-3.5 h-3.5 text-amber-900" />
+                  <span className="text-xs font-medium text-amber-900">Smart Review</span>
                 </div>
               </div>
               
@@ -337,44 +363,46 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       </div>
 
       {/* Notifications Section */}
-      {isSupported && (
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
+          Notifications
+        </p>
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
-            Notifications
-          </p>
-          <button
-            onClick={handlePushToggle}
-            disabled={pushLoading}
-            className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
-          >
-            <div className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center",
-              isSubscribed ? "bg-success/10" : "bg-muted"
-            )}>
-              <Bell className={cn("w-5 h-5", isSubscribed ? "text-success" : "text-muted-foreground")} />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-foreground">Push Notifications</p>
-              <p className="text-xs text-muted-foreground">
-                {isSubscribed ? 'Enabled - Get study reminders' : 'Enable to get study reminders'}
-              </p>
-            </div>
-            <div className={cn(
-              "w-12 h-7 rounded-full transition-colors flex items-center p-1",
-              isSubscribed ? "bg-success" : "bg-muted"
-            )}>
-              <div className={cn(
-                "w-5 h-5 rounded-full bg-white shadow-sm transition-transform",
-                isSubscribed ? "translate-x-5" : "translate-x-0"
-              )} />
-            </div>
-          </button>
+          {isSupported && (
+            <SettingsToggle
+              icon={Bell}
+              iconBg={pushSubscribed ? "bg-success/10" : "bg-muted"}
+              iconColor={pushSubscribed ? "text-success" : "text-muted-foreground"}
+              title="Push Notifications"
+              subtitle={pushSubscribed ? 'Enabled - Get study reminders' : 'Enable to get study reminders'}
+              checked={pushSubscribed}
+              onCheckedChange={handlePushToggle}
+              disabled={pushLoading}
+            />
+          )}
+          <SettingsCard
+            icon={Clock}
+            iconBg="bg-blue-500/10"
+            iconColor="text-blue-500"
+            title="Daily Reminder Time"
+            subtitle="8:00 PM"
+            onClick={() => toast.info('Reminder time settings coming soon')}
+          />
+          <SettingsToggle
+            icon={Mail}
+            iconBg="bg-purple-500/10"
+            iconColor="text-purple-500"
+            title="Email Notifications"
+            subtitle="Get study tips and updates via email"
+            checked={emailNotifications}
+            onCheckedChange={setEmailNotifications}
+          />
         </div>
-      )}
+      </div>
 
       {/* Appearance Section */}
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
+        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
           Appearance
         </p>
         <ThemeToggle />
@@ -382,50 +410,96 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
 
       {/* Support Section */}
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
+        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
           Support
         </p>
-        <div className="bg-card border border-border rounded-xl overflow-hidden divide-y divide-border">
-          <SettingsItem 
-            icon={HelpCircle} 
-            label="Help Center" 
-            description="FAQs and guides"
+        <div className="space-y-2">
+          <SettingsCard
+            icon={HelpCircle}
             iconBg="bg-blue-500/10"
             iconColor="text-blue-500"
-            onClick={handleHelpCenter}
+            title="Help Center"
+            subtitle="FAQs and guides"
+            onClick={() => setShowHelpCenter(true)}
           />
-          <SettingsItem 
-            icon={MessageSquare} 
-            label="Contact Support" 
-            description="Get help from our team"
+          <SettingsCard
+            icon={MessageSquare}
             iconBg="bg-purple-500/10"
             iconColor="text-purple-500"
-            onClick={handleContactSupport}
+            title="Contact Support"
+            subtitle="Get help from our team"
+            onClick={() => setShowContactSupport(true)}
           />
-          <SettingsItem 
-            icon={Shield} 
-            label="Privacy Policy" 
-            description="How we protect your data"
+          <SettingsCard
+            icon={Shield}
             iconBg="bg-gray-500/10"
             iconColor="text-gray-500"
-            onClick={handlePrivacyPolicy}
+            title="Privacy Policy"
+            subtitle="How we protect your data"
+            onClick={() => setShowPrivacyPolicy(true)}
+          />
+          <SettingsCard
+            icon={Star}
+            iconBg="bg-yellow-500/10"
+            iconColor="text-yellow-500"
+            title="Rate the App"
+            subtitle="Share your feedback on the App Store"
+            onClick={handleRateApp}
           />
         </div>
       </div>
 
       {/* Account Management Section */}
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground px-1">
-          Account Management
-        </p>
+      {user && (
         <div className="space-y-2">
-          {user && (
+          <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">
+            Account Management
+          </p>
+          <div className="space-y-2">
+            <SettingsCard
+              icon={Lock}
+              iconBg="bg-gray-500/10"
+              iconColor="text-gray-500"
+              title="Change Password"
+              subtitle="Update your account password"
+              onClick={() => toast.info('Password change coming soon')}
+            />
+            <SettingsCard
+              icon={Mail}
+              iconBg="bg-blue-500/10"
+              iconColor="text-blue-500"
+              title="Change Email"
+              subtitle="Update your email address"
+              onClick={() => toast.info('Email change coming soon')}
+            />
+            <SettingsCard
+              icon={Download}
+              iconBg="bg-green-500/10"
+              iconColor="text-green-500"
+              title="Export My Data"
+              subtitle="Download your practice history"
+              onClick={handleExportData}
+            />
             <button
-              onClick={handleSignOut}
+              onClick={() => setShowDeleteDialog(true)}
               className="w-full bg-card border border-border border-l-4 border-l-destructive rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
             >
               <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
-                <LogOut className="w-5 h-5 text-destructive" />
+                <Trash2 className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-foreground">Delete Account</p>
+                <p className="text-xs text-muted-foreground">Permanently remove your account</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
+            </button>
+            
+            <button
+              onClick={() => setShowSignOutDialog(true)}
+              className="w-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+            >
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-rose-500" />
               </div>
               <div className="flex-1 text-left">
                 <p className="text-sm font-semibold text-foreground">Sign Out</p>
@@ -433,42 +507,73 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your progress is safely saved and will be available when you sign back in.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut}>Sign Out</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Account Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete your account? This action cannot be undone and all your progress will be permanently lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modals */}
       <ExamDateModal 
         isOpen={showExamDate} 
         onClose={() => setShowExamDate(false)} 
       />
-
       <GoalEditModal
         isOpen={showGoalEdit}
         onClose={() => setShowGoalEdit(false)}
         currentGoal={profile?.study_goal_daily || 15}
       />
-
       <PaywallModal
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}
       />
-
       <ProfileEditModal
         isOpen={showProfileEdit}
         onClose={() => setShowProfileEdit(false)}
       />
-
       <HelpCenterModal
         isOpen={showHelpCenter}
         onClose={() => setShowHelpCenter(false)}
       />
-
       <ContactSupportModal
         isOpen={showContactSupport}
         onClose={() => setShowContactSupport(false)}
       />
-
       <PrivacyPolicyModal
         isOpen={showPrivacyPolicy}
         onClose={() => setShowPrivacyPolicy(false)}
@@ -477,46 +582,68 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   );
 }
 
-interface SettingsItemProps {
+// Settings Card Component
+interface SettingsCardProps {
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  description: string;
-  iconBg?: string;
-  iconColor?: string;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+  hint?: string;
   onClick?: () => void;
-  hasExternalLink?: boolean;
 }
 
-function SettingsItem({ 
-  icon: Icon, 
-  label, 
-  description, 
-  iconBg = 'bg-muted', 
-  iconColor = 'text-muted-foreground',
-  onClick,
-  hasExternalLink 
-}: SettingsItemProps) {
+function SettingsCard({ icon: Icon, iconBg, iconColor, title, subtitle, hint, onClick }: SettingsCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full p-4 flex items-center gap-4 hover:bg-muted/30 transition-all active:scale-[0.99]"
+      className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
     >
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg)}>
         <Icon className={cn("w-5 h-5", iconColor)} />
       </div>
       <div className="flex-1 text-left">
-        <p className="text-sm font-semibold text-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        {hint && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{hint}</p>}
       </div>
-      {hasExternalLink ? (
-        <ExternalLink className="w-4 h-4 text-muted-foreground/50" />
-      ) : (
-        <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-      )}
+      <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
     </button>
   );
 }
 
+// Settings Toggle Component
+interface SettingsToggleProps {
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+}
+
+function SettingsToggle({ icon: Icon, iconBg, iconColor, title, subtitle, checked, onCheckedChange, disabled }: SettingsToggleProps) {
+  return (
+    <div className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg)}>
+        <Icon className={cn("w-5 h-5", iconColor)} />
+      </div>
+      <div className="flex-1 text-left">
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+      <Switch 
+        checked={checked} 
+        onCheckedChange={onCheckedChange} 
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+// Theme Toggle Component
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   
@@ -529,14 +656,8 @@ function ThemeToggle() {
   return (
     <div className="bg-card border border-border rounded-xl p-4">
       <div className="flex items-center gap-4 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-          {theme === 'dark' ? (
-            <Moon className="w-5 h-5 text-violet-500" />
-          ) : theme === 'light' ? (
-            <Sun className="w-5 h-5 text-violet-500" />
-          ) : (
-            <Monitor className="w-5 h-5 text-violet-500" />
-          )}
+        <div className="w-10 h-10 rounded-xl bg-gray-500/10 flex items-center justify-center">
+          <Monitor className="w-5 h-5 text-gray-500" />
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold text-foreground">Theme</p>
@@ -553,13 +674,13 @@ function ThemeToggle() {
               key={option.value}
               onClick={() => setTheme(option.value)}
               className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
+                "flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border transition-all",
                 isActive 
-                  ? "border-primary bg-primary/10 text-primary" 
-                  : "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted"
+                  ? "border-primary bg-primary text-primary-foreground" 
+                  : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
               <span className="text-xs font-medium">{option.label}</span>
             </button>
           );
