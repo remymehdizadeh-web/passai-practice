@@ -9,11 +9,11 @@ interface BottomNavProps {
 }
 
 const navItems = [
-  { id: 'home' as Tab, label: 'Home', icon: Home },
-  { id: 'practice' as Tab, label: 'Practice', icon: BookOpen },
-  { id: 'review' as Tab, label: 'Review', icon: RotateCcw },
-  { id: 'stats' as Tab, label: 'Stats', icon: BarChart3 },
-  { id: 'account' as Tab, label: 'Account', icon: User },
+  { id: 'home' as Tab, label: 'Home', icon: Home, color: 'text-primary' },
+  { id: 'practice' as Tab, label: 'Practice', icon: BookOpen, color: 'text-teal-500' },
+  { id: 'review' as Tab, label: 'Review', icon: RotateCcw, color: 'text-orange-500' },
+  { id: 'stats' as Tab, label: 'Stats', icon: BarChart3, color: 'text-violet-500' },
+  { id: 'account' as Tab, label: 'Account', icon: User, color: 'text-blue-500' },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
@@ -29,13 +29,20 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               className={cn(
                 'relative flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-200',
                 isActive
-                  ? 'text-primary'
+                  ? item.color
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
               {/* Active glow effect */}
               {isActive && (
-                <div className="absolute inset-0 bg-primary/10 rounded-xl" />
+                <div className={cn(
+                  "absolute inset-0 rounded-xl opacity-15",
+                  item.id === 'home' && "bg-primary",
+                  item.id === 'practice' && "bg-teal-500",
+                  item.id === 'review' && "bg-orange-500",
+                  item.id === 'stats' && "bg-violet-500",
+                  item.id === 'account' && "bg-blue-500"
+                )} />
               )}
               <div className="relative">
                 <item.icon 
@@ -47,7 +54,14 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 />
                 {/* Glow dot */}
                 {isActive && (
-                  <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_2px_hsl(var(--primary)/0.5)]" />
+                  <div className={cn(
+                    "absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full shadow-lg",
+                    item.id === 'home' && "bg-primary",
+                    item.id === 'practice' && "bg-teal-500",
+                    item.id === 'review' && "bg-orange-500",
+                    item.id === 'stats' && "bg-violet-500",
+                    item.id === 'account' && "bg-blue-500"
+                  )} />
                 )}
               </div>
               <span className={cn(
