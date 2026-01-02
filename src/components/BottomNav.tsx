@@ -10,7 +10,7 @@ interface BottomNavProps {
 
 const navItems = [
   { id: 'home' as Tab, label: 'Home', icon: Home, color: 'text-primary' },
-  { id: 'practice' as Tab, label: 'Practice', icon: BookOpen, color: 'text-teal-500' },
+  { id: 'practice' as Tab, label: 'Practice', icon: BookOpen, color: 'text-sky-500' },
   { id: 'review' as Tab, label: 'Review', icon: RotateCcw, color: 'text-orange-500' },
   { id: 'stats' as Tab, label: 'Stats', icon: BarChart3, color: 'text-violet-500' },
   { id: 'account' as Tab, label: 'Account', icon: User, color: 'text-blue-500' },
@@ -45,7 +45,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 <div className={cn(
                   "absolute inset-0 rounded-xl opacity-15 will-change-opacity transition-opacity",
                   item.id === 'home' && "bg-primary",
-                  item.id === 'practice' && "bg-teal-500",
+                  item.id === 'practice' && "bg-sky-500",
                   item.id === 'review' && "bg-orange-500",
                   item.id === 'stats' && "bg-violet-500",
                   item.id === 'account' && "bg-blue-500"
@@ -64,7 +64,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                   <div className={cn(
                     "absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full shadow-lg",
                     item.id === 'home' && "bg-primary",
-                    item.id === 'practice' && "bg-teal-500",
+                    item.id === 'practice' && "bg-sky-500",
                     item.id === 'review' && "bg-orange-500",
                     item.id === 'stats' && "bg-violet-500",
                     item.id === 'account' && "bg-blue-500"
