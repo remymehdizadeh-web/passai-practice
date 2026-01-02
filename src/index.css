@@ -140,23 +140,57 @@
 @layer base {
   * {
     @apply border-border;
+    /* GPU acceleration for all transforms */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 
   html {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Base font 16px prevents iOS auto-zoom on inputs */
+    font-size: 16px;
+    /* Disable pull-to-refresh */
+    overscroll-behavior: none;
+    /* Safe areas for notched devices */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
   }
 
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "ss01", "ss02";
+    /* Prevent text selection on mobile for app-like feel */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Disable pull-to-refresh */
+    overscroll-behavior-y: none;
+    /* Prevent iOS bounce */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Allow text selection in content areas */
+  p, span, h1, h2, h3, h4, h5, h6, li, td, th {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* App container for proper scrolling */
+  #root {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
   }
 
   /* Premium scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   ::-webkit-scrollbar-track {
@@ -178,6 +212,18 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Minimum touch target size */
+  button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Exclude inline small elements */
+  .touch-target-sm {
+    min-height: auto;
+    min-width: auto;
   }
 }
 
@@ -373,16 +419,16 @@
     animation: shimmer 1.5s ease-in-out infinite;
   }
 
-  /* Gold Nugget / Key Takeaway styling */
+  /* Gold Nugget / Key Takeaway styling - HIGH CONTRAST for outdoor readability */
   .gold-nugget {
     @apply relative p-4 rounded-xl;
-    background: linear-gradient(135deg, hsl(45 93% 94%) 0%, hsl(40 92% 90%) 100%);
-    border: 1px solid hsl(45 80% 70%);
+    background: linear-gradient(135deg, hsl(45 100% 88%) 0%, hsl(40 100% 82%) 100%);
+    border: 2px solid hsl(45 90% 55%);
   }
 
   .dark .gold-nugget {
-    background: linear-gradient(135deg, hsl(45 50% 20%) 0%, hsl(40 45% 15%) 100%);
-    border: 1px solid hsl(45 50% 30%);
+    background: linear-gradient(135deg, hsl(45 70% 25%) 0%, hsl(40 65% 18%) 100%);
+    border: 2px solid hsl(45 70% 40%);
   }
 
   .gold-nugget::before {
@@ -391,9 +437,18 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, hsl(45 90% 50%), hsl(35 95% 55%));
+    height: 3px;
+    background: linear-gradient(90deg, hsl(45 95% 50%), hsl(35 100% 50%));
     border-radius: 1rem 1rem 0 0;
+  }
+
+  /* High contrast text for gold nuggets */
+  .gold-nugget p {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .dark .gold-nugget p {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 }
 

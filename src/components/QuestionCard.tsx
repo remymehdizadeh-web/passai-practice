@@ -146,8 +146,8 @@ export function QuestionCard({
         {question.stem}
       </p>
 
-      {/* Options */}
-      <div className="space-y-2.5 mb-6">
+      {/* Options - increased touch targets */}
+      <div className="space-y-3 mb-6">
         {question.options.map((option, index) => (
           <motion.button
             key={option.label}
@@ -158,26 +158,27 @@ export function QuestionCard({
             onClick={() => handleOptionClick(option.label)}
             disabled={isSubmitted}
             className={cn(
-              'w-full text-left p-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150',
+              'w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-all duration-150 will-change-transform',
+              'min-h-[56px]', // Touch target height
               getOptionClass(option.label),
-              !isSubmitted && 'hover:border-primary/30 cursor-pointer'
+              !isSubmitted && 'hover:border-primary/30 cursor-pointer active:scale-[0.98]'
             )}
           >
             <span className={cn(
-              'w-7 h-7 rounded-md flex items-center justify-center text-xs font-semibold shrink-0 transition-colors duration-150',
+              'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0 transition-colors duration-150',
               (isSubmitted ? selectedLabel : localSelected) === option.label
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
             )}>
               {option.label}
             </span>
-            <span className="flex-1 pt-0.5 text-sm">{option.text}</span>
+            <span className="flex-1 pt-1 text-[15px] leading-snug">{option.text}</span>
             {getOptionIcon(option.label)}
           </motion.button>
         ))}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit Button - thumb-zone friendly at bottom */}
       {!isSubmitted && (
         <motion.button
           ref={submitRef}
@@ -185,7 +186,8 @@ export function QuestionCard({
           onClick={handleSubmit}
           disabled={!localSelected}
           className={cn(
-            "w-full py-3.5 rounded-xl font-semibold transition-all",
+            "w-full py-4 rounded-xl font-semibold transition-all will-change-transform",
+            "min-h-[52px] text-base", // Touch target
             localSelected 
               ? "btn-premium" 
               : "bg-muted text-muted-foreground cursor-not-allowed"
