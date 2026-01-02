@@ -5,6 +5,16 @@ const SESSION_KEY = 'nclexgo_session_id';
 const QUESTIONS_ANSWERED_KEY = 'nclexgo_questions_answered';
 const FREE_QUESTION_LIMIT = 10;
 
+// Note: We need a late import to avoid circular dependencies
+let getSessionSupabaseFunc: (() => typeof supabase) | null = null;
+const getSessionSupabaseLazy = () => {
+  if (!getSessionSupabaseFunc) {
+    // Dynamic import to avoid circular dependency
+    getSessionSupabaseFunc = require('./supabaseWithSession').getSessionSupabase;
+  }
+  return getSessionSupabaseFunc();
+};
+
 export function getSessionId(): string {
   let sessionId = localStorage.getItem(SESSION_KEY);
   if (!sessionId) {
@@ -45,12 +55,13 @@ export function markOnboardingSeen(): void {
 
 export async function clearAllProgress(): Promise<void> {
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabaseLazy();
   
-  // Clear database tables
+  // Clear database tables - use session client for bookmarks
   await Promise.all([
     supabase.from('user_progress').delete().eq('session_id', sessionId),
     supabase.from('review_queue').delete().eq('session_id', sessionId),
-    supabase.from('bookmarks').delete().eq('session_id', sessionId),
+    sessionSupabase.from('bookmarks').delete().eq('session_id', sessionId),
     supabase.from('ai_tutor_usage').delete().eq('session_id', sessionId),
   ]);
   
