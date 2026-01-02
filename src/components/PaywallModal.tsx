@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { X, Check, Sparkles, Crown, Loader2, Zap, Brain, BarChart3, Clock, Shield, Star } from 'lucide-react';
+import { X, Check, Sparkles, Crown, Loader2, Zap, Brain, Target, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
@@ -10,34 +10,6 @@ interface PaywallModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const plans = [
-  {
-    id: 'weekly' as const,
-    name: 'Weekly',
-    price: '$4.99',
-    period: '/week',
-    popular: false,
-    save: null,
-  },
-  {
-    id: 'monthly' as const,
-    name: 'Monthly',
-    price: '$9.99',
-    period: '/month',
-    popular: true,
-    save: '50%',
-  },
-];
-
-const features = [
-  { icon: Zap, text: 'Unlimited Questions', description: 'Practice as much as you need', highlight: true },
-  { icon: Brain, text: 'AI Tutor', description: 'Get instant explanations from AI', highlight: true },
-  { icon: BarChart3, text: 'Smart Review', description: 'Focus on your weak areas automatically', highlight: true },
-  { icon: Clock, text: 'Spaced Repetition', description: 'Optimal timing for long-term memory', highlight: false },
-  { icon: Shield, text: 'Detailed Rationales', description: 'Understand why answers are correct', highlight: false },
-  { icon: Star, text: 'Weekly Updates', description: 'New questions added regularly', highlight: false },
-];
 
 export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly'>('monthly');
@@ -81,165 +53,145 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
+      {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-background/90 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal Content - Compact, no scroll needed */}
-      <div className="relative z-10 w-full max-w-sm bg-card border border-border rounded-2xl overflow-hidden animate-scale-in shadow-2xl">
-        {/* Compact Hero Header */}
-        <div className="relative bg-gradient-to-br from-primary via-accent to-primary/80 p-4 overflow-hidden">
-          {/* Animated background */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 left-0 w-24 h-24 bg-white/20 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          </div>
-          
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white z-10"
-          >
-            <X className="w-4 h-4" />
-          </button>
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-md bg-card rounded-3xl overflow-hidden animate-scale-in shadow-2xl border border-border">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors z-20"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
 
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="w-12 h-12 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-xl border border-white/20">
-              <Crown className="w-7 h-7 text-white drop-shadow-lg" />
+        {subscribed ? (
+          <div className="p-6 space-y-4">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-success" />
+              </div>
+              <h2 className="text-2xl font-bold">You're a Pro!</h2>
+              <p className="text-muted-foreground mt-1">All premium features are unlocked</p>
             </div>
-            <div>
-              <h2 className="text-xl font-black text-white mb-0.5 drop-shadow-lg">
-                {subscribed ? 'Pro Active ✨' : 'Unlock Unlimited'}
-              </h2>
-              <p className="text-white/90 text-xs font-medium">
-                {subscribed 
-                  ? 'All premium features unlocked'
-                  : 'You\'ve reached your free question limit'
-                }
-              </p>
-            </div>
+            <Button 
+              onClick={handleManageSubscription}
+              disabled={isLoading}
+              className="w-full"
+              size="lg"
+            >
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Manage Subscription'}
+            </Button>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Hero Section */}
+            <div className="bg-gradient-to-br from-primary to-accent p-6 text-center text-white">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3">
+                <Crown className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-black mb-1">Pass NCLEX Guaranteed</h2>
+              <p className="text-white/80 text-sm">Join 10,000+ nurses who passed on their first try</p>
+            </div>
 
-        {/* Content - No scroll */}
-        <div className="p-4 space-y-3">
-          {subscribed ? (
-            <>
-              <div className="p-3 rounded-xl bg-success/10 border border-success/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-success" />
-                  </div>
-                  <div>
-                    <span className="font-semibold text-success block text-sm">Pro Subscription Active</span>
-                    <span className="text-xs text-muted-foreground">All premium features unlocked</span>
-                  </div>
+            {/* Content */}
+            <div className="p-5 space-y-5">
+              {/* What You Get */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">What you get</h3>
+                <div className="space-y-2.5">
+                  {[
+                    { icon: Zap, title: 'Unlimited Practice Questions', desc: 'Access our entire 2,000+ question bank' },
+                    { icon: Brain, title: 'AI-Powered Tutor', desc: 'Get instant explanations for any question' },
+                    { icon: Target, title: 'Personalized Study Plan', desc: 'Focus on your weak areas automatically' },
+                    { icon: TrendingUp, title: 'Track Your Progress', desc: 'See your readiness score improve daily' },
+                  ].map((feature, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <feature.icon className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{feature.title}</p>
+                        <p className="text-xs text-muted-foreground">{feature.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <Button 
-                onClick={handleManageSubscription}
-                disabled={isLoading}
-                className="w-full"
-                size="lg"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  'Manage Subscription'
-                )}
-              </Button>
-            </>
-          ) : (
-            <>
-              {/* Compact Plans */}
-              <div className="flex gap-2">
-                {plans.map((plan) => (
+              {/* Plan Selection */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Choose your plan</h3>
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    key={plan.id}
-                    onClick={() => setSelectedPlan(plan.id)}
+                    onClick={() => setSelectedPlan('weekly')}
                     className={cn(
-                      'flex-1 p-3 rounded-xl border-2 transition-all relative overflow-hidden',
-                      selectedPlan === plan.id
-                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                        : 'border-border bg-card hover:border-muted-foreground/30'
+                      'p-3 rounded-xl border-2 transition-all text-center',
+                      selectedPlan === 'weekly'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-muted-foreground/50'
                     )}
                   >
-                    {plan.popular && selectedPlan === plan.id && (
-                      <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[9px] font-black px-1.5 py-0.5 rounded-bl-lg">
-                        BEST
-                      </div>
-                    )}
-                    <div className="text-center">
-                      <span className="text-xs font-medium text-muted-foreground block">{plan.name}</span>
-                      <span className="text-xl font-black text-foreground">{plan.price}</span>
-                      <span className="text-xs text-muted-foreground">{plan.period}</span>
-                      {plan.save && (
-                        <span className="block text-xs text-success font-bold mt-0.5">
-                          Save {plan.save}
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-xs text-muted-foreground">Weekly</p>
+                    <p className="text-xl font-black">$4.99</p>
+                    <p className="text-xs text-muted-foreground">/week</p>
                   </button>
-                ))}
-              </div>
-
-              {/* Key Features - Inline */}
-              <div className="flex flex-wrap gap-1.5 justify-center">
-                {[
-                  { icon: Zap, text: 'Unlimited Questions' },
-                  { icon: Brain, text: 'AI Tutor' },
-                  { icon: BarChart3, text: 'Smart Review' },
-                ].map((feature, index) => {
-                  const Icon = feature.icon;
-                  return (
-                    <div 
-                      key={index} 
-                      className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 border border-primary/20"
-                    >
-                      <Icon className="w-3 h-3 text-primary" />
-                      <span className="text-xs font-medium text-foreground">
-                        {feature.text}
-                      </span>
+                  <button
+                    onClick={() => setSelectedPlan('monthly')}
+                    className={cn(
+                      'p-3 rounded-xl border-2 transition-all text-center relative',
+                      selectedPlan === 'monthly'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-muted-foreground/50'
+                    )}
+                  >
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-success text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      SAVE 50%
                     </div>
-                  );
-                })}
+                    <p className="text-xs text-muted-foreground">Monthly</p>
+                    <p className="text-xl font-black">$9.99</p>
+                    <p className="text-xs text-muted-foreground">/month</p>
+                  </button>
+                </div>
               </div>
 
-              {/* Free Trial Badge */}
-              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span>3-day free trial • Cancel anytime</span>
+              {/* CTA */}
+              <div className="space-y-3">
+                <Button 
+                  variant="hero" 
+                  size="xl" 
+                  className="w-full text-base font-bold"
+                  onClick={handleSubscribe}
+                  disabled={isLoading || !user}
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      {user ? 'Start 3-Day Free Trial' : 'Sign In to Start Trial'}
+                    </>
+                  )}
+                </Button>
+                
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 text-success" />
+                    Cancel anytime
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 text-success" />
+                    No charge for 3 days
+                  </span>
+                </div>
               </div>
-
-              {/* CTA Button */}
-              <Button 
-                variant="hero" 
-                size="lg" 
-                className="w-full text-base font-black shadow-lg shadow-primary/20"
-                onClick={handleSubscribe}
-                disabled={isLoading || !user}
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    {user ? 'Start Free Trial' : 'Sign in to Subscribe'}
-                  </>
-                )}
-              </Button>
-
-              {!user && (
-                <p className="text-[10px] text-center text-muted-foreground">
-                  Sign in required to start your trial
-                </p>
-              )}
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
