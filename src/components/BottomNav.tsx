@@ -19,7 +19,7 @@ const navItems = [
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-[100] bg-background border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]"
+      className="flex-shrink-0 bg-background border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]"
       style={{ 
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
       }}
