@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Target, Flame, BarChart3, BookOpen } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Flame, BarChart3, BookOpen, ChevronRight, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -75,6 +75,18 @@ export function ReadinessScoreHero({
     { label: 'Streak', value: consistencyComponent, max: 10, color: 'bg-success', icon: Flame },
     { label: 'Coverage', value: coverageComponent, max: 10, color: 'bg-warning', icon: BarChart3 },
   ];
+
+  // Find the weakest component for improvement tip
+  const getImprovementTip = () => {
+    const items = [
+      { label: 'accuracy', value: accuracyComponent / 60, tip: 'Focus on understanding rationales to improve accuracy' },
+      { label: 'volume', value: volumeComponent / 20, tip: 'Answer more questions to build experience' },
+      { label: 'streak', value: consistencyComponent / 10, tip: 'Study daily to build your streak' },
+      { label: 'coverage', value: coverageComponent / 10, tip: 'Practice all 8 NCLEX categories' },
+    ];
+    const weakest = items.sort((a, b) => a.value - b.value)[0];
+    return weakest.tip;
+  };
 
   return (
     <div 
@@ -185,6 +197,17 @@ export function ReadinessScoreHero({
           );
         })}
       </div>
+
+      {/* Improvement Tip */}
+      {readinessScore !== null && readinessScore < 100 && (
+        <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+          <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-0.5">How to improve</p>
+            <p className="text-xs text-amber-900 dark:text-amber-100">{getImprovementTip()}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -283,34 +283,51 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
           /* Premium Upgrade Card */
           <button
             onClick={() => setShowPaywall(true)}
-            className="w-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 rounded-xl p-4 flex items-center gap-4 hover:shadow-lg transition-all active:scale-[0.99] relative overflow-hidden group"
+            className="w-full bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 rounded-xl p-5 hover:shadow-xl transition-all active:scale-[0.99] relative overflow-hidden group"
           >
             {/* Shimmer effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             
-            <div className="w-10 h-10 rounded-xl bg-white/30 flex items-center justify-center relative z-10">
-              <Crown className="w-5 h-5 text-amber-900" />
-            </div>
-            <div className="flex-1 text-left relative z-10">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-amber-900">Upgrade to Pro</p>
-                <span className="px-1.5 py-0.5 bg-amber-900/20 text-amber-900 text-[10px] font-bold rounded">
-                  3-DAY FREE TRIAL
-                </span>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center">
+                  <Crown className="w-6 h-6 text-amber-900" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-2">
+                    <p className="text-base font-bold text-amber-900">Upgrade to Pro</p>
+                    <span className="px-2 py-0.5 bg-amber-900/20 text-amber-900 text-[10px] font-bold rounded-full">
+                      3-DAY FREE TRIAL
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-800">Unlock your full potential</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-[10px] text-amber-800 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Unlimited
-                </span>
-                <span className="text-[10px] text-amber-800 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> AI Coach
-                </span>
-                <span className="text-[10px] text-amber-800 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Smart Review
-                </span>
+              
+              {/* Feature highlights */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="bg-white/20 rounded-lg p-2 text-center">
+                  <Sparkles className="w-4 h-4 text-amber-900 mx-auto mb-1" />
+                  <p className="text-[10px] font-semibold text-amber-900">Unlimited</p>
+                  <p className="text-[9px] text-amber-800">Questions</p>
+                </div>
+                <div className="bg-white/20 rounded-lg p-2 text-center">
+                  <Sparkles className="w-4 h-4 text-amber-900 mx-auto mb-1" />
+                  <p className="text-[10px] font-semibold text-amber-900">AI Tutor</p>
+                  <p className="text-[9px] text-amber-800">24/7 Help</p>
+                </div>
+                <div className="bg-white/20 rounded-lg p-2 text-center">
+                  <Sparkles className="w-4 h-4 text-amber-900 mx-auto mb-1" />
+                  <p className="text-[10px] font-semibold text-amber-900">Smart</p>
+                  <p className="text-[9px] text-amber-800">Review</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-center gap-2 bg-amber-900/20 rounded-lg py-2">
+                <span className="text-sm font-bold text-amber-900">See All Features</span>
+                <ChevronRight className="w-4 h-4 text-amber-900" />
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-amber-900 relative z-10" />
           </button>
         )}
       </div>

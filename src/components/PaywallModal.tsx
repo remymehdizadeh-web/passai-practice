@@ -31,12 +31,12 @@ const plans = [
 ];
 
 const features = [
-  { icon: Zap, text: 'Unlimited practice questions', highlight: true },
-  { icon: Brain, text: 'AI-powered Smart Review Sessions', highlight: true },
-  { icon: BarChart3, text: 'Adaptive learning algorithm', highlight: false },
-  { icon: Clock, text: 'Spaced repetition scheduling', highlight: false },
-  { icon: Shield, text: 'Detailed explanations & rationales', highlight: false },
-  { icon: Star, text: 'New questions added weekly', highlight: false },
+  { icon: Zap, text: 'Unlimited Questions', description: 'Practice as much as you need', highlight: true },
+  { icon: Brain, text: 'AI Tutor', description: 'Get instant explanations from AI', highlight: true },
+  { icon: BarChart3, text: 'Smart Review', description: 'Focus on your weak areas automatically', highlight: true },
+  { icon: Clock, text: 'Spaced Repetition', description: 'Optimal timing for long-term memory', highlight: false },
+  { icon: Shield, text: 'Detailed Rationales', description: 'Understand why answers are correct', highlight: false },
+  { icon: Star, text: 'Weekly Updates', description: 'New questions added regularly', highlight: false },
 ];
 
 export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
@@ -203,34 +203,44 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
               </div>
 
               {/* Features Grid */}
-              <div className="bg-muted/30 rounded-xl p-4 space-y-3">
-                <h3 className="text-sm font-semibold text-foreground">Everything you get with Pro:</h3>
-                <div className="grid grid-cols-1 gap-2.5">
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-foreground">What's included in Pro:</h3>
+                <div className="grid grid-cols-1 gap-2">
                   {features.map((feature, index) => {
                     const Icon = feature.icon;
                     return (
                       <div 
                         key={index} 
                         className={cn(
-                          "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                          feature.highlight && "bg-primary/5"
+                          "flex items-start gap-3 p-3 rounded-xl border transition-colors",
+                          feature.highlight 
+                            ? "bg-primary/5 border-primary/20" 
+                            : "bg-muted/30 border-border"
                         )}
                       >
                         <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
                           feature.highlight ? "bg-primary/20" : "bg-muted"
                         )}>
                           <Icon className={cn(
-                            "w-4 h-4",
+                            "w-4.5 h-4.5",
                             feature.highlight ? "text-primary" : "text-muted-foreground"
                           )} />
                         </div>
-                        <span className={cn(
-                          "text-sm",
-                          feature.highlight ? "font-medium text-foreground" : "text-muted-foreground"
-                        )}>
-                          {feature.text}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm font-semibold",
+                            feature.highlight ? "text-foreground" : "text-foreground/80"
+                          )}>
+                            {feature.text}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {feature.description}
+                          </p>
+                        </div>
+                        {feature.highlight && (
+                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                        )}
                       </div>
                     );
                   })}

@@ -28,8 +28,15 @@ export function QuestionCard({
   selectedLabel,
 }: QuestionCardProps) {
   const [localSelected, setLocalSelected] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
   const currentSelected = isSubmitted ? selectedLabel : localSelected;
   const submitRef = useRef<HTMLButtonElement>(null);
+
+  // Reset animation state when question changes
+  useEffect(() => {
+    setIsAnimating(false);
+    setLocalSelected(null);
+  }, [question.id]);
 
   // Auto-scroll to submit button when option is selected
   useEffect(() => {
@@ -52,6 +59,14 @@ export function QuestionCard({
   };
 
   const getOptionClass = (label: string) => {
+    // During animation, don't show final state yet
+    if (isAnimating) {
+      return cn(
+        'option-default',
+        currentSelected === label && 'option-selected'
+      );
+    }
+    
     if (!isSubmitted) {
       return cn(
         'option-default',
@@ -72,7 +87,7 @@ export function QuestionCard({
   };
 
   const getOptionIcon = (label: string) => {
-    if (!isSubmitted) return null;
+    if (!isSubmitted || isAnimating) return null;
 
     const isCorrect = label === question.correct_label;
     const wasSelected = label === selectedLabel;
