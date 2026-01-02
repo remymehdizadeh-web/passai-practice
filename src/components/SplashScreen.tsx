@@ -46,7 +46,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
       {/* Main content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-8">
         {/* Logo with glow effect */}
-        <div className="relative mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <div className="relative mb-8">
           <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-2xl scale-150" />
           <div className="relative w-24 h-24 rounded-3xl overflow-hidden shadow-xl border-2 border-primary/20">
             <img src={logoIcon} alt="NCLEX RN Go" className="w-full h-full object-cover" />
@@ -57,7 +57,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         </div>
 
         {/* Brand text */}
-        <div className="text-center mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <div className="text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
             NCLEX RN Go
           </h1>
@@ -67,7 +67,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         </div>
 
         {/* Feature cards - horizontal scroll */}
-        <div className="w-full max-w-sm mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        <div className="w-full max-w-sm mb-10">
           <div className="grid grid-cols-3 gap-3">
             <div className="card-organic p-4 text-center">
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
@@ -96,7 +96,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center gap-6 mb-10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+        <div className="flex items-center gap-6 mb-10">
           <div className="text-center">
             <p className="text-2xl font-bold text-foreground">2,000+</p>
             <p className="text-xs text-muted-foreground">Questions</p>
@@ -114,7 +114,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
         </div>
 
         {/* CTAs */}
-        <div className="w-full max-w-sm space-y-3 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+        <div className="w-full max-w-sm space-y-3">
           <Button 
             variant="hero" 
             size="xl" 
@@ -139,7 +139,7 @@ export function SplashScreen({ onStart }: SplashScreenProps) {
       </div>
 
       {/* Bottom trust badge */}
-      <div className="relative z-10 pb-8 px-6 text-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
+      <div className="relative z-10 pb-8 px-6 text-center">
         <p className="text-xs text-muted-foreground">
           10 free questions · No credit card required
         </p>
