@@ -87,11 +87,12 @@ export function useToggleBookmark() {
 
 export function useUserProgress() {
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useQuery({
     queryKey: ['progress', sessionId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await sessionSupabase
         .from('user_progress')
         .select('*')
         .eq('session_id', sessionId);
@@ -105,6 +106,7 @@ export function useUserProgress() {
 export function useRecordProgress() {
   const queryClient = useQueryClient();
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useMutation({
     mutationFn: async ({ 
@@ -119,7 +121,7 @@ export function useRecordProgress() {
       confidence?: 'low' | 'medium' | 'high' | null;
     }) => {
       // Record progress
-      const { error } = await supabase
+      const { error } = await sessionSupabase
         .from('user_progress')
         .insert({
           session_id: sessionId,
@@ -182,11 +184,12 @@ export function useReportIssue() {
 
 export function useMissedQuestions() {
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useQuery({
     queryKey: ['missed-questions', sessionId],
     queryFn: async () => {
-      const { data: progress, error: progressError } = await supabase
+      const { data: progress, error: progressError } = await sessionSupabase
         .from('user_progress')
         .select('question_id')
         .eq('session_id', sessionId)
@@ -319,11 +322,12 @@ export function useUpdateReviewQueue() {
 // Confidence trend hook
 export function useConfidenceTrend() {
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useQuery({
     queryKey: ['confidence-trend', sessionId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await sessionSupabase
         .from('user_progress')
         .select('confidence, created_at, is_correct')
         .eq('session_id', sessionId)
