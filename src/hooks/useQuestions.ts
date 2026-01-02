@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getSessionSupabase } from '@/lib/supabaseWithSession';
 import { getSessionId } from '@/lib/session';
 import type { Question, QuestionOption, WrongOptionBullet } from '@/types/question';
 
@@ -41,11 +42,12 @@ export function useQuestions() {
 
 export function useBookmarks() {
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
   
   return useQuery({
     queryKey: ['bookmarks', sessionId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await sessionSupabase
         .from('bookmarks')
         .select('*, questions(*)')
         .eq('session_id', sessionId);
@@ -59,18 +61,19 @@ export function useBookmarks() {
 export function useToggleBookmark() {
   const queryClient = useQueryClient();
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useMutation({
     mutationFn: async ({ questionId, isBookmarked }: { questionId: string; isBookmarked: boolean }) => {
       if (isBookmarked) {
-        const { error } = await supabase
+        const { error } = await sessionSupabase
           .from('bookmarks')
           .delete()
           .eq('session_id', sessionId)
           .eq('question_id', questionId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await sessionSupabase
           .from('bookmarks')
           .insert({ session_id: sessionId, question_id: questionId });
         if (error) throw error;
