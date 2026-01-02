@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { ReportModal } from '@/components/ReportModal';
@@ -21,13 +21,17 @@ export function PracticeView() {
   const recordProgress = useRecordProgress();
   const updateStreak = useUpdateStreak();
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [hasUpdatedStreak, setHasUpdatedStreak] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
+  
+  // Store the prioritized list at the moment we need to pick a new question
+  // This prevents the list from changing while viewing a question
+  const lockedQuestionsRef = useRef<typeof questions>(null);
 
   // Update streak when user answers first question of the day
   useEffect(() => {
@@ -79,7 +83,19 @@ export function PracticeView() {
     });
   }, [questions, progress]);
 
-  const currentQuestion = prioritizedQuestions?.[currentIndex];
+  // Set initial question when data loads or when we need to pick next question
+  useEffect(() => {
+    if (!currentQuestionId && prioritizedQuestions.length > 0) {
+      lockedQuestionsRef.current = prioritizedQuestions;
+      setCurrentQuestionId(prioritizedQuestions[0].id);
+    }
+  }, [currentQuestionId, prioritizedQuestions]);
+
+  // Find current question by ID (stable reference)
+  const currentQuestion = useMemo(() => {
+    if (!currentQuestionId || !questions) return null;
+    return questions.find(q => q.id === currentQuestionId) || null;
+  }, [currentQuestionId, questions]);
 
   const isBookmarked = bookmarks?.some(
     (b) => b.question_id === currentQuestion?.id
@@ -118,11 +134,17 @@ export function PracticeView() {
     // Scroll to top before changing question
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    if (currentIndex < (prioritizedQuestions?.length || 0) - 1) {
-      setCurrentIndex((i) => i + 1);
+    // Get fresh prioritized list and pick next question
+    const currentList = prioritizedQuestions;
+    const currentIdx = currentList.findIndex(q => q.id === currentQuestionId);
+    
+    if (currentIdx < currentList.length - 1) {
+      setCurrentQuestionId(currentList[currentIdx + 1].id);
     } else {
-      setCurrentIndex(0);
+      // Loop back to first question
+      setCurrentQuestionId(currentList[0]?.id || null);
     }
+    
     setIsSubmitted(false);
     setSelectedLabel(null);
   };
@@ -241,7 +263,7 @@ export function PracticeView() {
 
       <QuestionCard
         question={currentQuestion}
-        questionNumber={currentIndex + 1}
+        questionNumber={prioritizedQuestions.findIndex(q => q.id === currentQuestionId) + 1}
         totalQuestions={totalQuestions}
         isBookmarked={isBookmarked}
         onSubmit={handleSelectAnswer}
