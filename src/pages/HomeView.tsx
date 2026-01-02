@@ -164,14 +164,15 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
   return (
     <div className="flex flex-col min-h-[calc(100vh-120px)] overflow-y-auto pb-4">
       {/* Header row */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <div>
+      <div className="flex items-center justify-between mb-6 pt-2 flex-shrink-0">
+        <div className="space-y-1">
           {user ? (
             <>
+              <p className="text-sm text-muted-foreground">Welcome back</p>
               <h1 className="text-xl font-bold text-foreground">
-                Welcome back, {profile?.display_name || user.email?.split('@')[0] || 'there'}
+                {profile?.display_name || user.email?.split('@')[0] || 'there'}
               </h1>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-1">
                 {stats.accuracy >= 80 
                   ? "You're doing amazing! Keep up the great work."
                   : stats.accuracy >= 60 
@@ -183,8 +184,9 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
             </>
           ) : (
             <>
-              <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Your NCLEX journey</p>
+              <p className="text-sm text-muted-foreground">Welcome to</p>
+              <h1 className="text-xl font-bold text-foreground">NCLEX Prep</h1>
+              <p className="text-xs text-muted-foreground mt-1">Your NCLEX journey starts here</p>
             </>
           )}
         </div>

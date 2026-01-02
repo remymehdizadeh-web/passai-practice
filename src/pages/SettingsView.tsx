@@ -7,6 +7,9 @@ import { ExamDateModal } from '@/components/ExamDateModal';
 import { GoalEditModal } from '@/components/GoalEditModal';
 import { PaywallModal } from '@/components/PaywallModal';
 import { ProfileEditModal } from '@/components/ProfileEditModal';
+import { HelpCenterModal } from '@/components/HelpCenterModal';
+import { ContactSupportModal } from '@/components/ContactSupportModal';
+import { PrivacyPolicyModal } from '@/components/PrivacyPolicyModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import logoIcon from '@/assets/logo-icon.png';
@@ -53,6 +56,9 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [showContactSupport, setShowContactSupport] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
@@ -94,17 +100,15 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   };
 
   const handleHelpCenter = () => {
-    window.open('https://help.example.com', '_blank');
-    toast.success('Opening Help Center...');
+    setShowHelpCenter(true);
   };
 
   const handleContactSupport = () => {
-    window.location.href = 'mailto:support@example.com?subject=NCLEX Prep Support Request';
-    toast.success('Opening email client...');
+    setShowContactSupport(true);
   };
 
   const handlePrivacyPolicy = () => {
-    window.open('https://example.com/privacy', '_blank');
+    setShowPrivacyPolicy(true);
   };
 
   const handlePushToggle = async () => {
@@ -389,7 +393,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             iconBg="bg-blue-500/10"
             iconColor="text-blue-500"
             onClick={handleHelpCenter}
-            hasExternalLink
           />
           <SettingsItem 
             icon={MessageSquare} 
@@ -398,7 +401,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             iconBg="bg-purple-500/10"
             iconColor="text-purple-500"
             onClick={handleContactSupport}
-            hasExternalLink
           />
           <SettingsItem 
             icon={Shield} 
@@ -407,7 +409,6 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             iconBg="bg-gray-500/10"
             iconColor="text-gray-500"
             onClick={handlePrivacyPolicy}
-            hasExternalLink
           />
         </div>
       </div>
@@ -456,6 +457,21 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       <ProfileEditModal
         isOpen={showProfileEdit}
         onClose={() => setShowProfileEdit(false)}
+      />
+
+      <HelpCenterModal
+        isOpen={showHelpCenter}
+        onClose={() => setShowHelpCenter(false)}
+      />
+
+      <ContactSupportModal
+        isOpen={showContactSupport}
+        onClose={() => setShowContactSupport(false)}
+      />
+
+      <PrivacyPolicyModal
+        isOpen={showPrivacyPolicy}
+        onClose={() => setShowPrivacyPolicy(false)}
       />
     </div>
   );

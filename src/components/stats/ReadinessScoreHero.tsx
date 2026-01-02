@@ -136,7 +136,6 @@ export function ReadinessScoreHero({
               style={{ 
                 transform: 'rotate(-90deg)',
                 transformOrigin: '60px 60px',
-                filter: `drop-shadow(0 0 8px ${getScoreColor()})`,
               }}
             />
           </svg>

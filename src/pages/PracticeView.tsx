@@ -212,50 +212,50 @@ export function PracticeView() {
     : null;
 
   return (
-    <div className="pb-6">
-      {/* Minimal header - streak and accuracy only */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+    <div className="pb-4">
+      {/* Compact header - streak and accuracy */}
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
           {user && profile?.streak_days && profile.streak_days > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-500/10 border border-orange-500/20">
-              <Flame className="w-3.5 h-3.5 text-orange-500" />
-              <span className="text-xs font-bold text-orange-500">{profile.streak_days}</span>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20">
+              <Flame className="w-3 h-3 text-orange-500" />
+              <span className="text-[11px] font-bold text-orange-500">{profile.streak_days}</span>
             </div>
           )}
           {correctStreak >= 3 && (
-            <span className="text-xs bg-success/10 text-success px-2 py-1 rounded-full font-medium flex items-center gap-1">
+            <span className="text-[11px] bg-success/10 text-success px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
               <Zap className="w-3 h-3" />
-              {correctStreak} streak
+              {correctStreak}
             </span>
           )}
         </div>
         
         <div className="flex items-center gap-1">
           <span className={cn(
-            "px-2 py-1 rounded-full text-xs font-bold",
+            "px-2 py-0.5 rounded-full text-[11px] font-bold",
             accuracy >= 75 ? "bg-success/10 text-success" :
             accuracy >= 60 ? "bg-warning/10 text-warning" :
             accuracy > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
           )}>
             {accuracy}%
           </span>
-          <span className="text-[10px] text-muted-foreground">accuracy</span>
+          <span className="text-[10px] text-muted-foreground">acc</span>
         </div>
       </div>
 
-      {/* Minimal progress bar */}
-      <div className="mb-3">
+      {/* Compact progress bar */}
+      <div className="mb-2">
         <ProgressBar 
           current={answeredCount} 
           total={totalQuestions}
-          className="h-1 rounded-full"
+          className="h-0.5 rounded-full"
         />
       </div>
 
-      {/* Free questions remaining */}
+      {/* Free questions remaining - more compact */}
       {remaining > 0 && remaining <= 5 && (
-        <div className="mb-3 p-2 rounded-xl bg-primary/5 border border-primary/10 text-center">
-          <p className="text-xs text-foreground font-medium">
+        <div className="mb-2 py-1.5 px-3 rounded-lg bg-primary/5 border border-primary/10 text-center">
+          <p className="text-[11px] text-foreground font-medium">
             {remaining} free question{remaining !== 1 ? 's' : ''} left
           </p>
         </div>

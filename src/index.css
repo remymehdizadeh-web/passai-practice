@@ -182,7 +182,7 @@
 }
 
 @layer components {
-  /* Organic card - softer, more dimensional */
+  /* Organic card - softer, more dimensional with colorful accent */
   .card-organic {
     @apply bg-card relative overflow-hidden;
     border-radius: 1.5rem;
@@ -196,7 +196,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(var(--border)) 0%, transparent 50%);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--border)) 30%, hsl(var(--accent) / 0.2) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -207,6 +207,10 @@
   .card-organic:hover {
     box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
+  }
+
+  .card-organic:hover::before {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.5) 0%, hsl(var(--border)) 30%, hsl(var(--accent) / 0.3) 100%);
   }
 
   /* Premium button with gradient */
@@ -238,11 +242,23 @@
     @apply px-3 py-1 text-xs font-medium rounded-full;
   }
 
-  /* Stat card with subtle gradient */
+  /* Stat card with colorful gradient accent */
   .stat-card {
     @apply bg-card relative overflow-hidden p-4;
     border-radius: 1.25rem;
     box-shadow: var(--shadow-sm);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 50%, hsl(var(--success)) 100%);
+    border-radius: 1.25rem 1.25rem 0 0;
   }
 
   .stat-card::after {
