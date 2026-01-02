@@ -58,37 +58,39 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
     onNext();
   };
 
-  // Correct answer - streamlined flow
+  // Correct answer - streamlined flow with prominent Next
   if (isCorrect) {
     return (
       <div ref={panelRef} className="animate-fade-in mt-4 space-y-3">
-        {/* Compact Success Banner */}
-        <div className="p-4 rounded-xl bg-success/10 border border-success/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6 text-success" />
-              <div>
-                <p className="font-semibold text-success">Correct!</p>
-                <p className="text-xs text-muted-foreground">{truncateWords(question.takeaway, 12)}</p>
-              </div>
+        {/* Success Banner with Big Next Button */}
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-success/20 via-success/10 to-success/5 border border-success/30">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-14 h-14 rounded-xl bg-success/20 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-success" />
             </div>
-            <Button 
-              ref={nextButtonRef}
-              onClick={onNext} 
-              className="btn-premium"
-              autoFocus
-            >
-              Next
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <div className="flex-1">
+              <p className="text-xl font-bold text-success">Correct! 🎉</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{truncateWords(question.takeaway, 15)}</p>
+            </div>
           </div>
+          
+          {/* Big Next Button */}
+          <Button 
+            ref={nextButtonRef}
+            onClick={onNext} 
+            className="w-full btn-premium text-base py-6"
+            autoFocus
+          >
+            Next Question
+            <ChevronRight className="w-5 h-5 ml-1" />
+          </Button>
         </div>
 
         {/* Optional: Expand for more details */}
         <details className="group">
-          <summary className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+          <summary className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors py-2">
             <Lightbulb className="w-3.5 h-3.5" />
-            <span>See explanation</span>
+            <span>See full explanation</span>
           </summary>
           <div className="mt-2 p-3 rounded-lg bg-muted/30 border border-border space-y-2">
             <p className="text-sm font-medium text-foreground">Why {question.correct_label} is correct:</p>
