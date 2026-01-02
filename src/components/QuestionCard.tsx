@@ -28,13 +28,10 @@ export function QuestionCard({
   selectedLabel,
 }: QuestionCardProps) {
   const [localSelected, setLocalSelected] = useState<string | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const currentSelected = isSubmitted ? selectedLabel : localSelected;
   const submitRef = useRef<HTMLButtonElement>(null);
 
-  // Reset animation state when question changes
+  // Reset local state when question changes
   useEffect(() => {
-    setIsAnimating(false);
     setLocalSelected(null);
   }, [question.id]);
 
@@ -59,21 +56,15 @@ export function QuestionCard({
   };
 
   const getOptionClass = (label: string) => {
-    // During animation, don't show final state yet
-    if (isAnimating) {
-      return cn(
-        'option-default',
-        currentSelected === label && 'option-selected'
-      );
-    }
-    
+    // Before submission, only show selection state
     if (!isSubmitted) {
       return cn(
         'option-default',
-        currentSelected === label && 'option-selected'
+        localSelected === label && 'option-selected'
       );
     }
 
+    // After submission, show correct/incorrect based on parent's selectedLabel
     const isCorrect = label === question.correct_label;
     const wasSelected = label === selectedLabel;
 
@@ -87,7 +78,7 @@ export function QuestionCard({
   };
 
   const getOptionIcon = (label: string) => {
-    if (!isSubmitted || isAnimating) return null;
+    if (!isSubmitted) return null;
 
     const isCorrect = label === question.correct_label;
     const wasSelected = label === selectedLabel;
@@ -99,6 +90,17 @@ export function QuestionCard({
       return <XCircle className="w-5 h-5 text-destructive shrink-0" />;
     }
     return null;
+  };
+
+  const handleOptionClick = (label: string) => {
+    if (isSubmitted) return;
+    setLocalSelected(label);
+  };
+
+  const handleSubmit = () => {
+    if (localSelected && !isSubmitted) {
+      onSubmit(localSelected);
+    }
   };
 
   return (
@@ -153,7 +155,7 @@ export function QuestionCard({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05, duration: 0.2 }}
             whileTap={{ scale: isSubmitted ? 1 : 0.98 }}
-            onClick={() => !isSubmitted && setLocalSelected(option.label)}
+            onClick={() => handleOptionClick(option.label)}
             disabled={isSubmitted}
             className={cn(
               'w-full text-left p-3.5 rounded-xl border flex items-start gap-3 transition-all duration-150',
@@ -163,7 +165,7 @@ export function QuestionCard({
           >
             <span className={cn(
               'w-7 h-7 rounded-md flex items-center justify-center text-xs font-semibold shrink-0 transition-colors duration-150',
-              currentSelected === option.label
+              (isSubmitted ? selectedLabel : localSelected) === option.label
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
             )}>
@@ -180,7 +182,7 @@ export function QuestionCard({
         <motion.button
           ref={submitRef}
           whileTap={{ scale: localSelected ? 0.98 : 1 }}
-          onClick={() => localSelected && onSubmit(localSelected)}
+          onClick={handleSubmit}
           disabled={!localSelected}
           className={cn(
             "w-full py-3.5 rounded-xl font-semibold transition-all",
