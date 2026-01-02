@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { SplashScreen } from '@/components/SplashScreen';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNav, type Tab } from '@/components/BottomNav';
@@ -20,6 +21,7 @@ import { Helmet } from 'react-helmet';
 type ReviewFilter = 'bookmarked' | 'missed';
 
 const Index = () => {
+  const location = useLocation();
   const [showSplash, setShowSplash] = useState(!hasSeenOnboarding());
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWeakAreaMode, setShowWeakAreaMode] = useState(false);
@@ -29,6 +31,16 @@ const Index = () => {
   const { user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { reminder, dismissReminder } = useSmartReminders();
+
+  // Handle navigation from location state (e.g., from ReadinessGauge click)
+  useEffect(() => {
+    const state = location.state as { tab?: Tab } | null;
+    if (state?.tab) {
+      setActiveTab(state.tab);
+      // Clear the state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Check if new user needs onboarding (signed in but no exam_date or goal set)
   useEffect(() => {
