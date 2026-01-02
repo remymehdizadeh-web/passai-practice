@@ -32,10 +32,13 @@ export function ExamCountdown({ daysUntil, examDate, onPress }: ExamCountdownPro
     >
       <Calendar className={cn("w-4 h-4", getUrgencyColor())} />
       {daysUntil !== null ? (
-        <span className="text-sm">
-          <span className={cn("font-bold text-lg", getUrgencyColor())}>{daysUntil}</span>
-          <span className="text-muted-foreground"> days</span>
-        </span>
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Exam in</span>
+          <span className="text-sm">
+            <span className={cn("font-bold text-lg", getUrgencyColor())}>{daysUntil}</span>
+            <span className="text-muted-foreground"> days</span>
+          </span>
+        </div>
       ) : (
         <span className="text-sm text-muted-foreground">Set exam date</span>
       )}

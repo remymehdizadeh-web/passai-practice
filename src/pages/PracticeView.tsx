@@ -8,7 +8,7 @@ import { useQuestions, useBookmarks, useToggleBookmark, useRecordProgress, useUs
 import { useProfile, useUpdateStreak } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { incrementQuestionsAnswered, shouldShowPaywall, getRemainingFreeQuestions } from '@/lib/session';
-import { Loader2, Flame, Calendar, Zap } from 'lucide-react';
+import { Loader2, Flame, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function PracticeView() {
@@ -188,8 +188,8 @@ export function PracticeView() {
 
   return (
     <div className="pb-6">
-      {/* Compact header */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Minimal header - streak and accuracy only */}
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {user && profile?.streak_days && profile.streak_days > 0 && (
             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-500/10 border border-orange-500/20">
@@ -197,41 +197,33 @@ export function PracticeView() {
               <span className="text-xs font-bold text-orange-500">{profile.streak_days}</span>
             </div>
           )}
-          {user && daysUntilExam !== null && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary">{daysUntilExam}d</span>
-            </div>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
           {correctStreak >= 3 && (
             <span className="text-xs bg-success/10 text-success px-2 py-1 rounded-full font-medium flex items-center gap-1">
               <Zap className="w-3 h-3" />
-              {correctStreak}
+              {correctStreak} streak
             </span>
           )}
-          <div className="flex items-center gap-1">
-            <span className={cn(
-              "px-2 py-1 rounded-full text-xs font-bold",
-              accuracy >= 75 ? "bg-success/10 text-success" :
-              accuracy >= 60 ? "bg-warning/10 text-warning" :
-              accuracy > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-            )}>
-              {accuracy}%
-            </span>
-            <span className="text-[10px] text-muted-foreground">accuracy</span>
-          </div>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          <span className={cn(
+            "px-2 py-1 rounded-full text-xs font-bold",
+            accuracy >= 75 ? "bg-success/10 text-success" :
+            accuracy >= 60 ? "bg-warning/10 text-warning" :
+            accuracy > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+          )}>
+            {accuracy}%
+          </span>
+          <span className="text-[10px] text-muted-foreground">accuracy</span>
         </div>
       </div>
 
-      {/* Minimal progress bar - no count display */}
-      <div className="mb-4">
+      {/* Minimal progress bar */}
+      <div className="mb-3">
         <ProgressBar 
           current={answeredCount} 
           total={totalQuestions}
-          className="h-1.5 rounded-full"
+          className="h-1 rounded-full"
         />
       </div>
 
