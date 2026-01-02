@@ -74,11 +74,11 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
             </div>
           </div>
           
-          {/* Big Next Button */}
+          {/* Big Next Button - thumb zone position */}
           <Button 
             ref={nextButtonRef}
             onClick={onNext} 
-            className="w-full btn-premium text-base py-6"
+            className="w-full btn-premium text-base py-6 min-h-[56px] will-change-transform"
             autoFocus
           >
             Next Question
@@ -105,24 +105,24 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
           </div>
         </details>
 
-        {/* Secondary actions - collapsed */}
+        {/* Secondary actions - touch friendly */}
         <div className="flex gap-2">
           <button
             onClick={() => setShowTutor(true)}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-xs text-muted-foreground hover:text-foreground"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-muted/50 border border-border hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground active:scale-[0.98] will-change-transform"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-4 h-4" />
             Ask Tutor
           </button>
           <button
             onClick={handleGenerateSimilar}
             disabled={isGenerating || showSimilar}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-muted/50 border border-border hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 active:scale-[0.98] will-change-transform"
           >
             {isGenerating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
             )}
             Practice Similar
           </button>
@@ -176,33 +176,33 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         <p className="text-sm text-muted-foreground">{truncateWords(question.rationale_bullets[0] || '', 20)}</p>
       </div>
 
-      {/* Key Takeaway - Gold Nugget */}
-      <div className="gold-nugget flex items-start gap-2">
-        <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+      {/* Key Takeaway - Gold Nugget - HIGH CONTRAST */}
+      <div className="gold-nugget flex items-start gap-3">
+        <Lightbulb className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
-          <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">Key Takeaway</p>
-          <p className="text-sm text-amber-900 dark:text-amber-100">{truncateWords(question.takeaway, 20)}</p>
+          <p className="text-sm font-bold text-amber-800 dark:text-amber-200 mb-1">Key Takeaway</p>
+          <p className="text-base font-medium text-amber-950 dark:text-amber-50 leading-snug">{truncateWords(question.takeaway, 20)}</p>
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Actions - touch friendly */}
       <div className="flex gap-2">
         <button
           onClick={() => setShowTutor(true)}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-xs text-primary"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors text-sm text-primary active:scale-[0.98] will-change-transform"
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <Sparkles className="w-4 h-4" />
           Ask Tutor
         </button>
         <button
           onClick={handleGenerateSimilar}
           disabled={isGenerating || showSimilar}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-xs text-amber-600 dark:text-amber-400 disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors text-sm text-amber-600 dark:text-amber-400 disabled:opacity-50 active:scale-[0.98] will-change-transform"
         >
           {isGenerating ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-4 h-4" />
           )}
           Practice Similar
         </button>

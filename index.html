@@ -2,10 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Mobile-first viewport: prevent auto-zoom on inputs with 16px base -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>NCLEX RN Go - Master Your NCLEX-RN Exam</title>
     <meta name="description" content="NCLEX RN Go - Comprehensive NCLEX-RN practice for nursing students. Study with confidence using expert-crafted questions." />
     <meta name="author" content="NCLEX RN Go" />
+
+    <!-- PWA / Native App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="NCLEX RN Go" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="format-detection" content="telephone=no" />
 
     <meta property="og:title" content="NCLEX RN Go - Master Your NCLEX-RN Exam" />
     <meta property="og:description" content="Comprehensive NCLEX-RN practice for nursing students. Study with confidence using expert-crafted questions." />
@@ -15,6 +24,14 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@nclexrngo" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Prevent pull-to-refresh and bounce effects -->
+    <style>
+      html, body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+    </style>
   </head>
 
   <body>
