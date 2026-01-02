@@ -16,7 +16,6 @@ import { hasSeenOnboarding, markOnboardingSeen } from '@/lib/session';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSmartReminders } from '@/hooks/useSmartReminders';
-import { Helmet } from 'react-helmet';
 
 type ReviewFilter = 'bookmarked' | 'missed';
 
@@ -78,36 +77,15 @@ const Index = () => {
   };
 
   if (showSplash) {
-    return (
-      <>
-        <Helmet>
-          <title>NCLEX RN Go - Master Your NCLEX-RN Exam</title>
-          <meta name="description" content="Comprehensive NCLEX-RN practice for nursing students. Study with confidence using expert-crafted questions." />
-        </Helmet>
-        <SplashScreen onStart={handleStart} />
-      </>
-    );
+    return <SplashScreen onStart={handleStart} />;
   }
 
   if (showOnboarding) {
-    return (
-      <>
-        <Helmet>
-          <title>Welcome - NCLEX RN Go</title>
-          <meta name="description" content="Set up your NCLEX study plan" />
-        </Helmet>
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
-      </>
-    );
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
   }
 
   return (
     <>
-      <Helmet>
-        <title>NCLEX RN Go - Practice</title>
-        <meta name="description" content="Practice NCLEX-RN questions with detailed explanations. Master your nursing exam with expert-crafted content." />
-      </Helmet>
-      
       {/* Smart Reminder Banner */}
       {reminder?.shouldRemind && reminder.message && (
         <SmartReminderBanner

@@ -1,28 +1,17 @@
 // Session management for anonymous users
 import { supabase } from '@/integrations/supabase/client';
+import { getSessionSupabase } from './supabaseWithSession';
+import { getSessionId } from './sessionId';
 
-const SESSION_KEY = 'nclexgo_session_id';
+// Re-export getSessionId for backwards compatibility
+export { getSessionId } from './sessionId';
+
 const QUESTIONS_ANSWERED_KEY = 'nclexgo_questions_answered';
 const FREE_QUESTION_LIMIT = 10;
 
-// Note: We need a late import to avoid circular dependencies
-let getSessionSupabaseFunc: (() => typeof supabase) | null = null;
 const getSessionSupabaseLazy = () => {
-  if (!getSessionSupabaseFunc) {
-    // Dynamic import to avoid circular dependency
-    getSessionSupabaseFunc = require('./supabaseWithSession').getSessionSupabase;
-  }
-  return getSessionSupabaseFunc();
+  return getSessionSupabase();
 };
-
-export function getSessionId(): string {
-  let sessionId = localStorage.getItem(SESSION_KEY);
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    localStorage.setItem(SESSION_KEY, sessionId);
-  }
-  return sessionId;
-}
 
 export function getQuestionsAnswered(): number {
   const count = localStorage.getItem(QUESTIONS_ANSWERED_KEY);
