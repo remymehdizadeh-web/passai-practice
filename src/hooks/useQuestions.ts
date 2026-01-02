@@ -135,7 +135,7 @@ export function useRecordProgress() {
       // Add to review queue if incorrect or low confidence
       if (!isCorrect || confidence === 'low') {
         const reason = !isCorrect ? 'incorrect' : 'low_confidence';
-        const { error: queueError } = await supabase
+        const { error: queueError } = await sessionSupabase
           .from('review_queue')
           .upsert({
             session_id: sessionId,
@@ -227,11 +227,12 @@ export interface ReviewQueueItem {
 
 export function useReviewQueue() {
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useQuery({
     queryKey: ['review-queue', sessionId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await sessionSupabase
         .from('review_queue')
         .select('*, questions(*)')
         .eq('session_id', sessionId)
@@ -251,6 +252,7 @@ export function useReviewQueue() {
 export function useUpdateReviewQueue() {
   const queryClient = useQueryClient();
   const sessionId = getSessionId();
+  const sessionSupabase = getSessionSupabase();
 
   return useMutation({
     mutationFn: async ({ 
@@ -263,7 +265,7 @@ export function useUpdateReviewQueue() {
       confidence?: 'low' | 'medium' | 'high' | null;
     }) => {
       // Get current queue item
-      const { data: queueItem } = await supabase
+      const { data: queueItem } = await sessionSupabase
         .from('review_queue')
         .select('*')
         .eq('session_id', sessionId)
@@ -301,7 +303,7 @@ export function useUpdateReviewQueue() {
       const dueAt = new Date();
       dueAt.setDate(dueAt.getDate() + newInterval);
 
-      const { error } = await supabase
+      const { error } = await sessionSupabase
         .from('review_queue')
         .update({
           due_at: dueAt.toISOString(),

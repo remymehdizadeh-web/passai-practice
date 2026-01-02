@@ -59,10 +59,10 @@ export async function clearAllProgress(): Promise<void> {
   
   // Clear database tables - use session client for bookmarks
   await Promise.all([
-    supabase.from('user_progress').delete().eq('session_id', sessionId),
-    supabase.from('review_queue').delete().eq('session_id', sessionId),
+    sessionSupabase.from('user_progress').delete().eq('session_id', sessionId),
+    sessionSupabase.from('review_queue').delete().eq('session_id', sessionId),
     sessionSupabase.from('bookmarks').delete().eq('session_id', sessionId),
-    supabase.from('ai_tutor_usage').delete().eq('session_id', sessionId),
+    sessionSupabase.from('ai_tutor_usage').delete().eq('session_id', sessionId),
   ]);
   
   // Clear localStorage
