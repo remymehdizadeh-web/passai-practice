@@ -104,7 +104,7 @@ const Index = () => {
       )}
       
       <div className="flex flex-col h-[100dvh] bg-background">
-        <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-6 pb-24">
+        <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28">
           <AnimatePresence mode="wait">
             {activeTab === 'home' && (
               <PageTransition key="home">
