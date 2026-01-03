@@ -268,6 +268,57 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          created_at: string
+          currency: string | null
+          environment: string | null
+          event_id: string | null
+          event_type: string
+          expiration_at: string | null
+          id: string
+          is_trial: boolean | null
+          original_purchase_date: string | null
+          price: number | null
+          product_id: string | null
+          raw_payload: Json | null
+          store: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          environment?: string | null
+          event_id?: string | null
+          event_type: string
+          expiration_at?: string | null
+          id?: string
+          is_trial?: boolean | null
+          original_purchase_date?: string | null
+          price?: number | null
+          product_id?: string | null
+          raw_payload?: Json | null
+          store?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          environment?: string | null
+          event_id?: string | null
+          event_type?: string
+          expiration_at?: string | null
+          id?: string
+          is_trial?: boolean | null
+          original_purchase_date?: string | null
+          price?: number | null
+          product_id?: string | null
+          raw_payload?: Json | null
+          store?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           confidence: string | null
@@ -329,7 +380,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      subscription_analytics: {
+        Row: {
+          cancellations: number | null
+          expirations: number | null
+          renewals: number | null
+          total_purchases: number | null
+          total_revenue: number | null
+          trial_starts: number | null
+          unique_subscribers: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_session_id: { Args: never; Returns: string }
