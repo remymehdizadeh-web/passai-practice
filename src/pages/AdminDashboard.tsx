@@ -16,8 +16,10 @@ import {
   Calendar,
   BarChart3,
   Shield,
-  ChevronRight
+  ChevronRight,
+  Crown
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
 interface DailyActivity {
@@ -162,6 +164,32 @@ export default function AdminDashboard() {
       return data as UserWithStats[];
     },
     enabled: isAdmin,
+  });
+
+  // Fetch subscription status for all users
+  const { data: userSubscriptions } = useQuery({
+    queryKey: ["admin-user-subscriptions", allUsers?.map(u => u.id)],
+    queryFn: async () => {
+      if (!allUsers || allUsers.length === 0) return {};
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return {};
+
+      const { data, error } = await supabase.functions.invoke('admin-user-subscriptions', {
+        body: { userIds: allUsers.map(u => u.id) },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error fetching subscriptions:', error);
+        return {};
+      }
+
+      return data?.subscriptions || {};
+    },
+    enabled: isAdmin && !!allUsers && allUsers.length > 0,
   });
 
   if (adminLoading) {
@@ -315,27 +343,45 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto">
-                {allUsers?.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => setSelectedUser({ id: u.id, name: u.display_name || 'Unknown' })}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-primary">
-                        {(u.display_name || 'U')[0].toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{u.display_name || 'Unknown'}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Joined {format(new Date(u.created_at), 'MMM d, yyyy')}
-                        {u.streak_days ? ` • ${u.streak_days} day streak` : ''}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                  </button>
-                ))}
+                {allUsers?.map((u) => {
+                  const subStatus = userSubscriptions?.[u.id];
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => setSelectedUser({ id: u.id, name: u.display_name || 'Unknown' })}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-primary">
+                          {(u.display_name || 'U')[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium truncate">{u.display_name || 'Unknown'}</p>
+                          {subStatus?.subscribed && (
+                            <Badge 
+                              variant="outline" 
+                              className={
+                                subStatus.tier === 'trial' 
+                                  ? 'bg-amber-500/10 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0'
+                                  : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-[10px] px-1.5 py-0'
+                              }
+                            >
+                              <Crown className="w-2.5 h-2.5 mr-0.5" />
+                              {subStatus.tier === 'trial' ? 'TRIAL' : 'PRO'}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Joined {format(new Date(u.created_at), 'MMM d, yyyy')}
+                          {u.streak_days ? ` • ${u.streak_days} day streak` : ''}
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </CardContent>
