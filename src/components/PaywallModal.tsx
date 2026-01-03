@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { X, Sparkles, Crown, Star, Infinity, Brain, BookOpen, TrendingUp, Check } from 'lucide-react';
+import { X, Sparkles, Crown, Star, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
@@ -34,7 +34,6 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
     toast.info('Subscription management will be available in the native app');
   };
 
-  // Subscribed state - simple centered modal
   if (subscribed) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -61,10 +60,10 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
     );
   }
 
-  // Paywall - FULLSCREEN takeover like real apps
+  // Fullscreen paywall - NO SCROLL, everything fits
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary via-primary/95 to-accent flex flex-col animate-in fade-in duration-200">
-      {/* Close button - top right */}
+    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary via-primary to-accent overflow-hidden">
+      {/* Close button */}
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-20 flex items-center justify-center"
@@ -72,101 +71,79 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
         <X className="w-5 h-5 text-white" />
       </button>
 
-      {/* Main content - centered vertically */}
-      <div className="flex-1 flex flex-col justify-center px-6 pb-safe">
+      {/* Content container - uses flex to distribute space evenly */}
+      <div className="h-full flex flex-col px-5 pt-12 pb-6">
         {/* Hero */}
-        <div className="text-center text-white mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-            <Crown className="w-8 h-8 text-white drop-shadow-lg" />
+        <div className="text-center text-white">
+          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center mx-auto mb-3">
+            <Crown className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-black mb-1">Unlock Pro</h1>
-          <p className="text-white/80 text-sm">Start your 3-day free trial</p>
+          <h1 className="text-2xl font-black">Unlock Pro</h1>
+          <p className="text-white/70 text-sm">3-day free trial • Cancel anytime</p>
         </div>
 
-        {/* Features list */}
-        <div className="space-y-2.5 mb-6">
-          {[
-            { icon: Infinity, text: 'Unlimited practice questions' },
-            { icon: Brain, text: 'AI Tutor for instant help' },
-            { icon: BookOpen, text: 'Detailed rationales' },
-            { icon: TrendingUp, text: 'Smart review system' },
-          ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3">
-              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <Icon className="w-4 h-4 text-white" />
+        {/* Features - simple checkmarks, minimal space */}
+        <div className="flex-1 flex flex-col justify-center py-4">
+          <div className="space-y-2">
+            {['Unlimited questions', 'AI Tutor 24/7', 'Detailed rationales', 'Smart review'].map((feature) => (
+              <div key={feature} className="flex items-center gap-2 text-white">
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <Check className="w-3 h-3" />
+                </div>
+                <span className="text-sm font-medium">{feature}</span>
               </div>
-              <span className="text-white font-medium text-sm">{text}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Social proof */}
-        <div className="flex items-center justify-center gap-6 mb-6">
-          <div className="text-center">
-            <p className="text-xl font-black text-white">94%</p>
-            <p className="text-[10px] text-white/70">Pass Rate</p>
-          </div>
-          <div className="w-px h-8 bg-white/30" />
-          <div className="text-center">
-            <p className="text-xl font-black text-white flex items-center gap-1">
-              4.9 <Star className="w-4 h-4 fill-white text-white" />
-            </p>
-            <p className="text-[10px] text-white/70">Rating</p>
-          </div>
-          <div className="w-px h-8 bg-white/30" />
-          <div className="text-center">
-            <p className="text-xl font-black text-white">50K+</p>
-            <p className="text-[10px] text-white/70">Students</p>
+          {/* Social proof - inline */}
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <span className="text-white font-bold text-sm">94% pass</span>
+            <span className="text-white/50">•</span>
+            <span className="text-white font-bold text-sm flex items-center gap-1">
+              4.9 <Star className="w-3 h-3 fill-white" />
+            </span>
+            <span className="text-white/50">•</span>
+            <span className="text-white font-bold text-sm">50K+ users</span>
           </div>
         </div>
 
-        {/* Plan selection */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        {/* Plans */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <button
             onClick={() => setSelectedPlan('weekly')}
             className={cn(
-              'p-3 rounded-xl border-2 transition-all text-center bg-white/10 backdrop-blur-sm',
-              selectedPlan === 'weekly'
-                ? 'border-white bg-white/20'
-                : 'border-white/30 hover:border-white/50'
+              'py-3 px-2 rounded-xl border-2 text-center bg-white/10',
+              selectedPlan === 'weekly' ? 'border-white' : 'border-white/20'
             )}
           >
-            <p className="text-[10px] text-white/70 uppercase tracking-wide">Weekly</p>
-            <p className="text-xl font-black text-white">$4.99</p>
-            <p className="text-[10px] text-white/60">per week</p>
+            <p className="text-[10px] text-white/60 uppercase">Weekly</p>
+            <p className="text-lg font-black text-white">$4.99</p>
           </button>
           <button
             onClick={() => setSelectedPlan('monthly')}
             className={cn(
-              'p-3 rounded-xl border-2 transition-all text-center relative bg-white/10 backdrop-blur-sm',
-              selectedPlan === 'monthly'
-                ? 'border-white bg-white/20'
-                : 'border-white/30 hover:border-white/50'
+              'py-3 px-2 rounded-xl border-2 text-center relative bg-white/10',
+              selectedPlan === 'monthly' ? 'border-white' : 'border-white/20'
             )}
           >
-            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white text-primary text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg">
-              SAVE 50%
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-white text-primary text-[9px] font-bold px-2 py-0.5 rounded-full">
+              BEST
             </div>
-            <p className="text-[10px] text-white/70 uppercase tracking-wide">Monthly</p>
-            <p className="text-xl font-black text-white">$9.99</p>
-            <p className="text-[10px] text-white/60">per month</p>
+            <p className="text-[10px] text-white/60 uppercase">Monthly</p>
+            <p className="text-lg font-black text-white">$9.99</p>
           </button>
         </div>
 
-        {/* CTA Button */}
+        {/* CTA */}
         <Button 
           size="lg" 
-          className="w-full font-bold text-base py-6 bg-white text-primary hover:bg-white/90 shadow-xl"
+          className="w-full font-bold text-base py-6 bg-white text-primary hover:bg-white/90"
           onClick={handleSubscribe}
           disabled={!user}
         >
           <Sparkles className="w-5 h-5 mr-2" />
-          {user ? 'Start Free Trial' : 'Sign In to Continue'}
+          {user ? 'Start Free Trial' : 'Sign In to Subscribe'}
         </Button>
-        
-        <p className="text-[11px] text-center text-white/60 mt-3">
-          Cancel anytime • No charge for 3 days
-        </p>
       </div>
     </div>
   );
