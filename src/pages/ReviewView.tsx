@@ -217,7 +217,7 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   }
 
   return (
-    <div className="pb-24 space-y-4">
+    <div className="pb-6 space-y-4">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-foreground">Review</h1>

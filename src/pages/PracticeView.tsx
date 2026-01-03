@@ -131,8 +131,8 @@ export function PracticeView() {
       return;
     }
 
-    // Scroll to top before changing question
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top immediately before changing question
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Get fresh prioritized list and pick next question
     const currentList = prioritizedQuestions;
@@ -239,7 +239,7 @@ export function PracticeView() {
           )}>
             {accuracy}%
           </span>
-          <span className="text-[10px] text-muted-foreground">acc</span>
+          <span className="text-[10px] text-muted-foreground">accuracy</span>
         </div>
       </div>
 
