@@ -140,9 +140,6 @@
 @layer base {
   * {
     @apply border-border;
-    /* GPU acceleration for all transforms */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
   }
 
   html {
