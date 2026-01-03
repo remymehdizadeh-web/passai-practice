@@ -18,19 +18,19 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Rich teal primary - professional medical feel */
-    --primary: 172 66% 38%;
+    /* Steel blue primary - matching logo */
+    --primary: 207 58% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Soft surfaces */
-    --secondary: 220 14% 96%;
+    /* Soft blue-tinted surfaces */
+    --secondary: 210 20% 96%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 220 14% 92%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 18% 92%;
+    --muted-foreground: 210 10% 46%;
 
-    /* Accent - coral warmth */
-    --accent: 14 90% 58%;
+    /* Accent - orange from logo */
+    --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
 
     /* Semantic colors */
@@ -46,33 +46,33 @@
     /* Borders and inputs */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 172 66% 38%;
+    --ring: 207 58% 50%;
 
     --radius: 1rem;
 
     /* Premium design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(172 66% 38%) 0%, hsl(185 60% 45%) 100%);
-    --gradient-warm: linear-gradient(135deg, hsl(14 90% 58%) 0%, hsl(25 95% 53%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(172 66% 38%) 0%, hsl(199 89% 48%) 50%, hsl(262 83% 58%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(207 58% 50%) 0%, hsl(200 65% 55%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(15 90% 50%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(207 58% 45%) 0%, hsl(207 58% 55%) 50%, hsl(200 65% 60%) 100%);
     
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.06);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.07), 0 8px 10px -6px rgb(0 0 0 / 0.07);
-    --shadow-glow: 0 0 40px -10px hsl(172 66% 38% / 0.4);
-    --shadow-warm: 0 0 40px -10px hsl(14 90% 58% / 0.3);
+    --shadow-glow: 0 0 40px -10px hsl(207 58% 50% / 0.4);
+    --shadow-warm: 0 0 40px -10px hsl(25 95% 53% / 0.3);
     
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 172 66% 38%;
+    --sidebar-primary: 207 58% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent: 210 20% 96%;
     --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 172 66% 38%;
+    --sidebar-border: 210 15% 91%;
+    --sidebar-ring: 207 58% 50%;
   }
 
   .dark {
@@ -86,19 +86,19 @@
     --popover: 222 47% 9%;
     --popover-foreground: 210 40% 96%;
 
-    /* Vibrant teal in dark */
-    --primary: 172 66% 50%;
-    --primary-foreground: 222 47% 8%;
+    /* Vibrant blue in dark */
+    --primary: 207 65% 55%;
+    --primary-foreground: 0 0% 100%;
 
     /* Dark surfaces */
-    --secondary: 217 33% 17%;
+    --secondary: 215 30% 17%;
     --secondary-foreground: 210 40% 96%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 215 30% 17%;
+    --muted-foreground: 210 20% 55%;
 
-    /* Bright coral accent */
-    --accent: 14 90% 62%;
+    /* Bright orange accent */
+    --accent: 25 95% 58%;
     --accent-foreground: 0 0% 100%;
 
     /* Semantic colors - brighter for dark mode */
@@ -112,28 +112,28 @@
     --warning-foreground: 222 47% 8%;
 
     /* Dark borders */
-    --border: 217 33% 20%;
-    --input: 217 33% 17%;
-    --ring: 172 66% 50%;
+    --border: 215 30% 20%;
+    --input: 215 30% 17%;
+    --ring: 207 65% 55%;
 
     /* Dark mode design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(172 66% 50%) 0%, hsl(185 60% 55%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(222 47% 13%) 0%, hsl(222 47% 9%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(207 65% 55%) 0%, hsl(200 70% 60%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(220 40% 13%) 0%, hsl(220 40% 9%) 100%);
     
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
-    --shadow-glow: 0 0 40px -10px hsl(172 66% 50% / 0.5);
+    --shadow-glow: 0 0 40px -10px hsl(207 65% 55% / 0.5);
 
     /* Sidebar */
-    --sidebar-background: 222 47% 8%;
+    --sidebar-background: 220 40% 8%;
     --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 172 66% 50%;
-    --sidebar-primary-foreground: 222 47% 8%;
-    --sidebar-accent: 217 33% 17%;
+    --sidebar-primary: 207 65% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 30% 17%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 217 33% 20%;
-    --sidebar-ring: 172 66% 50%;
+    --sidebar-border: 215 30% 20%;
+    --sidebar-ring: 207 65% 55%;
   }
 }
 
