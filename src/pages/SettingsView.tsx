@@ -81,7 +81,8 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   };
 
   const handleDeleteAccount = async () => {
-    toast.error('Account deletion requires contacting support');
+    // For now, direct users to email support for account deletion
+    window.location.href = 'mailto:support@nclexgo.app?subject=Account%20Deletion%20Request&body=Please%20delete%20my%20account.%20My%20email%20is:%20' + encodeURIComponent(user?.email || '');
     setShowDeleteDialog(false);
   };
 
@@ -108,7 +109,20 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   };
 
   const handleRateApp = () => {
-    toast.info('Thank you for your feedback!');
+    // Detect platform and open appropriate store
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+    const isAndroid = /android/.test(userAgent);
+    
+    if (isIOS) {
+      // Replace with your actual App Store URL when published
+      window.open('https://apps.apple.com/app/id123456789', '_blank');
+    } else if (isAndroid) {
+      // Replace with your actual Play Store URL when published
+      window.open('https://play.google.com/store/apps/details?id=app.lovable.nclexgo', '_blank');
+    } else {
+      toast.info('Rate us on the App Store or Google Play!');
+    }
   };
 
   const handlePushToggle = async () => {
@@ -127,7 +141,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <div className="pb-6 space-y-6">
+    <div className="pb-24 space-y-6">
       {/* Profile Header */}
       <button
         onClick={() => user && setShowProfileEdit(true)}
