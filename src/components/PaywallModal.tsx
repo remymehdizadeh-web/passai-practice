@@ -64,7 +64,7 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-20"
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-20 flex items-center justify-center"
         >
           <X className="w-4 h-4 text-white" />
         </button>
