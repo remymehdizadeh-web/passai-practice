@@ -139,6 +139,13 @@ export function ReviewView({ initialFilter = 'bookmarked' }: ReviewViewProps) {
   };
 
   const handleNext = () => {
+    // Scroll to top when going to next question
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    
     setSelectedQuestion(null);
     setIsSubmitted(false);
     setSelectedLabel(null);

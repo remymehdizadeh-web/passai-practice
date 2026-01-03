@@ -114,10 +114,11 @@ export function QuestionCard({
   return (
     <motion.div
       key={question.id}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       className="bg-card border border-border rounded-2xl p-5"
+      style={{ willChange: 'transform, opacity' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -157,17 +158,21 @@ export function QuestionCard({
 
       {/* Options - increased touch targets */}
       <div className="space-y-3 mb-6">
-        {question.options.map((option) => (
-          <button
+        {question.options.map((option, index) => (
+          <motion.button
             key={`${question.id}-${option.label}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.03 * index, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => handleOptionClick(option.label)}
             disabled={isSubmitted}
             className={cn(
-              'w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-all duration-150',
-              'min-h-[56px]', // Touch target height
+              'w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-colors duration-150',
+              'min-h-[56px]',
               getOptionClass(option.label),
               !isSubmitted && 'hover:border-primary/30 cursor-pointer active:scale-[0.98]'
             )}
+            style={{ willChange: 'transform' }}
           >
             <span className={cn(
               'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0 transition-colors duration-150',
@@ -179,11 +184,9 @@ export function QuestionCard({
             </span>
             <span className="flex-1 pt-1 text-[15px] leading-snug">{option.text}</span>
             {getOptionIcon(option.label)}
-          </button>
+          </motion.button>
         ))}
       </div>
-
-      {/* Submit Button - thumb-zone friendly at bottom */}
       {!isSubmitted && (
         <motion.button
           ref={submitRef}

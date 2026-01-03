@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, Lightbulb, ChevronRight, Sparkles, RefreshCw, Loader2 } from 'lucide-react';
 import type { Question } from '@/types/question';
@@ -61,7 +62,13 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   // Correct answer - streamlined flow with prominent Next
   if (isCorrect) {
     return (
-      <div ref={panelRef} className="animate-fade-in mt-4 space-y-3">
+      <motion.div 
+        ref={panelRef} 
+        className="mt-4 space-y-3"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      >
         {/* Success Banner with Big Next Button */}
         <div className="p-5 rounded-2xl bg-gradient-to-br from-success/20 via-success/10 to-success/5 border border-success/30">
           <div className="flex items-center gap-4 mb-4">
@@ -133,13 +140,19 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         )}
 
         <AskTutorModal isOpen={showTutor} onClose={() => setShowTutor(false)} question={question} selectedLabel={selectedLabel} />
-      </div>
+      </motion.div>
     );
   }
 
   // Incorrect answer - show more detail to help learn
   return (
-    <div ref={panelRef} className="animate-fade-in space-y-3 mt-4">
+    <motion.div 
+      ref={panelRef} 
+      className="space-y-3 mt-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+    >
       {/* Incorrect Banner */}
       <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center gap-3">
         <XCircle className="w-5 h-5 text-destructive shrink-0" />
@@ -212,6 +225,6 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
       )}
 
       <AskTutorModal isOpen={showTutor} onClose={() => setShowTutor(false)} question={question} selectedLabel={selectedLabel} />
-    </div>
+    </motion.div>
   );
 }
