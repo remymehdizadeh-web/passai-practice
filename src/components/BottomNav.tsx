@@ -21,10 +21,10 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
     <nav 
       className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]"
       style={{ 
-        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="flex items-center justify-around py-1.5 px-2 max-w-lg mx-auto">
+      <div className="flex items-center justify-around py-2 px-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
