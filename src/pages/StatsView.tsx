@@ -249,7 +249,7 @@ export function StatsView() {
   }
 
   return (
-    <div className="px-4 pb-6 space-y-4">
+    <div className="px-4 pb-24 space-y-4">
       {/* Header - Same style as Review page */}
       <div>
         <h1 className="text-xl font-bold text-foreground">Stats</h1>
