@@ -33,7 +33,10 @@ const Index = () => {
 
   // Scroll to top whenever active tab changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: 'instant' });
+    }
   }, [activeTab]);
 
   // Handle navigation from location state (e.g., from ReadinessGauge click)

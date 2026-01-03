@@ -131,8 +131,11 @@ export function PracticeView() {
       return;
     }
 
-    // Scroll to absolute top of page
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    // Scroll main container to absolute top
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: 'instant' });
+    }
 
     // Get fresh prioritized list and pick next question
     const currentList = prioritizedQuestions;

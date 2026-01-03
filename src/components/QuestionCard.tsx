@@ -35,11 +35,19 @@ export function QuestionCard({
     setLocalSelected(null);
   }, [question.id]);
 
-  // Auto-scroll to submit button when option is selected
+  // Auto-scroll to submit button only if it's not fully visible
   useEffect(() => {
     if (localSelected && !isSubmitted && submitRef.current) {
       setTimeout(() => {
-        submitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const button = submitRef.current;
+        if (!button) return;
+        
+        const rect = button.getBoundingClientRect();
+        const isFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        
+        if (!isFullyVisible) {
+          button.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }, 100);
     }
   }, [localSelected, isSubmitted]);
