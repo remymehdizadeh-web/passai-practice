@@ -141,21 +141,9 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
   return (
     <div ref={panelRef} className="animate-fade-in space-y-3 mt-4">
       {/* Incorrect Banner */}
-      <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-destructive shrink-0" />
-          <p className="font-semibold text-destructive">Incorrect</p>
-        </div>
-        <Button 
-          ref={nextButtonRef}
-          onClick={onNext} 
-          variant="outline"
-          size="sm"
-          className="shrink-0"
-        >
-          Next
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </Button>
+      <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center gap-3">
+        <XCircle className="w-5 h-5 text-destructive shrink-0" />
+        <p className="font-semibold text-destructive">Incorrect</p>
       </div>
 
       {/* Why your answer was wrong */}
@@ -184,6 +172,17 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
           <p className="text-base font-medium text-amber-950 dark:text-amber-50 leading-snug">{truncateWords(question.takeaway, 20)}</p>
         </div>
       </div>
+
+      {/* Big Next Button - prominent position */}
+      <Button 
+        ref={nextButtonRef}
+        onClick={onNext} 
+        className="w-full btn-premium text-base py-6 min-h-[56px] will-change-transform"
+        autoFocus
+      >
+        Next Question
+        <ChevronRight className="w-5 h-5 ml-1" />
+      </Button>
 
       {/* Actions - touch friendly */}
       <div className="flex gap-2">
