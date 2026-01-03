@@ -31,6 +31,11 @@ const Index = () => {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { reminder, dismissReminder } = useSmartReminders();
 
+  // Scroll to top whenever active tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   // Handle navigation from location state (e.g., from ReadinessGauge click)
   useEffect(() => {
     const state = location.state as { tab?: Tab } | null;
