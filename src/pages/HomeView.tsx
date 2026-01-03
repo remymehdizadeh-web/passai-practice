@@ -297,7 +297,7 @@ export function HomeView({ onNavigate, onOpenWeakArea }: HomeViewProps) {
         {user && stats.answeredCount >= 5 && (
           <CategoryMastery 
             categories={stats.categoryMastery}
-            onCategoryClick={() => {}}
+            onCategoryClick={(category) => onNavigate('practice')}
             compact
           />
         )}

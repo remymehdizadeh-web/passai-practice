@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-
+import { shouldShowPaywall } from '@/lib/session';
 interface PaywallModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -90,11 +90,13 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
           <>
             {/* Hero with limit message */}
             <div className="bg-gradient-to-br from-primary to-accent p-5 text-center text-white shrink-0">
-              <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-bold mb-3">
-                <span>🎯</span> Limit Reached
-              </div>
+              {shouldShowPaywall() && (
+                <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-bold mb-3">
+                  <span>🎯</span> Limit Reached
+                </div>
+              )}
               <Crown className="w-10 h-10 mx-auto mb-2 drop-shadow-lg" />
-              <h2 className="text-xl font-black">You've used all 10 free questions</h2>
+              <h2 className="text-xl font-black">{shouldShowPaywall() ? "You've used all 10 free questions" : "Upgrade to Pro"}</h2>
               <p className="text-white/80 text-sm mt-1">Unlock unlimited access to keep studying</p>
             </div>
 
