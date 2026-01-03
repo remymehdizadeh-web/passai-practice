@@ -59,7 +59,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: progress } = useUserProgress();
-  const { subscribed, tier, subscriptionEnd, isTrialing, trialDaysRemaining, openCustomerPortal } = useSubscription();
+  const { subscribed, tier, subscriptionEnd, isTrialing, trialDaysRemaining, manageSubscription } = useSubscription();
   const [showExamDate, setShowExamDate] = useState(false);
   const [showGoalEdit, setShowGoalEdit] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -299,8 +299,8 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
               iconBg="bg-muted"
               iconColor="text-muted-foreground"
               title="Manage Subscription"
-              subtitle="Update payment, cancel, or change plan"
-              onClick={() => openCustomerPortal()}
+              subtitle="Manage in App Store or Play Store"
+              onClick={() => manageSubscription()}
             />
           </div>
         ) : (
