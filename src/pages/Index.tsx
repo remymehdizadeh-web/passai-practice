@@ -103,8 +103,8 @@ const Index = () => {
         />
       )}
       
-      <div className="flex flex-col h-[100dvh] bg-background">
-        <main className="flex-1 overflow-y-auto overscroll-none scroll-smooth max-w-lg mx-auto w-full px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28">
+      <div className="flex flex-col h-[100dvh] bg-background overflow-hidden">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-none max-w-lg mx-auto w-full px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28">
           <AnimatePresence mode="wait" initial={false}>
             {activeTab === 'home' && (
               <PageTransition key="home">

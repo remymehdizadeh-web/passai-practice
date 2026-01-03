@@ -1,5 +1,4 @@
-import { Button } from '@/components/ui/button';
-import { X, Sparkles, Crown, Star, Check } from 'lucide-react';
+import { X, Crown, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
@@ -10,6 +9,13 @@ interface PaywallModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const FEATURES = [
+  'Unlimited practice questions',
+  'AI Tutor available 24/7',
+  'Detailed explanations',
+  'Smart spaced repetition',
+];
 
 export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly'>('monthly');
@@ -23,127 +29,119 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
       toast.error('Please sign in to subscribe');
       return;
     }
-
     const productId = SUBSCRIPTION_TIERS[selectedPlan].product_id;
     await startPurchase(productId);
-    toast.info('In-app purchase will be available in the native app');
+    toast.info('In-app purchase available in the native app');
   };
 
-  const handleManageSubscription = async () => {
-    await manageSubscription();
-    toast.info('Subscription management will be available in the native app');
-  };
-
+  // Already subscribed view
   if (subscribed) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative z-10 w-full max-w-sm bg-card rounded-2xl p-6 space-y-4 text-center animate-scale-in shadow-2xl border border-border">
+      <div className="fixed inset-0 z-50 bg-background">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-muted flex items-center justify-center"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mb-4">
+            <Check className="w-10 h-10 text-success" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">You're a Pro!</h2>
+          <p className="text-muted-foreground mb-6">All features unlocked</p>
           <button
-            onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-muted hover:bg-muted/80 transition-colors flex items-center justify-center"
+            onClick={() => { manageSubscription(); onClose(); }}
+            className="btn-premium text-primary-foreground px-8 py-4 text-lg"
           >
-            <X className="w-4 h-4" />
-          </button>
-          <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto">
-            <Check className="w-8 h-8 text-success" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">You're a Pro!</h2>
-            <p className="text-muted-foreground">All features unlocked</p>
-          </div>
-          <Button onClick={handleManageSubscription} className="w-full" size="lg">
             Manage Subscription
-          </Button>
+          </button>
         </div>
       </div>
     );
   }
 
-  // Fullscreen paywall - NO SCROLL, everything fits
+  // Paywall - FULLSCREEN, NO SCROLL
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary via-primary to-accent overflow-hidden">
-      {/* Close button */}
+    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary via-primary to-accent flex flex-col">
+      {/* Close */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-20 flex items-center justify-center"
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center"
       >
         <X className="w-5 h-5 text-white" />
       </button>
 
-      {/* Content container - uses flex to distribute space evenly */}
-      <div className="h-full flex flex-col px-5 pt-12 pb-6">
-        {/* Hero */}
-        <div className="text-center text-white">
-          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center mx-auto mb-3">
-            <Crown className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-2xl font-black">Unlock Pro</h1>
-          <p className="text-white/70 text-sm">3-day free trial • Cancel anytime</p>
+      {/* Top section - Icon + Title */}
+      <div className="pt-16 pb-4 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-3">
+          <Crown className="w-8 h-8 text-white" />
         </div>
+        <h1 className="text-3xl font-black text-white">Go Pro</h1>
+        <p className="text-white/70 text-sm mt-1">3-day free trial • Cancel anytime</p>
+      </div>
 
-        {/* Features - simple checkmarks, minimal space */}
-        <div className="flex-1 flex flex-col justify-center py-4">
-          <div className="space-y-2">
-            {['Unlimited questions', 'AI Tutor 24/7', 'Detailed rationales', 'Smart review'].map((feature) => (
-              <div key={feature} className="flex items-center gap-2 text-white">
-                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span className="text-sm font-medium">{feature}</span>
+      {/* Middle - Features */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="space-y-3 w-full max-w-xs">
+          {FEATURES.map((f) => (
+            <div key={f} className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <Check className="w-4 h-4 text-white" />
               </div>
-            ))}
-          </div>
-
-          {/* Social proof - inline */}
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <span className="text-white font-bold text-sm">94% pass</span>
-            <span className="text-white/50">•</span>
-            <span className="text-white font-bold text-sm flex items-center gap-1">
-              4.9 <Star className="w-3 h-3 fill-white" />
-            </span>
-            <span className="text-white/50">•</span>
-            <span className="text-white font-bold text-sm">50K+ users</span>
-          </div>
+              <span className="text-white font-medium">{f}</span>
+            </div>
+          ))}
         </div>
+      </div>
 
-        {/* Plans */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
+      {/* Bottom - Plans + CTA */}
+      <div className="px-6 pb-8 space-y-4">
+        {/* Plan selection */}
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => setSelectedPlan('weekly')}
             className={cn(
-              'py-3 px-2 rounded-xl border-2 text-center bg-white/10',
-              selectedPlan === 'weekly' ? 'border-white' : 'border-white/20'
+              'py-4 rounded-2xl border-2 text-center transition-all',
+              selectedPlan === 'weekly'
+                ? 'border-white bg-white/20'
+                : 'border-white/30 bg-white/10'
             )}
           >
-            <p className="text-[10px] text-white/60 uppercase">Weekly</p>
-            <p className="text-lg font-black text-white">$4.99</p>
+            <p className="text-xs text-white/60 uppercase tracking-wide">Weekly</p>
+            <p className="text-2xl font-black text-white">$4.99</p>
           </button>
           <button
             onClick={() => setSelectedPlan('monthly')}
             className={cn(
-              'py-3 px-2 rounded-xl border-2 text-center relative bg-white/10',
-              selectedPlan === 'monthly' ? 'border-white' : 'border-white/20'
+              'py-4 rounded-2xl border-2 text-center relative transition-all',
+              selectedPlan === 'monthly'
+                ? 'border-white bg-white/20'
+                : 'border-white/30 bg-white/10'
             )}
           >
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-white text-primary text-[9px] font-bold px-2 py-0.5 rounded-full">
-              BEST
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white text-primary text-xs font-bold px-3 py-0.5 rounded-full">
+              BEST VALUE
             </div>
-            <p className="text-[10px] text-white/60 uppercase">Monthly</p>
-            <p className="text-lg font-black text-white">$9.99</p>
+            <p className="text-xs text-white/60 uppercase tracking-wide">Monthly</p>
+            <p className="text-2xl font-black text-white">$9.99</p>
           </button>
         </div>
 
         {/* CTA */}
-        <Button 
-          size="lg" 
-          className="w-full font-bold text-base py-6 bg-white text-primary hover:bg-white/90"
+        <button
           onClick={handleSubscribe}
           disabled={!user}
+          className="w-full py-5 rounded-2xl bg-white text-primary font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
         >
-          <Sparkles className="w-5 h-5 mr-2" />
-          {user ? 'Start Free Trial' : 'Sign In to Subscribe'}
-        </Button>
+          <Sparkles className="w-5 h-5" />
+          {user ? 'Start Free Trial' : 'Sign In First'}
+        </button>
+
+        {/* Terms */}
+        <p className="text-center text-white/50 text-xs">
+          Payment charged after trial ends. Cancel anytime in settings.
+        </p>
       </div>
     </div>
   );
