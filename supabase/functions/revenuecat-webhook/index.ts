@@ -32,10 +32,20 @@ serve(async (req) => {
       });
     }
 
-    // RevenueCat sends the secret as "Bearer <secret>" in Authorization header
-    const providedSecret = authHeader?.replace('Bearer ', '');
+    // RevenueCat sends the secret in Authorization header
+    // Could be "Bearer <secret>" or just "<secret>"
+    const providedSecret = authHeader?.replace('Bearer ', '').trim();
+    
+    logStep("Auth comparison", { 
+      authHeaderReceived: authHeader ? `${authHeader.substring(0, 10)}...` : 'null',
+      expectedLength: expectedSecret.length,
+      providedLength: providedSecret?.length || 0
+    });
+    
     if (providedSecret !== expectedSecret) {
-      logStep("ERROR: Invalid webhook secret");
+      logStep("ERROR: Invalid webhook secret", {
+        match: providedSecret === expectedSecret
+      });
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
