@@ -176,31 +176,30 @@
     user-select: text;
   }
 
-  /* App container for proper scrolling */
+  /* App container for proper scrolling - NATIVE APP FEEL */
   #root {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
+    /* Hide scrollbar completely for native app feel */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
-  /* Premium scrollbar */
+  #root::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide all scrollbars by default for native app feel */
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    display: none;
   }
 
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   /* Hide scrollbar for horizontal scroll areas */
