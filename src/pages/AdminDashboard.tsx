@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -5,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserDetailModal } from "@/components/admin/UserDetailModal";
 import { 
   ArrowLeft, 
   Users, 
@@ -13,7 +15,8 @@ import {
   TrendingUp,
   Calendar,
   BarChart3,
-  Shield
+  Shield,
+  ChevronRight
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
@@ -23,9 +26,18 @@ interface DailyActivity {
   users: number;
 }
 
+interface UserWithStats {
+  id: string;
+  display_name: string | null;
+  created_at: string;
+  streak_days: number | null;
+  exam_date: string | null;
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { isAdmin, isLoading: adminLoading, user } = useAdmin();
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch total user count
   const { data: userCount, isLoading: usersLoading } = useQuery({
@@ -132,6 +144,22 @@ export default function AdminDashboard() {
       
       if (error) throw error;
       return count ?? 0;
+    },
+    enabled: isAdmin,
+  });
+
+  // Fetch all users with basic info
+  const { data: allUsers, isLoading: usersListLoading } = useQuery({
+    queryKey: ["admin-all-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name, created_at, streak_days, exam_date")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data as UserWithStats[];
     },
     enabled: isAdmin,
   });
@@ -270,6 +298,49 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* User List */}
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              All Users (Click to view details)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {usersListLoading ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {allUsers?.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => setSelectedUser({ id: u.id, name: u.display_name || 'Unknown' })}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-primary">
+                        {(u.display_name || 'U')[0].toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{u.display_name || 'Unknown'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Joined {format(new Date(u.created_at), 'MMM d, yyyy')}
+                        {u.streak_days ? ` • ${u.streak_days} day streak` : ''}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Daily Activity Chart */}
         <Card>
           <CardHeader>
@@ -314,6 +385,16 @@ export default function AdminDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* User Detail Modal */}
+      {selectedUser && (
+        <UserDetailModal
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+          userId={selectedUser.id}
+          displayName={selectedUser.name}
+        />
+      )}
     </div>
   );
 }
