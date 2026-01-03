@@ -70,6 +70,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
@@ -513,20 +514,38 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       </AlertDialog>
 
       {/* Delete Account Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={(open) => !isDeleting && setShowDeleteDialog(open)}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={(open) => {
+        if (!isDeleting) {
+          setShowDeleteDialog(open);
+          if (!open) setDeleteConfirmText('');
+        }
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Account?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete your account? This action cannot be undone and all your progress will be permanently lost.
+            <AlertDialogDescription className="space-y-3">
+              <span className="block">
+                This action cannot be undone. All your progress will be permanently lost.
+              </span>
+              <span className="block font-medium text-foreground">
+                Type <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-destructive">DELETE</span> to confirm:
+              </span>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE here"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50"
+                disabled={isDeleting}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteAccount}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting || deleteConfirmText !== 'DELETE'}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
             >
               {isDeleting ? 'Deleting...' : 'Delete Account'}
             </AlertDialogAction>
