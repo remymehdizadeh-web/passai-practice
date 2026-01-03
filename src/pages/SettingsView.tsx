@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserProgress } from '@/hooks/useQuestions';
@@ -68,6 +69,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
@@ -81,9 +83,38 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
   };
 
   const handleDeleteAccount = async () => {
-    // For now, direct users to email support for account deletion
-    window.location.href = 'mailto:support@nclexgo.app?subject=Account%20Deletion%20Request&body=Please%20delete%20my%20account.%20My%20email%20is:%20' + encodeURIComponent(user?.email || '');
-    setShowDeleteDialog(false);
+    setIsDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('You must be signed in to delete your account');
+        setIsDeleting(false);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Delete account error:', error);
+        toast.error('Failed to delete account. Please try again.');
+        setIsDeleting(false);
+        return;
+      }
+
+      toast.success('Account deleted successfully');
+      setShowDeleteDialog(false);
+      await signOut();
+      navigate('/auth');
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleExportData = async () => {
@@ -482,7 +513,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       </AlertDialog>
 
       {/* Delete Account Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={(open) => !isDeleting && setShowDeleteDialog(open)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Account?</AlertDialogTitle>
@@ -491,12 +522,13 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteAccount}
+              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Account
+              {isDeleting ? 'Deleting...' : 'Delete Account'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
