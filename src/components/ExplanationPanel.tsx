@@ -34,7 +34,7 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
     ? wrongBullets.find(w => w.label === selectedLabel)
     : null;
 
-  // Auto-scroll to show explanation panel after submission
+  // Auto-scroll to show explanation panel after submission (slower, more gentle)
   useEffect(() => {
     if (panelRef.current) {
       setTimeout(() => {
@@ -43,7 +43,7 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
         if (nextButtonRef.current) {
           nextButtonRef.current.focus();
         }
-      }, 150);
+      }, 400);
     }
   }, []);
 
