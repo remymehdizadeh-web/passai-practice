@@ -131,7 +131,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
       {/* Profile Header */}
       <button
         onClick={() => user && setShowProfileEdit(true)}
-        className="w-full bg-card border border-border rounded-2xl p-4 hover:shadow-md transition-all active:scale-[0.99] text-left"
+        className="w-full bg-card border border-border rounded-2xl p-4 hover:shadow-md transition-shadow duration-200 active:scale-[0.99] will-change-transform text-left"
       >
         <div className="flex items-center gap-4">
           {profile?.avatar_url ? (
@@ -260,7 +260,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
         ) : (
           <button
             onClick={() => setShowPaywall(true)}
-            className="w-full bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 rounded-xl p-5 hover:shadow-xl transition-all active:scale-[0.99] relative overflow-hidden group"
+            className="w-full bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 rounded-xl p-5 hover:shadow-xl transition-shadow duration-200 active:scale-[0.99] will-change-transform relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             <div className="absolute top-2 right-2 px-2 py-0.5 bg-amber-900/20 text-amber-900 text-[9px] font-bold rounded-full">
@@ -422,7 +422,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             />
             <button
               onClick={() => setShowDeleteDialog(true)}
-              className="w-full bg-card border border-border border-l-4 border-l-destructive rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+              className="w-full bg-card border border-border border-l-4 border-l-destructive rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-shadow duration-200 active:scale-[0.99] will-change-transform"
             >
               <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-destructive" />
@@ -436,7 +436,7 @@ export function SettingsView({ onNavigateToStats }: SettingsViewProps) {
             
             <button
               onClick={() => setShowSignOutDialog(true)}
-              className="w-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+              className="w-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-shadow duration-200 active:scale-[0.99] will-change-transform"
             >
               <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
                 <LogOut className="w-5 h-5 text-rose-500" />
@@ -537,7 +537,7 @@ function SettingsCard({ icon: Icon, iconBg, iconColor, title, subtitle, hint, on
   return (
     <button
       onClick={onClick}
-      className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+      className="w-full bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-shadow duration-200 active:scale-[0.99] will-change-transform"
     >
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg)}>
         <Icon className={cn("w-5 h-5", iconColor)} />
@@ -614,7 +614,7 @@ function ThemeToggle() {
               key={option.value}
               onClick={() => setTheme(option.value)}
               className={cn(
-                "flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border transition-all",
+                "flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border transition-colors duration-200",
                 isActive 
                   ? "border-primary bg-primary text-primary-foreground" 
                   : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
