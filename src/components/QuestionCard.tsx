@@ -148,17 +148,13 @@ export function QuestionCard({
 
       {/* Options - increased touch targets */}
       <div className="space-y-3 mb-6">
-        {question.options.map((option, index) => (
-          <motion.button
-            key={option.label}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.2 }}
-            whileTap={{ scale: isSubmitted ? 1 : 0.98 }}
+        {question.options.map((option) => (
+          <button
+            key={`${question.id}-${option.label}`}
             onClick={() => handleOptionClick(option.label)}
             disabled={isSubmitted}
             className={cn(
-              'w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-all duration-150 will-change-transform',
+              'w-full text-left p-4 rounded-xl border flex items-start gap-3 transition-all duration-150',
               'min-h-[56px]', // Touch target height
               getOptionClass(option.label),
               !isSubmitted && 'hover:border-primary/30 cursor-pointer active:scale-[0.98]'
@@ -174,7 +170,7 @@ export function QuestionCard({
             </span>
             <span className="flex-1 pt-1 text-[15px] leading-snug">{option.text}</span>
             {getOptionIcon(option.label)}
-          </motion.button>
+          </button>
         ))}
       </div>
 
