@@ -19,9 +19,9 @@ const navItems = [
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)] pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]"
     >
-      <div className="flex items-center justify-around py-2 px-2 max-w-lg mx-auto">
+      <div className="flex items-center justify-around py-2 px-2 max-w-lg mx-auto pb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
