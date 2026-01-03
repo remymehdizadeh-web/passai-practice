@@ -34,16 +34,16 @@ export function ExplanationPanel({ question, selectedLabel, onNext }: Explanatio
     ? wrongBullets.find(w => w.label === selectedLabel)
     : null;
 
-  // Auto-scroll to panel and focus next button
+  // Auto-scroll to show explanation panel after submission
   useEffect(() => {
     if (panelRef.current) {
       setTimeout(() => {
-        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Focus the next button for easy keyboard navigation
         if (nextButtonRef.current) {
           nextButtonRef.current.focus();
         }
-      }, 100);
+      }, 150);
     }
   }, []);
 
