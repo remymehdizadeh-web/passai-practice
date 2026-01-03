@@ -152,6 +152,8 @@
     overscroll-behavior: none;
     /* Safe areas for notched devices */
     padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
   }
 
   body {
@@ -164,6 +166,8 @@
     overscroll-behavior-y: none;
     min-height: 100vh;
     min-height: 100dvh;
+    /* Prevent tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Allow text selection in content areas */
@@ -227,7 +231,7 @@
     @apply bg-card relative overflow-hidden;
     border-radius: 1.5rem;
     box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
   }
 
   .card-organic::before {
@@ -246,7 +250,11 @@
 
   .card-organic:hover {
     box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+  }
+
+  .card-organic:active {
+    transform: scale(0.99);
   }
 
   .card-organic:hover::before {
@@ -259,12 +267,12 @@
     background: var(--gradient-primary);
     border-radius: 1rem;
     box-shadow: var(--shadow-md), var(--shadow-glow);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
   }
 
   .btn-premium:hover {
     box-shadow: var(--shadow-lg), var(--shadow-glow);
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-1px) scale(1.01);
   }
 
   .btn-premium:active {

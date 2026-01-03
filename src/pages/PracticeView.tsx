@@ -131,11 +131,11 @@ export function PracticeView() {
       return;
     }
 
-    // Scroll to absolute top of the page
+    // Scroll to absolute top of the page with smooth animation
     window.scrollTo({ top: 0, behavior: 'instant' });
     const mainEl = document.querySelector('main');
     if (mainEl) {
-      mainEl.scrollTop = 0;
+      mainEl.scrollTo({ top: 0, behavior: 'instant' });
     }
 
     // Get fresh prioritized list and pick next question

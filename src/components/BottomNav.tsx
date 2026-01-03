@@ -19,9 +19,10 @@ const navItems = [
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/50"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="flex items-center justify-around py-2 px-2 max-w-lg mx-auto pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-center justify-around py-1.5 px-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -29,9 +30,9 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={cn(
-                'relative flex flex-col items-center justify-center gap-0.5 py-2.5 px-4 rounded-xl transition-all duration-200',
-                'min-h-[52px] min-w-[52px]', // Touch target size
-                'active:scale-95 will-change-transform', // GPU-accelerated press feedback
+                'relative flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-150',
+                'min-h-[48px] min-w-[48px]',
+                'active:scale-95 will-change-transform',
                 isActive
                   ? item.color
                   : 'text-muted-foreground hover:text-foreground'
