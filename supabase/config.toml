@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.delete-account]
 verify_jwt = false
+
+[functions.admin-user-subscriptions]
+verify_jwt = false
