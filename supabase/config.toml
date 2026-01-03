@@ -12,15 +12,6 @@ verify_jwt = false
 [functions.generate-questions]
 verify_jwt = false
 
-[functions.check-subscription]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.customer-portal]
-verify_jwt = false
-
 [functions.revenuecat-webhook]
 verify_jwt = false
 

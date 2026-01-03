@@ -2,18 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-// Stripe price/product mapping
+// App Store subscription tiers (RevenueCat product IDs)
 export const SUBSCRIPTION_TIERS = {
   weekly: {
-    price_id: 'price_1Skv5UPiNbm75vyPgDiVlJzT',
-    product_id: 'prod_TiLnO9OwG9nD3M',
+    product_id: 'nclex_pro_weekly',
     name: 'Weekly',
     price: 4.99,
     interval: 'week',
   },
   monthly: {
-    price_id: 'price_1Skv5gPiNbm75vyPZEiE8GAR',
-    product_id: 'prod_TiLnvdsJ9D0GdT',
+    product_id: 'nclex_pro_monthly',
     name: 'Monthly',
     price: 9.99,
     interval: 'month',
@@ -23,7 +21,6 @@ export const SUBSCRIPTION_TIERS = {
 export interface SubscriptionStatus {
   subscribed: boolean;
   productId: string | null;
-  priceId: string | null;
   subscriptionEnd: string | null;
   tier: 'weekly' | 'monthly' | null;
   isLoading: boolean;
@@ -37,7 +34,6 @@ export function useSubscription() {
   const [status, setStatus] = useState<SubscriptionStatus>({
     subscribed: false,
     productId: null,
-    priceId: null,
     subscriptionEnd: null,
     tier: null,
     isLoading: true,
@@ -51,7 +47,6 @@ export function useSubscription() {
       setStatus({
         subscribed: false,
         productId: null,
-        priceId: null,
         subscriptionEnd: null,
         tier: null,
         isLoading: false,
@@ -63,17 +58,13 @@ export function useSubscription() {
     }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setStatus(prev => ({ ...prev, isLoading: false }));
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      // Check subscription_events table for active subscription
+      const { data: events, error } = await supabase
+        .from('subscription_events')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
       if (error) {
         console.error('Error checking subscription:', error);
@@ -81,31 +72,54 @@ export function useSubscription() {
         return;
       }
 
+      const latestEvent = events?.[0];
+      
+      if (!latestEvent) {
+        setStatus({
+          subscribed: false,
+          productId: null,
+          subscriptionEnd: null,
+          tier: null,
+          isLoading: false,
+          isTrialing: false,
+          trialEnd: null,
+          trialDaysRemaining: null,
+        });
+        return;
+      }
+
+      // Check if subscription is still active
+      const isActive = latestEvent.expiration_at 
+        ? new Date(latestEvent.expiration_at) > new Date()
+        : false;
+      
+      const isCancelled = ['CANCELLATION', 'EXPIRATION'].includes(latestEvent.event_type);
+      const subscribed = isActive && !isCancelled;
+      
       // Determine tier based on product_id
       let tier: 'weekly' | 'monthly' | null = null;
-      if (data.product_id === SUBSCRIPTION_TIERS.weekly.product_id) {
+      if (latestEvent.product_id?.includes('weekly')) {
         tier = 'weekly';
-      } else if (data.product_id === SUBSCRIPTION_TIERS.monthly.product_id) {
+      } else if (latestEvent.product_id?.includes('monthly')) {
         tier = 'monthly';
       }
 
       // Calculate trial days remaining
       let trialDaysRemaining: number | null = null;
-      if (data.is_trialing && data.trial_end) {
-        const trialEndDate = new Date(data.trial_end);
+      if (latestEvent.is_trial && latestEvent.expiration_at) {
+        const trialEndDate = new Date(latestEvent.expiration_at);
         const now = new Date();
         trialDaysRemaining = Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
       }
 
       setStatus({
-        subscribed: data.subscribed,
-        productId: data.product_id,
-        priceId: data.price_id,
-        subscriptionEnd: data.subscription_end,
+        subscribed,
+        productId: latestEvent.product_id,
+        subscriptionEnd: latestEvent.expiration_at,
         tier,
         isLoading: false,
-        isTrialing: data.is_trialing || false,
-        trialEnd: data.trial_end || null,
+        isTrialing: latestEvent.is_trial || false,
+        trialEnd: latestEvent.is_trial ? latestEvent.expiration_at : null,
         trialDaysRemaining,
       });
     } catch (error) {
@@ -127,53 +141,23 @@ export function useSubscription() {
     return () => clearInterval(interval);
   }, [user, checkSubscription]);
 
-  const createCheckout = async (priceId: string) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Error creating checkout:', error);
-      throw error;
-    }
+  // Placeholder for native in-app purchase - will be handled by RevenueCat SDK
+  const startPurchase = async (productId: string) => {
+    console.log('Native purchase will be handled by RevenueCat SDK:', productId);
+    // This will be replaced with RevenueCat SDK call in the native app
   };
 
-  const openCustomerPortal = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase.functions.invoke('customer-portal', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Error opening customer portal:', error);
-      throw error;
-    }
+  // Placeholder for managing subscription - opens App Store subscriptions
+  const manageSubscription = async () => {
+    // On iOS, this would deep link to Settings > Subscriptions
+    // On Android, this would open Play Store subscriptions
+    console.log('Opening native subscription management...');
   };
 
   return {
     ...status,
     checkSubscription,
-    createCheckout,
-    openCustomerPortal,
+    startPurchase,
+    manageSubscription,
   };
 }

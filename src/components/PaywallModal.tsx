@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { X, Check, Sparkles, Crown, Loader2, Star, Infinity, Brain, BookOpen, TrendingUp } from 'lucide-react';
+import { X, Check, Sparkles, Crown, Star, Infinity, Brain, BookOpen, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useSubscription, SUBSCRIPTION_TIERS } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { shouldShowPaywall } from '@/lib/session';
+
 interface PaywallModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,8 +14,7 @@ interface PaywallModalProps {
 
 export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<'weekly' | 'monthly'>('monthly');
-  const [isLoading, setIsLoading] = useState(false);
-  const { createCheckout, subscribed, openCustomerPortal } = useSubscription();
+  const { subscribed, startPurchase, manageSubscription } = useSubscription();
   const { user } = useAuth();
 
   if (!isOpen) return null;
@@ -25,43 +25,26 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const priceId = SUBSCRIPTION_TIERS[selectedPlan].price_id;
-      await createCheckout(priceId);
-      // Don't close the modal - let user see checkout opened
-      toast.success('Checkout opened in new tab');
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Failed to start checkout. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    const productId = SUBSCRIPTION_TIERS[selectedPlan].product_id;
+    await startPurchase(productId);
+    toast.info('In-app purchase will be available in the native app');
   };
 
   const handleManageSubscription = async () => {
-    setIsLoading(true);
-    try {
-      await openCustomerPortal();
-      onClose();
-    } catch (error) {
-      console.error('Portal error:', error);
-      toast.error('Failed to open subscription management.');
-    } finally {
-      setIsLoading(false);
-    }
+    await manageSubscription();
+    toast.info('Subscription management will be available in the native app');
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal - Bottom sheet on mobile, centered on desktop */}
-      <div className="relative z-10 w-full sm:max-w-sm bg-card sm:rounded-2xl rounded-t-2xl overflow-hidden animate-scale-in shadow-2xl border border-border max-h-[85vh] sm:max-h-[90vh] flex flex-col">
+      {/* Modal - Centered with fixed max height */}
+      <div className="relative z-10 w-full max-w-sm bg-card rounded-2xl overflow-hidden animate-scale-in shadow-2xl border border-border">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -81,16 +64,15 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
             </div>
             <Button 
               onClick={handleManageSubscription}
-              disabled={isLoading}
               className="w-full"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Manage Subscription'}
+              Manage Subscription
             </Button>
           </div>
         ) : (
           <>
             {/* Hero - Compact */}
-            <div className="bg-gradient-to-br from-primary to-accent p-4 text-center text-white shrink-0">
+            <div className="bg-gradient-to-br from-primary to-accent p-4 text-center text-white">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Crown className="w-6 h-6 drop-shadow-lg" />
                 <h2 className="text-lg font-black">{shouldShowPaywall() ? "Limit Reached" : "Upgrade to Pro"}</h2>
@@ -98,8 +80,8 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
               <p className="text-white/80 text-xs">Unlock unlimited access • 3-day free trial</p>
             </div>
 
-            {/* Content - Compact for mobile */}
-            <div className="p-4 space-y-3 overflow-y-auto">
+            {/* Content - Compact */}
+            <div className="p-4 space-y-3">
               {/* What you get - 2x2 compact grid */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
@@ -179,19 +161,13 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
                 size="lg" 
                 className="w-full font-bold text-sm py-5"
                 onClick={handleSubscribe}
-                disabled={isLoading || !user}
+                disabled={!user}
               >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    {user ? 'Start 3-Day Free Trial' : 'Sign In to Continue'}
-                  </>
-                )}
+                <Sparkles className="w-5 h-5" />
+                {user ? 'Start 3-Day Free Trial' : 'Sign In to Continue'}
               </Button>
               
-              <p className="text-[10px] text-center text-muted-foreground pb-1">
+              <p className="text-[10px] text-center text-muted-foreground">
                 ✓ Cancel anytime • ✓ No charge for 3 days
               </p>
             </div>
